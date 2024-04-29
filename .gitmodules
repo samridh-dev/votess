@@ -1,0 +1,9 @@
+[submodule "extern/pybind11"]
+	path = extern/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "extern/catch2"]
+	path = extern/catch2
+	url = https://github.com/catchorg/Catch2.git
+[submodule "extern/voropp"]
+	path = extern/voropp
+	url = https://github.com/chr1shr/voro.git

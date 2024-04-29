@@ -1,0 +1,5 @@
+unset(ENABLE_BUILD_VOTESS   CACHE)
+unset(ENABLE_BUILD_TEST     CACHE)
+unset(ENABLE_BUILD_PYVOTESS CACHE)
+unset(ENABLE_DEBUG          CACHE)
+unset(USE_ACPP              CACHE)
