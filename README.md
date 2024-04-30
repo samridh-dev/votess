@@ -40,7 +40,7 @@ Currently compilation from source is the only possibility.
 To get the repository, first clone the repository and change to the cloned 
 directory
 ```bash
-git clone https://github.com/cbyrohl/votess.git
+git clone https://github.com/samridh-dev/votess.git
 cd votess
 ```
 you should then review the compilation options located in the file
