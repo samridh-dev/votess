@@ -17,19 +17,19 @@ gratitude to them.
 The project requires a SYCL-compatible compiler supporting C++17 or later.
 Currently, the following compilers have been tested and confirmed to work:
 
-- **Intel's `dpc++` Compiler** (Recommended)
-- **AdaptiveCpp `acpp` Compiler** 
+- **Intel® oneAPI DPC++/C++ Compiler** (Recommended)
+- **AdaptiveCpp (formerly known as hipSYCL / Open SYCL) acpp Compiler** 
 
 The library and command line program does **not** require any additional
 dependencies. However, if you wish to compile pyvotess or the test cases,
 the following dependencies are required.
 
 #### Python Bindings
-- **pybind11**
+- [**pybind11**:](https://github.com/pybind/pybind11)
 
 #### Test Cases
-- **voro++**
-- **Catch2**
+- [**voro++**:](https://github.com/chr1shr/voro)
+- [**Catch2**:](https://github.com/catchorg/Catch2)
 
 In any case, the build script will manage all dependencies locally so manual
 installation is not necessary.
@@ -58,11 +58,10 @@ The selected binaries will then be generated at `${project-root}/bin/`
 There exists three main APIs one could use: 
 `Python >=3.5, >=C++17, (Unix)*sh`
 
-If compiled with the dpc++ compiler, the following command must be run
-in the terminal instance:
-```bash
-source /opt/intel/oneapi/setvars.sh
-```
+If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing setvars.sh before
+running the application is necessary. 
+
+On Linux and MacOS, this could be
 
 ### C++
 
