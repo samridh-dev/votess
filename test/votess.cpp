@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp> 
 #include <catch2/matchers/catch_matchers_floating_point.hpp> 
 
-#include <iostream>
 
 #include <votess.hpp>
 
@@ -166,6 +165,7 @@ TEST_CASE("votess regression 8: concentric points", "[votess]") {
 
 /* ------------------------------------------------------------------------- */
 
+#include <iostream>
 class __internal__suppress_stdout {
   public:
     __internal__suppress_stdout() : buf(std::cout.rdbuf()) {
@@ -181,21 +181,7 @@ class __internal__suppress_stdout {
 
 /* ------------------------------------------------------------------------- */
 
-template <typename T>
-static void 
-save(const std::vector<std::array<T,3>>& vec, const std::string& fname) {
-  std::ofstream fout(fname);
-  for (const auto& arr : vec) fout<<arr[0]<<" "<<arr[1]<<" "<<arr[2]<<"\n";
-}
-
-/* ------------------------------------------------------------------------- */
-
 #include <voro++.hh>
-#include <filesystem>
-#include <vector>
-#include <array>
-#include <utility>
-
 template <typename T>
 static std::pair<std::vector<std::array<T, 3>>, std::vector<std::vector<int>>>
 run_voro(
