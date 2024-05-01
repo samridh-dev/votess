@@ -61,7 +61,10 @@ There exists three main APIs one could use:
 If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing setvars.sh before
 running the application is necessary. 
 
-On Linux and MacOS, this could be
+On Linux and MacOS, the default location for oneAPI setvars.sh is:
+```bash 
+/opt/intel/oneapi/setvars.sh
+```
 
 ### C++
 
