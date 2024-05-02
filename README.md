@@ -37,6 +37,24 @@ installation is not necessary.
 ## Installation
 
 Currently compilation from source is the only possibility.
+
+### Compiler Installation.
+
+To install the Intel® oneAPI compiler, refer to the installation
+[instructions](https://www.intel.com/content/www/us/en/developer/articles/guide/installation-guide-for-oneapi-toolkits.html).
+
+If using Arch Linux, the following command will be sufficient:
+```bash
+pacman -S intel-oneapi-basekit
+```
+
+Before using the compiler, it is necessary to source the relevant environment
+variables. Instructions on how to do so are provided for:
+ - [Linux](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-linux.html) 
+ - [Windows](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-windows.html).
+
+
+### Application Compilation
 To get the repository, first clone the repository and change to the cloned 
 directory
 ```bash
@@ -52,19 +70,13 @@ After that, execute the command located at project root:
 ```
 The selected binaries will then be generated at `${project-root}/bin/`
 
-
 # Basic Usage
 
 There exists three main APIs one could use: 
 `Python >=3.5, >=C++17, (Unix)*sh`
 
-If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing setvars.sh before
-running the application is necessary. 
-
-On Linux and MacOS, the default location for oneAPI setvars.sh is:
-```bash 
-/opt/intel/oneapi/setvars.sh
-```
+If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing the environment
+variables before running the application is required. 
 
 ### C++
 
