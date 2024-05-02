@@ -53,6 +53,8 @@ variables. Instructions on how to do so are provided for:
  - [Linux](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-linux.html) 
  - [Windows](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-windows.html).
 
+To install AdaptiveCpp, refer to the installation page on
+[github](.https://github.com/AdaptiveCpp/AdaptiveCpp/blob/develop/doc/installing.md).
 
 ### Application Compilation
 To get the repository, first clone the repository and change to the cloned 
