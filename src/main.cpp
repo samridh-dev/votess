@@ -31,21 +31,12 @@ print_help(const char* const executable) {
   (void)executable;
   std::cout <<
 
-"Options:\n"
-" -h, --help              Show help\n"
-" -v, --version           Show version\n"
-" -i, --infile  <infile>  Specify input file. Required argument.\n"
-" -k, --k_init  <k_init>  Specify initial k for k-nearest neighbor search.\n"
-
-  << std::endl;
-}
-
-static void
-print_help_all(const char* const executable) {
-  (void)executable;
-  std::cout <<
-    
-"Options:\n"
+"\nOptions:\n"
+" -h, --help               Show help\n"
+" -v, --version            Show version\n"
+" -i, --infile   <infile>  Specify input file. Required argument.\n"
+" -k, --k-init   <k_init>  Specify initial k for k-nearest neighbor search.\n"
+" -g, --gridres  <k_init>  Specify grid resolution.\n"
 
   << std::endl;
 }
@@ -63,76 +54,79 @@ static int grid_resolution = 24;
 ///////////////////////////////////////////////////////////////////////////////
 /// Main
 ///////////////////////////////////////////////////////////////////////////////
-
+#include <getopt.h>
 int main(int argc, char* argv[]) {
 
-  std::unordered_map<std::string, std::function<void(int &)>> args;
+  int opt = 0;
+  int option_index = 0;
 
-  if (argc == 1) {
-    print_usage(argv[0]);
-    return 0;
-  }
-  args["-v"] = args["--version"] = [&](int& i) {
-    (void)i;
-    print_version(argv[0]);
-    return 0;
-  };
-  args["-h"] = args["--help"] = [&](int& i) {
-    (void)i;
-    print_help(argv[0]);
-    return 0;
-  };
-  args["--help-all"] = [&](int& i) {
-    (void)i;
-    print_help_all(argv[0]);
-    return 0;
+  struct option long_options[] = {
+    {"version",           no_argument,        0,  'v'},
+    {"help",              no_argument,        0,  'h'},
+    {"infile",            required_argument,  0,  'i'},
+    {"k-init",            required_argument,  0,  'k'},
+    {"grid-resolution",   required_argument,  0,  'g'},
+    {0, 0, 0, 0}
   };
 
-  args["-i"] = args["--infile"] = [&](int& i) {
-    infile = argv[++i];
-  };
-  args["-k"] = args["--k-init"] = [&](int& i) {
-    k_init = std::stoi(argv[++i]);
-  };
-  args["--grid-resolution"] = [&](int& i) {
-    grid_resolution = std::stoi(argv[++i]);
-  };
-  
-  for (int i = 1; i < argc; ++i) {
-  auto it = args.find(argv[i]);
-    if (it != args.end()) {
-      it->second(i);
-    } else {
-      std::cerr << "Error: unknown or incomplete argument: " 
-                << argv[i] 
-                << std::endl;
-      return 1;
-    }
-  }
- 
-  std::vector<std::array<float, 3>> xyzset;
-  {
-    std::ifstream file(infile);
-    std::string line;
+  while (1) {
 
-    if (!file) {
-      std::cerr << "Error: Could not open file " << infile << std::endl;
-      return 1;
-    }
+    opt = getopt_long(argc, argv, "vhi:k:g:", long_options, &option_index);
+    if (opt == -1) break;
 
-    while (std::getline(file, line)) {
-      std::istringstream iss(line);
-      std::array<float, 3> point;
-      if (!(iss >> point[0] >> point[1] >> point[2])) {
-        std::cerr << "Error: Incorrect data format in file" << std::endl;
+    switch (opt) {
+      case 'v':
+        print_version(argv[0]);
+        return 0;
+      case 'h':
+        print_help(argv[0]);
+        return 0;
+      case 'i':
+        infile = optarg;
+        break;
+      case 'k':
+        k_init = std::atoi(optarg);
+        break;
+      case 'g':
+        grid_resolution = std::atoi(optarg);
+        break;
+      case '?': 
         return 1;
-      }
-      xyzset.push_back(point);
+      default:
+        print_usage(argv[0]);
+        return 1;
     }
+  }
+
+  if (infile == "") {
+    std::cerr << "Error: Input file must be specified." << std::endl;
+    print_usage(argv[0]);
+    return 1;
+  }
+
+  std::vector<std::array<float, 3>> xyzset;
+
+  std::ifstream file(infile);
+  std::string line;
+
+  if (!file) {
+    std::cerr << "Error: Could not open file: " << infile << std::endl;
+    return 1;
+  }
+
+  while (std::getline(file, line)) {
+    std::istringstream iss(line);
+    std::array<float, 3> point;
+    if (!(iss >> point[0] >> point[1] >> point[2])) {
+      std::cerr << "Error: Incorrect data format in file" << std::endl;
+      return 1;
+    }
+    xyzset.push_back(point);
   }
   
   if (k_init == 0) {
-    k_init = xyzset.size() < default_k_init ? xyzset.size() : default_k_init;
+    k_init = xyzset.size() < default_k_init ? 
+             xyzset.size() : default_k_init;
   }
 
   struct votess::vtargs vtargs(k_init, grid_resolution);
