@@ -9,6 +9,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+/// heap:swap()                                                             ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
 TEST_CASE("heap::swap", "[heap]") {
   std::vector<int> hid = {1,2};
   std::vector<float> hpq = {3.5f,4.1f};
@@ -94,7 +102,56 @@ TEST_CASE("heap::swap", "[heap]") {
 
 }
 
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+TEST_CASE("heap::swap - CPU", "[heap]") {
+  std::vector<int> hid = {1, 2};
+  std::vector<float> hpq = {3.5f, 4.1f};
+
+  SECTION("test 1") {
+    heap::swap(hid, hpq, 0, 0, 1);
+    REQUIRE(hid[0] == 2);
+    REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
+    REQUIRE(hid[1] == 1);
+    REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
+  }
+
+  SECTION("test 2") {
+    heap::swap(hid, hpq, 0, 1, 0);
+    REQUIRE(hid[0] == 2);
+    REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
+    REQUIRE(hid[1] == 1);
+    REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
+  }
+
+  SECTION("test 3") {
+    heap::swap(hid, hpq, 0, 1, 1);
+    REQUIRE(hid[0] == 1);
+    REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
+    REQUIRE(hid[1] == 2);
+    REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(4.1f));
+  }
+
+  SECTION("test 4") {
+    heap::swap(hid, hpq, 0, 0, 0);
+    REQUIRE(hid[0] == 1);
+    REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
+    REQUIRE(hid[1] == 2);
+    REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(4.1f));
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// heap::maxheapify()                                                      ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("heap::maxheapify", "[heap]") {
 
@@ -235,7 +292,67 @@ TEST_CASE("heap::maxheapify", "[heap]") {
 
 }
 
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
+TEST_CASE("heap::maxheapify - CPU", "[heap]") {
+
+  SECTION("regular") {
+    std::vector<int> hid = {4, 3, 2, 1};
+    std::vector<float> hpq = {0.0f, 32.0f, 0.01f, 32.0f};
+
+    SECTION("Test 1") {
+      heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
+      REQUIRE(hpq[0] == 32.0f);
+      REQUIRE(hpq[1] <= hpq[0]);
+      REQUIRE(hpq[2] <= hpq[0]);
+    }
+
+    SECTION("Test 2") {
+      heap::maxheapify(hid, hpq, 0, hpq.size(), 1);
+      REQUIRE(hpq[1] == 32.0f);
+      REQUIRE(hpq[3] <= hpq[1]);
+    }
+  }
+
+  SECTION("Heap with single element") {
+    std::vector<int> hid = {4};
+    std::vector<float> hpq = {0.0f};
+
+    heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
+    REQUIRE(hid.size() == 1);
+    REQUIRE(hpq[0] == 0.0f);
+  }
+
+  SECTION("Heap with all elements the same") {
+    std::vector<int> hid = {1, 1, 1, 1};
+    std::vector<float> hpq = {32.0f, 32.0f, 32.0f, 32.0f};
+
+    heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
+    REQUIRE(hid[0] == 1);
+    REQUIRE(hpq[0] == 32.0f);
+  }
+
+  SECTION("Max Heap already in correct order") {
+    std::vector<int> hid = {4, 3, 2, 1};
+    std::vector<float> hpq = {32.0f, 0.01f, 0.0f, -32.0f};
+
+    heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
+    REQUIRE(hpq[0] >= hpq[1]);
+    REQUIRE(hpq[0] >= hpq[2]);
+  }
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// heap::sort()                                                            ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("heap::sort", "[heap]") {
 
@@ -355,6 +472,53 @@ TEST_CASE("heap::sort", "[heap]") {
     }
   }
 #endif
+
+}
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+TEST_CASE("heap::sort - CPU", "[heap]") {
+
+  SECTION("regular") {
+    std::vector<int> hid = {1, 4, 2, 3};
+    std::vector<int> hpq = {4, 1, 3, 2};
+
+    heap::sort(hid, hpq, 0, hid.size());
+    REQUIRE(hpq[0] <= hpq[1]);
+    REQUIRE(hpq[1] <= hpq[2]);
+    REQUIRE(hpq[2] <= hpq[3]);
+  }
+
+  SECTION("Heap with Single Element") {
+    std::vector<int> hid = {4};
+    std::vector<int> hpq = {32};
+
+    heap::sort(hid, hpq, 0, hid.size());
+    REQUIRE(hpq.size() == 1);
+    REQUIRE(hpq[0] == 32);
+  }
+
+  SECTION("Heap with All Elements the Same") {
+    std::vector<int> hid = {1, 1, 1, 1};
+    std::vector<int> hpq = {32, 32, 32, 32};
+
+    heap::sort(hid, hpq, 0, hid.size());
+    for (size_t i = 0; i < hpq.size() - 1; ++i) {
+      REQUIRE(hpq[i] == hpq[i + 1]);
+    }
+  }
+
+  SECTION("Already Sorted Heap") {
+    std::vector<int> hid = {1, 2, 3, 4};
+    std::vector<int> hpq = {1, 2, 3, 4};
+
+    heap::sort(hid, hpq, 0, hid.size());
+    for (size_t i = 0; i < hpq.size() - 1; ++i) {
+      REQUIRE(hpq[i] <= hpq[i + 1]);
+    }
+  }
 
 }
 
