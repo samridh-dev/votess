@@ -22,8 +22,23 @@ test_boundary(
   const std::vector<int>& ans, const int ulimit
 );
 
+template <typename T>
+static void boundary_compute_gpu(
+  std::vector<T>& cycle_vec,
+  const size_t dr_offs,
+  const size_t dr_size,
+  short int& head,
+  std::vector<T>& R_vec,
+  const size_t r_offs,
+  const size_t r_size
+);
+
 ///////////////////////////////////////////////////////////////////////////////
-/// Test Cases
+/// Test Cases                                                              ///
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 1                                                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("boundary tests: case 1", "[boundary]") {
@@ -34,54 +49,105 @@ TEST_CASE("boundary tests: case 1", "[boundary]") {
 
   SECTION("case 1:") {
     std::vector<int> T = { 2,5,0, 5,3,0, 1,5,2, 5,1,3 };
-    boundary::compute(dR.data(), dR_offs, dR_size, 
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 2:") {
     std::vector<int> T = { 5,3,0, 2,5,0, 1,5,2, 5,1,3 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 3:") {
     std::vector<int> T = { 5,3,0, 1,5,2, 2,5,0, 5,1,3 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 4:") {
     std::vector<int> T = { 5,3,0, 1,5,2, 5,1,3, 2,5,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 5:") {
     std::vector<int> T = { 1,5,2, 5,3,0, 5,1,3, 2,5,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 6:") {
     std::vector<int> T = { 1,5,2, 5,1,3, 5,3,0, 2,5,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 7:") {
     std::vector<int> T = { 1,5,2, 5,1,3, 2,5,0, 5,3,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 8:") {
     std::vector<int> T = { 1,5,2, 2,5,0, 5,3,0, 5,1,3 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
-
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 2                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("boundary tests: case 2", "[boundary]") {
   const short int dR_size = 6;
@@ -91,53 +157,105 @@ TEST_CASE("boundary tests: case 2", "[boundary]") {
 
   SECTION("case 1:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 2:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 3:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 4:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 5:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 6:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 7:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 8:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size,
-                      head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 3                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("boundary tests: case 3", "[boundary]") {
   const short int dR_size = 6;
@@ -147,31 +265,69 @@ TEST_CASE("boundary tests: case 3", "[boundary]") {
 
   SECTION("case 1:") {
     std::vector<int> T = { 2,5,0, 5,3,0, 1,5,2 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 2:") {
     std::vector<int> T = { 5,3,0, 2,5,0, 1,5,2 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 3:") {
     std::vector<int> T = { 5,3,0, 1,5,2, 2,5,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 4:") {
     std::vector<int> T = { 1,5,2, 5,3,0, 2,5,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
   SECTION("case 5:") {
     std::vector<int> T = { 1,5,2, 2,5,0, 5,3,0 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+          T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
-
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 5                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("boundary tests: case 5", "[boundary]") {
   const short int dR_size = 6;
@@ -181,7 +337,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
 
   SECTION("case 1:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -190,7 +347,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 2:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -199,7 +357,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 3:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -208,7 +367,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 4:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -217,7 +377,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 5:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -226,7 +387,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 6:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -235,7 +397,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 7:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -244,7 +407,8 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
   }
   SECTION("case 8:") {
     std::vector<int> T = { 4,2,0, 4,0,3, 2,4,1, 4,3,1 };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -252,6 +416,18 @@ TEST_CASE("boundary tests: case 5", "[boundary]") {
     test_boundary(test, head, ans, ulimit);
   }
 }
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 6                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("boundary tests: case 6", "[boundary]") {
   const short int dR_size = 6;
@@ -263,7 +439,8 @@ TEST_CASE("boundary tests: case 6", "[boundary]") {
     std::vector<int> T = { 
       -1,-1,-1, -1,-1,-1 ,-1,-1,-1, 4,2,0, 4,0,3, 2,4,1, 4,3,1 
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -274,7 +451,8 @@ TEST_CASE("boundary tests: case 6", "[boundary]") {
     std::vector<int> T = { 
       -1,-1,-1, -1,-1,-1 ,-1,-1,-1, 4,2,0, 4,0,3, 2,4,1, 4,3,1 
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs, T_size);
+    boundary::compute(dR.data(), dR_offs, dR_size, head, T.data(), T_offs,
+        T_size);
     std::vector<int> test{
       dR[52 * 6 + 0], dR[52 * 6 + 1], dR[52 * 6 + 2],
       dR[52 * 6 + 3], dR[52 * 6 + 4], dR[52 * 6 + 5],
@@ -307,6 +485,18 @@ TEST_CASE("boundary tests: case 6", "[boundary]") {
   }
 }
 
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 7                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
 TEST_CASE("boundary tests: case 7", "[boundary]") {
   const short int dR_size = 8;
   std::vector<int> dR(dR_size, 0xff);
@@ -318,11 +508,29 @@ TEST_CASE("boundary tests: case 7", "[boundary]") {
       -1,-1,-1, -1,-1,-1,
       2,4,6, 1,2,6, 2,1,7, 1,6,7, 6,0,7, 0,5,7, 5,2,7, 2,5,0
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, 
-        head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, 
+          head, T.data(), T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
 }
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 8                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("boundary tests: case 8", "[boundary]") {
   const short int dR_size = 9;
@@ -334,20 +542,44 @@ TEST_CASE("boundary tests: case 8", "[boundary]") {
     std::vector<int> T = { 
       4,6,7, 0,4,7, 4,3,1, 6,1,8, 1,3,8, 4,0,3, 4,1,6,
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, 
-        head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, 
+          head, T.data(), T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
 
   SECTION("case 2:") {
     std::vector<int> T = { 
       4,6,7, 0,4,7, 4,3,1, 6,1,8, 1,3,8, 4,1,6, 4,0,3,
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, 
-        head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, 
+          head, T.data(), T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
 }
+
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
+///////////////////////////////////////////////////////////////////////////////
+/// Case: 9                                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+/* ------------------------------------------------------------------------- */
+/* Device: [CPU]                                                             */
+/* ------------------------------------------------------------------------- */
 
 TEST_CASE("boundary tests: case 9", "[boundary]") {
   const short int dR_size = 9;
@@ -364,15 +596,25 @@ TEST_CASE("boundary tests: case 9", "[boundary]") {
       -1,-1,-1, -1,-1,-1, -1,-1,-1, -1,-1,-1, -1,-1,-1, -1,-1,-1, -1,-1,-1, 
       1,5,2, 5,1,3, 4,2,0, 4,0,3, 2,4,1, 4,3,1, 5,3,0, 
     };
-    boundary::compute(dR.data(), dR_offs, dR_size, 
-        head, T.data(), T_offs, T_size);
-    test_boundary(dR, head, ans, ulimit);
+    SECTION("cpu") {
+      boundary::compute(dR.data(), dR_offs, dR_size, 
+          head, T.data(), T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
+    SECTION("gpu") {
+      boundary_compute_gpu(dR, dR_offs, dR_size, head, T, T_offs, T_size);
+      test_boundary(dR, head, ans, ulimit);
+    }
   }
 
 }
 
+/* ------------------------------------------------------------------------- */
+/* Device: [GPU]                                                             */
+/* ------------------------------------------------------------------------- */
+
 ///////////////////////////////////////////////////////////////////////////////
-/// Helper functions
+/// Helper Functions                                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
 static std::string 
@@ -393,6 +635,7 @@ static void test_boundary(
   const std::vector<int>& ans,
   const int ulimit
 ) {
+
   const int first = head;
   int counter = 0;
 
@@ -427,5 +670,46 @@ static void test_boundary(
     REQUIRE(head < static_cast<int>(cycle.size()));
 
     if (counter++ > ulimit) break;
+
   } while (cycle[head] != first);
+
 }
+
+template <typename T>
+static void boundary_compute_gpu(
+  std::vector<T>& cycle_vec,
+  const size_t dr_offs,
+  const size_t dr_size,
+  short int& head,
+  std::vector<T>& R_vec,
+  const size_t r_offs,
+  const size_t r_size) {
+  
+  sycl::queue q;
+  sycl::buffer<T> bcycle(cycle_vec.data(), sycl::range<1>(cycle_vec.size()));
+  sycl::buffer<T> bR(R_vec.data(), sycl::range<1>(R_vec.size()));
+  sycl::buffer<short int> bhead(&head, sycl::range<1>(1));
+
+  q.submit([&](sycl::handler& h) {
+    auto cycle = bcycle.template get_access<sycl::access::mode::read_write>(h);
+    auto R = bR.template get_access<sycl::access::mode::read_write>(h);
+    auto ahead = bhead.template get_access<sycl::access::mode::read_write>(h);
+    h.single_task([=]() {
+      boundary::compute(cycle, dr_offs, dr_size, ahead[0], R, r_offs, r_size);
+    });
+  }).wait();
+
+  auto hcycle = bcycle.get_host_access();
+  auto hR = bR.get_host_access();
+  auto hhead = bhead.get_host_access();
+
+  std::copy(hcycle.get_pointer(), 
+            hcycle.get_pointer() + cycle_vec.size(),
+            cycle_vec.begin());
+  std::copy(hR.get_pointer(),
+            hR.get_pointer() + R_vec.size(),
+            R_vec.begin());
+  head = hhead[0];
+
+}
+

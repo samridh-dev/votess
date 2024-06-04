@@ -250,7 +250,7 @@ static void run_test(
     (void)xyzset::sort<int,T>(xyzset, vtargs.xyzset);
 
     auto [vcoord, vneighbor] = run_voro<T>(xyzset, vtargs);
-    auto dnn = votess::tesellate<int, T>(xyzset, vtargs);
+    auto dnn = votess::tesellate<int, T>(xyzset, vtargs, device);
 
     std::vector<int> test_dnn(0);
     std::vector<int> test_vneighbor(0);
