@@ -1,4 +1,4 @@
-#fndef HEAP_HPP
+#ifndef HEAP_HPP
 #define HEAP_HPP
 
 #include <libsycl.hpp>

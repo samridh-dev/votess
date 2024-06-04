@@ -46,6 +46,7 @@ enum device { cpu, gpu, };
 /// Tesellate Parameters
 /* ------------------------------------------------------------------------- */
 
+// Lol i made this too complicated
 struct vtargs {
 
   struct args::global global;
