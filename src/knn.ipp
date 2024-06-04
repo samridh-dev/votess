@@ -37,6 +37,9 @@ void knni::compute(
   const struct args::knn& args
 ) {
 
+  (void) xyzsize;
+  (void) refsize;
+
   const T2 q0 = refset[i][0];
   const T2 q1 = refset[i][1];
   const T2 q2 = refset[i][2];

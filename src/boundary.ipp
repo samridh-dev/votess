@@ -77,7 +77,7 @@ inline boundary::bstatus boundary::compute(
     cycle[dr_offs + head] = triangle_edge_1;
   }
   
-  T3 swap_j = r_size;
+  size_t swap_j = r_size;
   for (unsigned int j = 1; j < r_size; j++) {
   
     struct vstatus stat;
@@ -90,7 +90,7 @@ inline boundary::bstatus boundary::compute(
   
       uint8_t edge = cycle[dr_offs + first];
   
-      T3 counter = 0;
+      size_t counter = 0;
       while (true) {
         head = edge;
   

@@ -121,7 +121,7 @@ void dnn<T>::print() const {
     return;
   }
 
-  size_t index = 0;
+  T index = 0;
   size_t counter = 1;
   std::cout<<"{\n  {";
   for (auto i : this->list) {
@@ -148,7 +148,7 @@ void dnn<T>::savetxt(const std::string& fname) const {
     return;
   }
 
-  size_t index = 0;
+  T index = 0;
   size_t counter = 1;
   for (auto i : this->list) {
     if (index == this->offs[counter]) {
@@ -176,7 +176,6 @@ print_device(const sycl::queue& queue) {
   const auto d = queue.get_device();
   
   const size_t gibibyte = std::pow(2,30);
-  const size_t mebibyte = std::pow(2,20);
   const size_t kibibyte = std::pow(2,10);
 
   std::cout << " :: DEVICE INFO :: " << "\n";
@@ -277,18 +276,18 @@ dtessellate::cpu(
 
   const std::vector<std::array<Tf,3>>& xyzset = inset;
 
-  const size_t xyzsize = xyzset.size() / 3;
+  const size_t xyzsize = xyzset.size();
   const size_t refsize = xyzsize;
 
   std::vector<Ti> heap_id(inset.size() * (args.knn.k + 0), 0);
   std::vector<Tf> heap_pq(inset.size() * (args.knn.k + 0), FP_INFINITY);
   std::vector<Ti>& knn = heap_id;
 
-  std::vector<cc::state> states(xyzset.size() / 3);
+  std::vector<cc::state> states(xyzset.size());
   std::vector<Ti> dknn(refsize * args.cc.k, __INTERNAL__K_UNDEFINED);
 
-  std::vector<Tf>      P(xyzsize * args.cc.p_maxsize * 4);
-  std::vector<uint8_t> T(xyzsize * args.cc.t_maxsize * 3);
+  std::vector<Tf>       P(xyzsize * args.cc.p_maxsize * 4);
+  std::vector<uint8_t>  T(xyzsize * args.cc.t_maxsize * 3);
   std::vector<uint8_t> dR(xyzsize * args.cc.p_maxsize);
   
   const size_t nthreads = args.nthreads > std::thread::hardware_concurrency() ? 
@@ -296,6 +295,7 @@ dtessellate::cpu(
   const size_t chunksize  = refsize / nthreads;
   std::vector<std::thread> threads(nthreads);
 
+#if true
   for (size_t i = 0; i < nthreads; i++) {
 
     const size_t _start = i * chunksize;
@@ -326,6 +326,32 @@ dtessellate::cpu(
   }
 
   for (auto& thread : threads) thread.join();
+#else
+  for (size_t i = 0; i < nthreads; i++) {
+    const size_t _start = i * chunksize;
+    const size_t _end = (i == nthreads - 1) ? refsize : _start + chunksize;
+
+    for (size_t idx = _start; idx < _end; idx++) {
+      knni::compute<Ti, Tf>(
+        idx,
+        xyzset, xyzsize, id, offset,
+        xyzset, refsize,
+        heap_id, heap_pq,
+        args.knn
+      );
+
+      dnni::compute<Ti, Tf, uint8_t>(
+        idx,
+        states,
+        P.data(), T.data(), dR.data(),
+        knn, dknn,
+        xyzset, xyzsize,
+        xyzset, xyzsize,
+        args.cc
+      );
+    }
+  }
+#endif
 
   std::vector<Ti> _list(0);
   std::vector<Ti> _offs(refsize + 1);
@@ -491,7 +517,6 @@ dtessellate::gpu(
   for (size_t n_i = 1; n_i < refsize + 1; n_i++) {
     _offs[n_i] += _offs[n_i - 1];
   }
-
   class dnn<Ti> dnn(_list,_offs);
 
   end = std::chrono::high_resolution_clock::now();

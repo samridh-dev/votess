@@ -19,6 +19,9 @@ void dnni::compute(
   const size_t refsize,
   const struct args::cc& args
 ) {
+
+  (void) xyzsize;
+  (void) refsize;
   
   // TODO : make this swappable for future
   static const T2 p_init[] = { 
@@ -50,12 +53,12 @@ void dnni::compute(
   const T2 px = refset[i][0];
   const T2 py = refset[i][1];
   const T2 pz = refset[i][2];
-  
+ 
   for (size_t j = 0; j < p_initsize; j++) {
-    P[4 * refsize * j + refsize * 0 + i] = p_init[4 * j + 0];
-    P[4 * refsize * j + refsize * 1 + i] = p_init[4 * j + 1];
-    P[4 * refsize * j + refsize * 2 + i] = p_init[4 * j + 2];
-    P[4 * refsize * j + refsize * 3 + i] = p_init[4 * j + 3];
+    P[4 * p_maxsize * i + 4 * j + 0] = p_init[4 * j + 0];
+    P[4 * p_maxsize * i + 4 * j + 1] = p_init[4 * j + 1];
+    P[4 * p_maxsize * i + 4 * j + 2] = p_init[4 * j + 2];
+    P[4 * p_maxsize * i + 4 * j + 3] = p_init[4 * j + 3];
   }
 
   for (size_t j = 0; j < t_initsize; j++) {
@@ -81,25 +84,25 @@ void dnni::compute(
     
     for (short int t_index = 0; t_index < t_size; t_index++) {
   
-      const T3& t0 = T[3 * t_maxsize * i + t_index * 3 + 0];
-      const T3& t1 = T[3 * t_maxsize * i + t_index * 3 + 1];
-      const T3& t2 = T[3 * t_maxsize * i + t_index * 3 + 2];
+      const T3& t0 = T[3 * t_maxsize * i + 3 * t_index + 0];
+      const T3& t1 = T[3 * t_maxsize * i + 3 * t_index + 1];
+      const T3& t2 = T[3 * t_maxsize * i + 3 * t_index + 2];
   
-      const T2& plane_00 = P[4 * refsize * t0 + refsize * 0 + i];
-      const T2& plane_01 = P[4 * refsize * t0 + refsize * 1 + i];
-      const T2& plane_02 = P[4 * refsize * t0 + refsize * 2 + i];
-      const T2& plane_03 = P[4 * refsize * t0 + refsize * 3 + i];
+      const T2& plane_00 = P[4 * p_maxsize * i + 4 * t0 + 0];
+      const T2& plane_01 = P[4 * p_maxsize * i + 4 * t0 + 1];
+      const T2& plane_02 = P[4 * p_maxsize * i + 4 * t0 + 2];
+      const T2& plane_03 = P[4 * p_maxsize * i + 4 * t0 + 3];
 
-      const T2& plane_10 = P[4 * refsize * t1 + refsize * 0 + i];
-      const T2& plane_11 = P[4 * refsize * t1 + refsize * 1 + i];
-      const T2& plane_12 = P[4 * refsize * t1 + refsize * 2 + i];
-      const T2& plane_13 = P[4 * refsize * t1 + refsize * 3 + i];
+      const T2& plane_10 = P[4 * p_maxsize * i + 4 * t1 + 0];
+      const T2& plane_11 = P[4 * p_maxsize * i + 4 * t1 + 1];
+      const T2& plane_12 = P[4 * p_maxsize * i + 4 * t1 + 2];
+      const T2& plane_13 = P[4 * p_maxsize * i + 4 * t1 + 3];
 
-      const T2& plane_20 = P[4 * refsize * t2 + refsize * 0 + i];
-      const T2& plane_21 = P[4 * refsize * t2 + refsize * 1 + i];
-      const T2& plane_22 = P[4 * refsize * t2 + refsize * 2 + i];
-      const T2& plane_23 = P[4 * refsize * t2 + refsize * 3 + i];
-  
+      const T2& plane_20 = P[4 * p_maxsize * i + 4 * t2 + 0];
+      const T2& plane_21 = P[4 * p_maxsize * i + 4 * t2 + 1];
+      const T2& plane_22 = P[4 * p_maxsize * i + 4 * t2 + 2];
+      const T2& plane_23 = P[4 * p_maxsize * i + 4 * t2 + 3];
+
       // TODO : implement exception handling
       planes::intersect<T2>(
         vertex[0], vertex[1], vertex[2], vertex[3], 
@@ -125,12 +128,12 @@ void dnni::compute(
       if (dot_product > 0.00f) {
         t_size -= 1;
         r_size += 1;
-        utils::swap(T[3 * t_maxsize * i + t_index * 3 + 0], 
-                    T[3 * t_maxsize * i + t_size  * 3 + 0]);
-        utils::swap(T[3 * t_maxsize * i + t_index * 3 + 1], 
-                    T[3 * t_maxsize * i + t_size  * 3 + 1]);
-        utils::swap(T[3 * t_maxsize * i + t_index * 3 + 2], 
-                    T[3 * t_maxsize * i + t_size  * 3 + 2]);
+        utils::swap(T[3 * t_maxsize * i + 3 * t_index + 0], 
+                    T[3 * t_maxsize * i + 3 * t_size  + 0]);
+        utils::swap(T[3 * t_maxsize * i + 3 * t_index + 1], 
+                    T[3 * t_maxsize * i + 3 * t_size  + 1]);
+        utils::swap(T[3 * t_maxsize * i + 3 * t_index + 2], 
+                    T[3 * t_maxsize * i + 3 * t_size  + 2]);
         t_index -= 1;
       }
   
@@ -142,10 +145,10 @@ void dnni::compute(
         return;
       }
 
-      P[4 * refsize * p_size + refsize * 0 + i] = bisector[0];
-      P[4 * refsize * p_size + refsize * 1 + i] = bisector[1];
-      P[4 * refsize * p_size + refsize * 2 + i] = bisector[2];
-      P[4 * refsize * p_size + refsize * 3 + i] = bisector[3];
+      P[4 * p_maxsize * i + 4 * p_size + 0] = bisector[0];
+      P[4 * p_maxsize * i + 4 * p_size + 1] = bisector[1];
+      P[4 * p_maxsize * i + 4 * p_size + 2] = bisector[2];
+      P[4 * p_maxsize * i + 4 * p_size + 3] = bisector[3];
       dknn[k * i + neighbor] = p_size;
       p_size += 1;
   
@@ -178,9 +181,9 @@ void dnni::compute(
         const auto nvertex_1 = dR[dr_offs + nvertex_0];
         head = nvertex_1;
   
-        T[3 * t_maxsize * i + t_size * 3 + 0] = nvertex_0;
-        T[3 * t_maxsize * i + t_size * 3 + 1] = nvertex_1;
-        T[3 * t_maxsize * i + t_size * 3 + 2] = p_size - 1;
+        T[3 * t_maxsize * i + 3 * t_size + 0] = nvertex_0;
+        T[3 * t_maxsize * i + 3 * t_size + 1] = nvertex_1;
+        T[3 * t_maxsize * i + 3 * t_size + 2] = p_size - 1;
         
         t_size += 1;
   
