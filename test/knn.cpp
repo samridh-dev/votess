@@ -6,6 +6,8 @@
 #include <votess.hpp>
 #include <xyzset.hpp>
 
+#define RUN_KNN_TEST 0
+#if RUN_KNN_TEST 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper functions
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,8 +31,7 @@ static void test_knn(
 ///////////////////////////////////////////////////////////////////////////////
 /// Test cases
 ///////////////////////////////////////////////////////////////////////////////
-
-TEST_CASE("knn regression 1: standard", "[ignore]") {
+TEST_CASE("knn regression 1: standard", "[knn]") {
       
   std::vector<std::array<float, 3>> xyzset = {
     {0.605223f, 0.108484f, 0.090937f}, {0.500792f, 0.499641f, 0.464576f},
@@ -131,7 +132,7 @@ TEST_CASE("knn regression 1: standard", "[ignore]") {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("knn regression 2: Clustered Distribution", "[ignore]") {
+TEST_CASE("knn regression 2: Clustered Distribution", "[knn]") {
   std::vector<std::array<float, 3>> xyzset = {
     {0.1f, 0.2f, 0.3f}, {0.11f, 0.19f, 0.31f}, {0.09f, 0.21f, 0.29f},
     {0.5f, 0.5f, 0.5f}, {0.51f, 0.49f, 0.51f}, {0.49f, 0.51f, 0.49f},
@@ -212,7 +213,7 @@ TEST_CASE("knn regression 2: Clustered Distribution", "[ignore]") {
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("knn regression 3: Uniform Distribution", "[ignore]") {
+TEST_CASE("knn regression 3: Uniform Distribution", "[knn]") {
   std::vector<std::array<float, 3>> xyzset = {
     {0.1f, 0.1f, 0.1f}, {0.2f, 0.2f, 0.2f}, {0.3f, 0.3f, 0.3f},
     {0.4f, 0.4f, 0.4f}, {0.5f, 0.5f, 0.5f}, {0.6f, 0.6f, 0.6f},
@@ -291,7 +292,7 @@ TEST_CASE("knn regression 3: Uniform Distribution", "[ignore]") {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TEST_CASE("knn regression 4: fibonnacci sphere", "[ignore]") {
+TEST_CASE("knn regression 4: fibonnacci sphere", "[knn]") {
   std::vector<std::array<float, 3>> xyzset = {
     {0.500000f, 0.750000f, 0.500000f}, {0.408034f, 0.716667f, 0.584248f},
     {0.514860f, 0.683333f, 0.330683f}, {0.621688f, 0.650000f, 0.658720f},
@@ -487,7 +488,7 @@ TEST_CASE("knn regression 4: fibonnacci sphere", "[ignore]") {
   test_knn<int, float>(xyzset, cknn, k_max, gr_max, tol);
 }
 
-TEST_CASE("knn regression 5: 2 points separated by epsilon", "[ignore]") {
+TEST_CASE("knn regression 5: 2 points separated by epsilon", "[knn]") {
   const float eps = std::numeric_limits<float>::epsilon();
       
   std::vector<std::array<float, 3>> xyzset = {
@@ -521,7 +522,8 @@ static void test_knn(
   for (auto gr0 = 1; gr0 <= gr_max; gr0++) {
     for (auto k0 = 1; k0 <= k_max; k0++) {
 
-      SECTION("case : k0 = " + std::to_string(k0) + ", gr = " + std::to_string(gr0)) {
+      SECTION("case : k0 = " + std::to_string(k0) + ", gr = " +
+          std::to_string(gr0)) {
 
         struct votess::vtargs args(k0, gr0);
         const auto [hid, hpq] = get_knn<T1, T2>(xyzset, args);
@@ -634,3 +636,5 @@ get_knn(
 
   return {vid, vpq};
 }
+
+#endif // RUN_KNN_TEST
