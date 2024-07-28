@@ -12,6 +12,7 @@
 /bin/
 /cmake/build/
 /*.py
+!/python/*.py
 /docs/doxygen
 
 /benchmarks/*
