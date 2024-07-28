@@ -16,17 +16,17 @@ namespace knni {
 /// CPU Implementation
 /* ------------------------------------------------------------------------- */
 
-template <typename T1, typename T2>
+template <typename Ti, typename Tf>
 void compute(
-  const T1 i,
-  const std::vector<std::array<T2,3>>& xyzset,
+  const Ti i,
+  const std::vector<std::array<Tf,3>>& xyzset,
   const size_t xyzsize,
-  const std::vector<T1>& id,
-  const std::vector<T1>& offset,
-  const std::vector<std::array<T2,3>>& refset,
+  const std::vector<Ti>& id,
+  const std::vector<Ti>& offset,
+  const std::vector<std::array<Tf,3>>& refset,
   const size_t refsize,
-  std::vector<T1>& heap_id,
-  std::vector<T2>& heap_pq,
+  std::vector<Ti>& heap_id,
+  std::vector<Tf>& heap_pq,
   const struct args::knn& args
 );
 
@@ -34,17 +34,17 @@ void compute(
 /// SYCL Implementation
 /* ------------------------------------------------------------------------- */
 
-template <typename T1, typename T2>
+template <typename Ti, typename Tf>
 void compute(
-  const T1 i,
-  const device_accessor_read_t<T2>& xyzset,
+  const Ti i,
+  const device_accessor_read_t<Tf>& xyzset,
   const size_t xyzsize,
-  const device_accessor_read_t<T1>& id,
-  const device_accessor_read_t<T1>& offset,
-  const device_accessor_read_t<T2>& refset,
+  const device_accessor_read_t<Ti>& id,
+  const device_accessor_read_t<Ti>& offset,
+  const device_accessor_read_t<Tf>& refset,
   const size_t refsize,
-  device_accessor_readwrite_t<T1> heap_id,
-  device_accessor_readwrite_t<T2> heap_pq,
+  device_accessor_readwrite_t<Ti> heap_id,
+  device_accessor_readwrite_t<Tf> heap_pq,
   const struct args::knn& args
 );
 
