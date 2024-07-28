@@ -18,35 +18,24 @@ def create_prefix():
     print('#include <xyzset.hpp>')
     print()
     print('#define TEST_KNN_RUN_GPU true')
-    print('#define TEST_KNN_RUN_CPU false')
+    print('#define TEST_KNN_RUN_CPU true')
     print()
     print('///////////////////////////////////////////////////////////////////////////////')
     print('/// Forward Declarations                                                    ///')
     print('///////////////////////////////////////////////////////////////////////////////')
     print()
-    print('namespace gpu {')
-    print('  template <typename Ti, typename Tf>')
-    print('  static void test_knn(')
-    print('    std::vector<std::array<Tf, 3>>& xyzset,')
-    print('    const std::vector<std::array<Tf, 3>>& kid,')
-    print('    const std::vector<std::vector<Tf>>& kpq,')
-    print('    const unsigned short int k_max,')
-    print('    const unsigned short int gr_max,')
-    print('    const Tf tol')
-    print('  );')
-    print('}')
+    print('enum exectype { TYPE_GPU, TYPE_CPU };')
     print()
-    print('namespace cpu {')
-    print('  template <typename Ti, typename Tf>')
-    print('  static void test_knn(')
-    print('    std::vector<std::array<Tf, 3>>& xyzset,')
-    print('    const std::vector<std::array<Tf, 3>>& kid,')
-    print('    const std::vector<std::vector<Tf>>& kpq,')
-    print('    const unsigned short int k_max,')
-    print('    const unsigned short int gr_max,')
-    print('    const Tf tol')
-    print('  );')
-    print('}')
+    print('template <typename Ti, typename Tf>')
+    print('static void test_knn(')
+    print('  std::vector<std::array<Tf, 3>>& xyzset,')
+    print('  const std::vector<std::array<Tf, 3>>& kid,')
+    print('  const std::vector<std::vector<Tf>>& kpq,')
+    print('  const unsigned short int k_max,')
+    print('  const unsigned short int gr_max,')
+    print('  const Tf tol,')
+    print('  enum exectype type')
+    print(');')
     print()
     print('///////////////////////////////////////////////////////////////////////////////')
     print('/// Test Cases                                                              ///')
@@ -59,13 +48,11 @@ def create_suffix():
     print("///////////////////////////////////////////////////////////////////////////////")
     print()
     print("namespace gpu {")
-    print()
     print("template <typename Ti, typename Tf>")
     print("static std::pair<std::vector<Ti>, std::vector<Tf>>")
     print("get_knn(")
     print("  std::vector<std::array<Tf,3>>& inset,")
     print("  const struct votess::vtargs& args")
-    print()
     print(") {")
     print()
     print("  auto [id, offset] = xyzset::sort<Ti,Tf>(inset, args.xyzset);")
@@ -137,6 +124,50 @@ def create_suffix():
     print()
     print("  return {vid, vpq};")
     print("}")
+    print("} // namespace gpu")
+    print()
+    print("namespace cpu {")
+    print("template <typename Ti, typename Tf>")
+    print("static std::pair<std::vector<Ti>, std::vector<Tf>>")
+    print("get_knn(")
+    print("  std::vector<std::array<Tf,3>>& inset,")
+    print("  const struct votess::vtargs& args")
+    print(") {")
+    print()
+    print("  auto [id, offset] = xyzset::sort<Ti,Tf>(inset, args.xyzset);")
+    print("  {")
+    print("    if (!xyzset::validate_xyzset<Tf>(inset)) {")
+    print('      std::cout<<"oops1"<<std::endl;')
+    print("    }")
+    print("    if (!xyzset::validate_id<Ti>(id)) {")
+    print('      std::cout<<"oops2"<<std::endl;')
+    print("    }")
+    print("    if (!xyzset::validate_offset<Ti>(offset)) {")
+    print('      std::cout<<"oops3"<<std::endl;')
+    print("    }")
+    print("    auto gr = args.xyzset.grid_resolution;")
+    print("    if (!xyzset::validate_sort<Ti,Tf>(inset, id, gr)) {")
+    print('      std::cout<<"oops4"<<std::endl;')
+    print("      std::abort();")
+    print("    }")
+    print("  }")
+    print()
+    print("  std::vector<Ti> vid(inset.size() * args.knn.k, 0);")
+    print("  std::vector<Tf> vpq(inset.size() * args.knn.k, 32.00f);")
+    print()
+    print("  for (size_t idx = 0; idx < inset.size(); ++idx) {")
+    print("    knni::compute<Ti, Tf>(")
+    print("      idx,")
+    print("      inset, inset.size(), id, offset,")
+    print("      inset, inset.size(),")
+    print("      vid, vpq,")
+    print("      args.knn")
+    print("    );")
+    print("  }")
+    print()
+    print("  return {vid, vpq};")
+    print("}")
+    print("} // namespace cpu")
     print()
     print("#define KNN_TEST_USE_LOOP 0")
     print("template <typename Ti, typename Tf>")
@@ -146,7 +177,8 @@ def create_suffix():
     print("  const std::vector<std::vector<Tf>>& kpq,")
     print("  const unsigned short int k_max,")
     print("  const unsigned short int gr_max,")
-    print("  const Tf tol")
+    print("  const Tf tol,")
+    print("  enum exectype type")
     print(") {")
     print()
     print("#if KNN_TEST_USE_LOOP")
@@ -159,10 +191,13 @@ def create_suffix():
     print('    INFO("Running without loop: k0 = " + std::to_string(k0) + ", gr0 = " + std::to_string(gr0));')
     print("#endif")
     print()
-    print('    SECTION("case : k0 = " + std::to_string(k0) + ", gr = " + std::to_string(gr0)) {')
+    print('    std::string prefix = (type == TYPE_GPU) ? "[GPU] " : "[CPU] ";')
+    print('    SECTION(prefix + "case : k0 = " + std::to_string(k0) + ", gr = " + std::to_string(gr0)) {')
     print()
     print("      votess::vtargs args(k0, gr0);")
-    print("      const auto [hid, hpq] = gpu::get_knn<Ti, Tf>(xyzset, args);")
+    print("      const auto [hid, hpq] = (type == TYPE_GPU) ? ")
+    print("                              gpu::get_knn<Ti, Tf>(xyzset, args):")
+    print("                              cpu::get_knn<Ti, Tf>(xyzset, args); ")
     print()
     print("      for (auto i = 0; i < xyzset.size(); i++) {")
     print("        const auto& point = xyzset[i];")
@@ -204,10 +239,9 @@ def create_suffix():
     print()
     print("}")
     print()
-    print("} // namespace gpu")
     print("///////////////////////////////////////////////////////////////////////////////")
     print("/// End                                                                     ///")
-    print("///////////////////////////////////////////////////////////////////////////////", end = '')
+    print("///////////////////////////////////////////////////////////////////////////////", end='')
 
 def create_test_case(tag, i, points, k_max, gr_max, tol=1e-9):
 
@@ -238,11 +272,11 @@ def create_test_case(tag, i, points, k_max, gr_max, tol=1e-9):
     print(f'  const float tol = {tol};')
  
     print('  #if TEST_KNN_RUN_GPU')
-    print('  gpu::test_knn<int, float>(xyzset, kid, kpq, k_max, gr_max, tol);')
+    print('  test_knn<int, float>(xyzset, kid, kpq, k_max, gr_max, tol, TYPE_GPU);')
     print('  #endif')
  
     print('  #if TEST_KNN_RUN_CPU')
-    print('  cpu::test_knn<int, float>(xyzset, kid, kpq, k_max, gr_max, tol);')
+    print('  test_knn<int, float>(xyzset, kid, kpq, k_max, gr_max, tol, TYPE_CPU);')
     print('  #endif')
  
     print('}\n')
@@ -307,6 +341,35 @@ def create_two_points_epsilon_xyzset(epsilon=1e-8):
         [0.5, 0.5, 0.5],
         [0.5 + epsilon, 0.5, 0.5]
     ])
+
+def create_degenerate_xyzset(N=128):
+    point = np.array([[0.5, 0.5, 0.5]])
+    return np.tile(point, (N, 1))
+
+def create_sparse_xyzset(num_points=100, sparsity_level=0.95):
+    data = np.random.rand(num_points, 3)
+    mask = np.random.rand(num_points, 3) > sparsity_level
+    sparse_data = data * mask
+    return np.clip(sparse_data, 1e-6, 1 - 1e-6)
+
+def create_noisy_xyzset(base_set, noise_level=0.1):
+    noise = np.random.randn(*base_set.shape) * noise_level
+    noisy_data = base_set + noise
+    return np.clip(noisy_data, 1e-6, 1 - 1e-6)
+
+def create_outliers_xyzset(base_set, outlier_factor=10):
+    num_outliers = 5
+    outliers = np.random.rand(num_outliers, 3) * outlier_factor
+    outliers = np.clip(outliers, 1e-6, 1 - 1e-6)
+    return np.vstack((base_set, outliers))
+
+def create_imbalanced_class_xyzset(majority_class_size=1000,
+                                   minority_class_size=10):
+    majority_class = np.random.rand(majority_class_size, 3)
+    minority_class = (np.random.rand(minority_class_size, 3) * 0.1) + 0.9
+    majority_class = np.clip(majority_class, 1e-10, 1 - 1e-10)
+    minority_class = np.clip(minority_class, 1e-10, 1 - 1e-10)
+    return np.vstack((majority_class, minority_class))
 
 # --------------------------------------------------------------------------- #
 # Main                                                                        #
@@ -374,6 +437,49 @@ def main():
     gr = 1
     tol = 1e-12
     create_test_case("two_points_epsilon", index, xyzset, k, gr, tol)
+    index += 1
+
+    # Degenerate cases
+    xyzset = create_degenerate_xyzset()
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("degenerate_cases", index, xyzset, k, gr, tol)
+    index += 1
+
+    # Sparse data
+    xyzset = create_sparse_xyzset(num_points=100, sparsity_level=0.95)
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("sparse_data", index, xyzset, k, gr, tol)
+    index += 1
+
+    # Noisy data
+    base_set = create_lattice_xyzset()
+    xyzset = create_noisy_xyzset(base_set, noise_level=0.1)
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("noisy_data", index, xyzset, k, gr, tol)
+    index += 1
+
+    # Outliers
+    base_set = create_standard_xyzset()
+    xyzset = create_outliers_xyzset(base_set, outlier_factor=10)
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("outliers", index, xyzset, k, gr, tol)
+    index += 1
+
+    # Imbalanced classes
+    xyzset = create_imbalanced_class_xyzset(majority_class_size=1000,
+                                            minority_class_size=10)
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("imbalanced_classes", index, xyzset, k, gr, tol)
     index += 1
 
     # ------------------------------------------------------------------ #
