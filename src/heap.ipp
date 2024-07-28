@@ -102,10 +102,12 @@ inline void heap::maxheapify(
     size_t largest = i;
     const size_t left = 2 * i + 1;
     const size_t right = 2 * i + 2;
-    if ((left  < s) && (heap_pq[h0 + left] > heap_pq[h0 + largest])) {
+    if ((left  < s) && 
+        (heap_pq[h0 + left] > heap_pq[h0 + largest])) {
       largest = left;
     }
-    if ((right < s) && (heap_pq[h0 + right] > heap_pq[h0 + largest])) {
+    if ((right < s) && 
+        (heap_pq[h0 + right] > heap_pq[h0 + largest])) {
       largest = right;
     }
     if (i != largest) {
