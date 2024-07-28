@@ -3,9 +3,15 @@
 #include <votess.hpp>
 #include <xyzset.hpp>
 
-template <typename T1, typename T2>
+#include <vector>
+#include <array>
+#include <cmath>
+#include <random>
+#include <limits>
+
+template <typename Ti, typename Tf>
 static void test_xyzset(
-  std::vector<std::array<T2, 3>> xyzset,
+  std::vector<std::array<Tf, 3>> xyzset,
   const unsigned int k, const unsigned int gr_max 
 );
 
@@ -22,6 +28,7 @@ TEST_CASE("xyzset regression 1: standard", "[xyzset]") {
   const unsigned short int k = 1;
   const unsigned short int gr_max = 16;
   test_xyzset<int, float>(xyzset, k, gr_max);
+
 }
 
 TEST_CASE("xyzset regression 2: small fibonacci sphere", "[xyzset]") {
@@ -162,28 +169,33 @@ TEST_CASE("xyzset regression 2: small fibonacci sphere", "[xyzset]") {
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
-#include <vector>
-#include <array>
-#include <cmath>
-template <typename T2>
-static std::vector<std::array<T2, 3>> 
+template <typename Tf>
+static std::vector<std::array<Tf, 3>> 
 create_fibonacci(const size_t n) {
-  std::vector<std::array<T2, 3>> points;
-  T2 phi = M_PI * (3. - sqrt(5.)); 
-  T2 scale = 0.25; 
-  T2 center_x = 0.5, center_y = 0.5, center_z = 0.5; 
+  std::vector<std::array<Tf, 3>> points;
+  Tf phi = M_PI * (3. - sqrt(5.)); 
+  Tf scale = 0.25; 
+  Tf center_x = 0.5, center_y = 0.5, center_z = 0.5; 
   for (size_t i = 0; i < n; ++i) {
-    T2 y = (1 - (i / T2(n - 1)) * 2) * scale + center_y; 
-    T2 r = sqrt(1 - pow((y - center_y) / scale, 2)); 
-    T2 theta = phi * i;
-    T2 x = cos(theta) * r * scale + center_x; 
-    T2 z = sin(theta) * r * scale + center_z; 
+    Tf y = (1 - (i / Tf(n - 1)) * 2) * scale + center_y; 
+    Tf r = sqrt(1 - pow((y - center_y) / scale, 2)); 
+    Tf theta = phi * i;
+    Tf x = cos(theta) * r * scale + center_x; 
+    Tf z = sin(theta) * r * scale + center_z; 
     points.push_back({x, y, z});
   }
   return points;
 }
 
-TEST_CASE("xyzset regression 3: Large Fibonacci Sphere", "[xyzset]") {
+TEST_CASE("xyzset regression 3: Large Fibonacci Sphere - float", "[xyzset]") {
+  const size_t size = 1000000;
+  auto xyzset = create_fibonacci<float>(size);
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 32;
+  test_xyzset<int, float>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 3: Large Fibonacci Sphere - double", "[xyzset]") {
   const size_t size = 1000000;
   auto xyzset = create_fibonacci<double>(size);
   const unsigned short int k = 1;
@@ -191,21 +203,118 @@ TEST_CASE("xyzset regression 3: Large Fibonacci Sphere", "[xyzset]") {
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
+TEST_CASE("xyzset regression 5: Empty Input - float", "[xyzset]") {
+  std::vector<std::array<float, 3>> xyzset = {};
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 0;
+  test_xyzset<int, float>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 5: Empty Input - double", "[xyzset]") {
+  std::vector<std::array<double, 3>> xyzset = {};
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 0;
+  test_xyzset<int, double>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 6: Single Point - float", "[xyzset]") {
+  std::vector<std::array<float, 3>> xyzset = {{0.5f, 0.5f, 0.5f}};
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 0;
+  test_xyzset<int, float>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 6: Single Point - double", "[xyzset]") {
+  std::vector<std::array<double, 3>> xyzset = {{0.5f, 0.5f, 0.5f}};
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 0;
+  test_xyzset<int, double>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 7: Boundary Values - float", "[xyzset]") {
+  const float eps = std::numeric_limits<float>::epsilon();
+  std::vector<std::array<float, 3>> xyzset = {
+    {eps, eps, eps}, {1.0f - eps, 1.0f - eps, 1.0f - eps},
+    {eps, eps, 1.0f - eps}, {1.0f - eps, 1.0f - eps, eps},
+    {eps, 1.0f - eps, eps}, {1.0f - eps, eps, 1.0f - eps}
+  };
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 1;
+  test_xyzset<int, float>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 7: Boundary Values - double", "[xyzset]") {
+  const double eps = std::numeric_limits<double>::epsilon();
+  std::vector<std::array<double, 3>> xyzset = {
+    {eps, eps, eps}, {1.0 - eps, 1.0 - eps, 1.0 - eps},
+    {eps, eps, 1.0 - eps}, {1.0 - eps, 1.0 - eps, eps},
+    {eps, 1.0 - eps, eps}, {1.0 - eps, eps, 1.0 - eps}
+  };
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 1;
+  test_xyzset<int, double>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 8: Random Points - float", "[xyzset]") {
+  std::vector<std::array<float, 3>> xyzset;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis(0.0, 1.0);
+
+  for (size_t i = 0; i < 1000; ++i) {
+    xyzset.push_back({dis(gen), dis(gen), dis(gen)});
+  }
+
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 16;
+  test_xyzset<int, float>(xyzset, k, gr_max);
+}
+
+TEST_CASE("xyzset regression 8: Random Points - double", "[xyzset]") {
+  std::vector<std::array<double, 3>> xyzset;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+  for (size_t i = 0; i < 1000; ++i) {
+    xyzset.push_back({dis(gen), dis(gen), dis(gen)});
+  }
+
+  const unsigned short int k = 1;
+  const unsigned short int gr_max = 16;
+  test_xyzset<int, double>(xyzset, k, gr_max);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T1, typename T2>
+#define TEST_XYZSET_USE_ALTER 0
+template <typename Ti, typename Tf>
 static void test_xyzset(
-  std::vector<std::array<T2, 3>> xyzset,
-  const unsigned int k, const unsigned int gr_max 
+  std::vector<std::array<Tf, 3>> xyzset,
+  const unsigned int k, const unsigned int gr_max
 ) {
+  
+  std::vector<std::array<Tf, 3>> refset = xyzset;
+
   for (size_t gr = 0; gr <= gr_max; gr++) {
+
     SECTION("case: gr = " + std::to_string(gr)) {
-      struct votess::vtargs args(k,gr);
-      auto [id, offset] = xyzset::sort<T1,T2>(xyzset, args.xyzset);
-      REQUIRE(xyzset::validate_xyzset<T2>(xyzset)           == true);
-      REQUIRE(xyzset::validate_id<T1>(id)                   == true);
-      REQUIRE(xyzset::validate_offset<T1>(offset)           == true);
-      REQUIRE(xyzset::validate_sort<T1,T2>(xyzset, id, gr)  == true);
+      votess::vtargs args(k, gr);
+      auto [id, offset] = xyzset::sort<Ti, Tf>(xyzset, args.xyzset);
+
+      REQUIRE(xyzset::validate_xyzset<Tf>(xyzset) == true);
+      REQUIRE(xyzset::validate_id<Ti>(id) == true);
+      REQUIRE(xyzset::validate_offset<Ti>(offset) == true);
+      REQUIRE(xyzset::validate_sort<Ti, Tf>(xyzset, id, gr) == true);
+    
+
+#if TEST_XYZSET_USE_ALTER
+      for (const auto& element : refset) {
+        auto found = std::find(xyzset.begin(), xyzset.end(), element);
+        REQUIRE(found != xyzset.end());
+      }
+#endif
+
     }
   }
 }
