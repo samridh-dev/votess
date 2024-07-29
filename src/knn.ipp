@@ -95,6 +95,10 @@ void knni::compute(
 
       for (Ti p = offs0; p < offs1; p++) {
 
+        if (p == i) {
+          continue;
+        }
+
         const Tf p0 = xyzset[p][0];
         const Tf p1 = xyzset[p][1];
         const Tf p2 = xyzset[p][2];
@@ -193,6 +197,7 @@ void knni::compute(
       const int offs1 = offset[cid + 1];
 
       for (Ti p = offs0; p < offs1; p++) {
+
         if (p == i) {
           continue;
         }
