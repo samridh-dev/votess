@@ -23,23 +23,40 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # Global
+
+set(CMAKE_CXX_FLAGS_ALL "")
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
-   -g -Wall -Wextra -Wshadow -Wpedantic -Wformat=2 -fno-omit-frame-pointer -O0"
+   -Wall -Wextra -Wshadow -Wpedantic -Wformat=2 -fno-omit-frame-pointer -O0"
 )
+
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
   -O3"
 )
 
 # compiler specifics
 if (CMAKE_CXX_COMPILER MATCHES "icpx$")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsycl")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fsycl")
+
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}   \
+                             ${CMAKE_CXX_FLAGS_DEBUG} \
+                             -fsycl")
+
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}     \
+                               ${CMAKE_CXX_FLAGS_RELEASE} \
+                               -fsycl")
+
 endif()
 
 if (CMAKE_CXX_COMPILER MATCHES "acpp$")
+
   find_package(AdaptiveCpp REQUIRED)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL} \
+                             ${CMAKE_CXX_FLAGS_DEBUG}")
+
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL} \
+                               ${CMAKE_CXX_FLAGS_RELEASE}")
+
 endif()
 
 set(SYCL_LIBRARY "<CL/sycl.hpp>")
