@@ -307,7 +307,6 @@ static void test_xyzset(
       REQUIRE(xyzset::validate_offset<Ti>(offset) == true);
       REQUIRE(xyzset::validate_sort<Ti, Tf>(xyzset, id, gr) == true);
     
-
 #if TEST_XYZSET_USE_ALTER
       for (const auto& element : refset) {
         auto found = std::find(xyzset.begin(), xyzset.end(), element);
