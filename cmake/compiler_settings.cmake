@@ -24,7 +24,9 @@ endif()
 
 # Global
 
-set(CMAKE_CXX_FLAGS_ALL "")
+set(CMAKE_CXX_FLAGS_ALL 
+  ""
+)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
    -Wall -Wextra -Wshadow -Wpedantic -Wformat=2 -fno-omit-frame-pointer -O0"
@@ -34,15 +36,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
   -O3"
 )
 
+set(CMAKE_CXX_LINK_FLAGS_ALL 
+  "-pthread"
+)
+
 # compiler specifics
 if (CMAKE_CXX_COMPILER MATCHES "icpx$")
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}   \
-                             ${CMAKE_CXX_FLAGS_DEBUG} \
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}      \
+                             ${CMAKE_CXX_FLAGS_DEBUG}    \
+                             ${CMAKE_CXX_LINK_FLAGS_ALL} \
                              -fsycl")
 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}     \
-                               ${CMAKE_CXX_FLAGS_RELEASE} \
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}      \
+                               ${CMAKE_CXX_FLAGS_RELEASE}  \
+                               ${CMAKE_CXX_LINK_FLAGS_ALL} \
                                -fsycl")
 
 endif()
@@ -51,11 +59,13 @@ if (CMAKE_CXX_COMPILER MATCHES "acpp$")
 
   find_package(AdaptiveCpp REQUIRED)
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL} \
-                             ${CMAKE_CXX_FLAGS_DEBUG}")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}      \
+                             ${CMAKE_CXX_FLAGS_DEBUG}    \
+                             ${CMAKE_CXX_LINK_FLAGS_ALL}")
 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL} \
-                               ${CMAKE_CXX_FLAGS_RELEASE}")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}      \
+                               ${CMAKE_CXX_FLAGS_RELEASE}  \
+                               ${CMAKE_CXX_LINK_FLAGS_ALL}")
 
 endif()
 

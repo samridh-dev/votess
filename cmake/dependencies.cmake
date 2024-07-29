@@ -1,6 +1,7 @@
 
 # to set pthreads for linux C++
 add_library(Threads::Threads INTERFACE IMPORTED)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 if (ENABLE_BUILD_VOTESS)
 
