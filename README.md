@@ -74,9 +74,6 @@ The selected binaries will then be generated at `${project-root}/bin/`
 
 # Basic Usage
 
-NOTE: the CPU implementation is untested and is not expected to function as
-      intended. 
-
 There exists three main APIs one could use: 
 `Python >=3.5, >=C++17, (Unix)*sh`
 
