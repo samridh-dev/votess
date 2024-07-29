@@ -1,3 +1,4 @@
+
 #include <arguments.hpp>
 #include <xyzset.hpp>
 #include <status.hpp>
@@ -9,6 +10,8 @@
 #include <chrono>
 
 #include <vector>
+#include <array>
+#include <cstdint>
 #include <thread>
 #include <mutex>
 #include <iomanip>
@@ -19,6 +22,34 @@
 #define FP_INFINITY 128.00f
 
 namespace votess {
+
+///////////////////////////////////////////////////////////////////////////////
+/// Struct Votess Arguments                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+struct vtargs {
+
+  struct args::global global;
+  struct args::xyzset xyzset;
+  struct args::knn knn;
+  struct args::cc cc;
+
+  const size_t nthreads;
+
+  vtargs(
+    const int _k,
+    const int _grid_resolution,
+    const int _nthreads = 1,
+    const int _p_maxsize = ARGS_DEFAULT_P_MAXSIZE,
+    const int _t_maxsize = ARGS_DEFAULT_T_MAXSIZE
+  ) : global(_k),
+      xyzset(_grid_resolution),
+      knn(_k, _grid_resolution),
+      cc(_k, _p_maxsize , _t_maxsize),
+      nthreads(_nthreads)
+  {}
+
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal functions
@@ -39,9 +70,109 @@ namespace internal {
 /// Direct neighbor implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-/*  ------------------------------------------------------------------------ */
-/// Proxy Class
-/*  ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------- */
+/* Dnn Class                                                                 */
+/* ------------------------------------------------------------------------- */
+
+template <typename Ti>
+class dnn {
+
+  public:
+    class proxy;
+
+    dnn();
+    dnn(std::vector<Ti>& _list, std::vector<Ti>& _offs);
+
+    const proxy operator[](const int i) const;
+    proxy operator[](const int i);
+    size_t size() const;
+
+    void print() const;
+    void savetxt(const std::string& fname) const;
+
+  private:
+    std::vector<Ti> list;
+    std::vector<Ti> offs;
+
+};
+
+template<typename T>
+dnn<T>::dnn() {
+  internal::check_sinteger<T>();
+}
+
+template<typename T>
+dnn<T>::dnn(std::vector<T>& _list, std::vector<T>& _offs)
+: list(_list), offs(_offs) {
+  internal::check_sinteger<T>();
+}
+
+template<typename T>
+const typename dnn<T>::proxy dnn<T>::operator[](const int i) const {
+  return proxy(list, offs, i);
+}
+
+template<typename T>
+typename dnn<T>::proxy dnn<T>::operator[](const int i) {
+  return proxy(list, offs, i);
+}
+
+template<typename T>
+size_t dnn<T>::size() const {
+  return offs.size() - 1;
+}
+
+template <typename T>
+void dnn<T>::print() const {
+  if (this->list.empty()) {
+    std::cout<<"{}"<<std::endl;
+    return;
+  }
+
+  T index = 0;
+  size_t counter = 1;
+  std::cout<<"{\n  {";
+  for (auto i : this->list) {
+    if (index == this->offs[counter]) {
+      if (counter < this->offs.size() - 1) {
+        counter += 1;
+      }
+      std::cout << "}\n  {";
+    }
+
+    std::cout<<std::setw(1)<<i<<", ";
+    index += 1;
+  }
+  std::cout<<"\n}"<<std::endl;;
+}
+
+template <typename T>
+void dnn<T>::savetxt(const std::string& fname) const {
+  std::ofstream fp(fname);
+  if (!fp) {
+    std::cerr<<"Failed to open file: "<<fname<<std::endl;
+    return;
+  }
+
+  T index = 0;
+  size_t counter = 1;
+  for (auto i : this->list) {
+    if (index == this->offs[counter]) {
+      if (counter < this->offs.size() - 1) {
+        counter += 1;
+      }
+      fp<<"\n";
+    }
+    fp<<std::setw(1)<<i<<" ";
+    index += 1;
+  }
+  fp<<"\n";
+  fp.close();
+}
+
+/* ------------------------------------------------------------------------- */
+/* Proxy Class                                                               */
+/* ------------------------------------------------------------------------- */
 
 template <typename T>
 class dnn<T>::proxy {
@@ -72,102 +203,9 @@ size_t dnn<T>::proxy::size() const {
   else return _offs[_index + 1] - _offs[_index];
 }
 
-/*  ------------------------------------------------------------------------ */
-/// Dnn Class
-/*  ------------------------------------------------------------------------ */
-
-/*  ------------------------------------------------------------------------ */
-
-template<typename T>
-dnn<T>::dnn() {
-  internal::check_sinteger<T>();
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template<typename T>
-dnn<T>::dnn(std::vector<T>& _list, std::vector<T>& _offs)
-: list(_list), offs(_offs) {
-  internal::check_sinteger<T>();
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template<typename T>
-const typename dnn<T>::proxy dnn<T>::operator[](const int i) const {
-  return proxy(list, offs, i);
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template<typename T>
-typename dnn<T>::proxy dnn<T>::operator[](const int i) {
-  return proxy(list, offs, i);
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template<typename T>
-size_t dnn<T>::size() const {
-  return offs.size() - 1;
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template <typename T>
-void dnn<T>::print() const {
-  if (this->list.empty()) {
-    std::cout<<"{}"<<std::endl;
-    return;
-  }
-
-  T index = 0;
-  size_t counter = 1;
-  std::cout<<"{\n  {";
-  for (auto i : this->list) {
-    if (index == this->offs[counter]) {
-      if (counter < this->offs.size() - 1) {
-        counter += 1;
-      }
-      std::cout << "}\n  {";
-    }
-
-    std::cout<<std::setw(1)<<i<<", ";
-    index += 1;
-  }
-  std::cout<<"\n}"<<std::endl;;
-}
-
-/*  ------------------------------------------------------------------------ */
-
-template <typename T>
-void dnn<T>::savetxt(const std::string& fname) const {
-  std::ofstream fp(fname);
-  if (!fp) {
-    std::cerr<<"Failed to open file: "<<fname<<std::endl;
-    return;
-  }
-
-  T index = 0;
-  size_t counter = 1;
-  for (auto i : this->list) {
-    if (index == this->offs[counter]) {
-      if (counter < this->offs.size() - 1) {
-        counter += 1;
-      }
-      fp<<"\n";
-    }
-    fp<<std::setw(1)<<i<<" ";
-    index += 1;
-  }
-  fp<<"\n";
-  fp.close();
-}
-
-/*  ------------------------------------------------------------------------ */
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Tesellate helper function
+/// Tesellate internal functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 static inline void 
@@ -225,37 +263,18 @@ print_device(const sycl::queue& queue) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Tesellate Function
+/// Votess Internal Functions                                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename Ti, typename Tf>
-class dnn<Ti>
-tesellate(
-  std::vector<std::array<Tf,3>>& xyzset,
-  const struct vtargs& args,
-  const enum device device
-) {
+namespace dtessellate {
 
-  static_assert(std::is_floating_point<Tf>::value,
-  "Template type Tf must be a floating-point type."
-  );
-
-  switch (device) {
-    case (device::cpu): return dtessellate::cpu<Ti,Tf>(xyzset, args);
-    case (device::gpu): return dtessellate::gpu<Ti,Tf>(xyzset, args);
-  }
-
-  class dnn<Ti> failure;
-  return failure;
-}
-
-/*  ------------------------------------------------------------------------ */
-/// CPU Implementation
-/*  ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------- */
+/* CPU Implementation                                                        */
+/* ------------------------------------------------------------------------- */
 
 template <typename Ti, typename Tf>
 class dnn<Ti>
-dtessellate::cpu(
+cpu(
   std::vector<std::array<Tf,3>>& inset,
   const struct vtargs& args
 ) {
@@ -293,9 +312,8 @@ dtessellate::cpu(
   const size_t nthreads = args.nthreads > std::thread::hardware_concurrency() ? 
                           std::thread::hardware_concurrency() : args.nthreads;
   const size_t chunksize  = refsize / nthreads;
-  std::vector<std::thread> threads(nthreads);
 
-#if true
+  std::vector<std::thread> threads(nthreads);
   for (size_t i = 0; i < nthreads; i++) {
 
     const size_t _start = i * chunksize;
@@ -324,34 +342,7 @@ dtessellate::cpu(
     });
 
   }
-
   for (auto& thread : threads) thread.join();
-#else
-  for (size_t i = 0; i < nthreads; i++) {
-    const size_t _start = i * chunksize;
-    const size_t _end = (i == nthreads - 1) ? refsize : _start + chunksize;
-
-    for (size_t idx = _start; idx < _end; idx++) {
-      knni::compute<Ti, Tf>(
-        idx,
-        xyzset, xyzsize, id, offset,
-        xyzset, refsize,
-        heap_id, heap_pq,
-        args.knn
-      );
-
-      dnni::compute<Ti, Tf, uint8_t>(
-        idx,
-        states,
-        P.data(), T.data(), dR.data(),
-        knn, dknn,
-        xyzset, xyzsize,
-        xyzset, xyzsize,
-        args.cc
-      );
-    }
-  }
-#endif
 
   std::vector<Ti> _list(0);
   std::vector<Ti> _offs(refsize + 1);
@@ -365,6 +356,7 @@ dtessellate::cpu(
       _offs[n_i + 1] += 1;
     }
   }
+
   for (size_t n_i = 1; n_i < refsize + 1; n_i++) {
     _offs[n_i] += _offs[n_i - 1];
   }
@@ -375,13 +367,13 @@ dtessellate::cpu(
 
 }
 
-/*  ------------------------------------------------------------------------ */
-/// SYCL Implementation
-/*  ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------- */
+/* SYCL Implementation                                                       */
+/* ------------------------------------------------------------------------- */
 
 template <typename Ti, typename Tf>
 class dnn<Ti>
-dtessellate::gpu(
+gpu(
   std::vector<std::array<Tf,3>>& inset, 
   const struct vtargs& args
 ) {
@@ -535,4 +527,39 @@ dtessellate::gpu(
 
 }
 
+} // namespace dtessellate 
+  
+///////////////////////////////////////////////////////////////////////////////
+/// Votess Tesellate Function                                               ///
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename Ti, typename Tf>
+class dnn<Ti>
+tesellate(
+  std::vector<std::array<Tf,3>>& xyzset,
+  const struct vtargs& args,
+  const enum device device
+) {
+
+  static_assert(std::is_integral<Ti>::value && std::is_signed<Ti>::value,
+    "Template type Ti must be a signed integer type."
+  );
+
+  static_assert(std::is_floating_point<Tf>::value,
+  "Template type Tf must be a floating-point type."
+  );
+
+  switch (device) {
+    case (device::cpu): return dtessellate::cpu<Ti,Tf>(xyzset, args);
+    case (device::gpu): return dtessellate::gpu<Ti,Tf>(xyzset, args);
+  }
+
+  class dnn<Ti> err;
+  return err;
+  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// End                                                                     ///
+///////////////////////////////////////////////////////////////////////////////
 } // namespace votess
