@@ -281,9 +281,9 @@ def create_test_case(tag, i, points, k_max, gr_max, tol=1e-9):
  
     print('}\n')
 
-# --------------------------------------------------------------------------- #
-# Test Cases                                                                  #
-# --------------------------------------------------------------------------- #
+###############################################################################
+### Test Cases                                                              ###
+###############################################################################
 
 def create_standard_xyzset():
     return np.array([
@@ -371,21 +371,31 @@ def create_imbalanced_class_xyzset(majority_class_size=1000,
     minority_class = np.clip(minority_class, 1e-10, 1 - 1e-10)
     return np.vstack((majority_class, minority_class))
 
-# --------------------------------------------------------------------------- #
-# Main                                                                        #
-# --------------------------------------------------------------------------- #
+def create_collinear_xyzset(x_range=(0.01, 0.99),
+                            y_value=0.5, z_value=0.5, n_points=128):
+
+    return np.array([[x, y_value, z_value] 
+                     for x in np.linspace(x_range[0], x_range[1], n_points)])
+
+def create_concentric_xyzset(center=np.array([0.5, 0.5, 0.5]),
+                             radius=0.1, n_points=100):
+
+    angles = np.random.uniform(0, 2*np.pi, n_points)
+    z = np.random.uniform(-1, 1, n_points)
+    r = np.sqrt(1 - z**2)
+    x = r * np.cos(angles)
+    y = r * np.sin(angles)
+    sphere_points = np.column_stack((x, y, z))
+    scaled_points = sphere_points * radius
+    return center + scaled_points
+
+
+###############################################################################
+### Main                                                                    ###
+###############################################################################
 
 def main():
     index = 0
-    # ------------------------------------------------------------------ #
-    # Prefix                                                             #
-    # ------------------------------------------------------------------ #
-    
-    create_prefix()
-    
-    # ------------------------------------------------------------------ #
-    #     Test Cases                                                     #
-    # ------------------------------------------------------------------ #
     
     # standard
     xyzset = create_standard_xyzset()
@@ -482,10 +492,28 @@ def main():
     create_test_case("imbalanced_classes", index, xyzset, k, gr, tol)
     index += 1
 
-    # ------------------------------------------------------------------ #
-    # Suffix                                                             #
-    # ------------------------------------------------------------------ #
-    create_suffix()
+    # Collinear points
+    xyzset = create_collinear_xyzset()
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    index += 1
+
+    # Concentric points
+    xyzset = create_concentric_xyzset()
+    k = len(xyzset) - 1
+    gr = 1
+    tol = 1e-3
+    create_test_case("concentric", index, xyzset, k, gr, tol)
+    index += 1
+
+    return 
 
 if __name__ == "__main__":
+    create_prefix()
     main()
+    create_suffix()
+
+###############################################################################
+### End                                                                     ###
+###############################################################################
