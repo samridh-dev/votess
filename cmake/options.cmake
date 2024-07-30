@@ -2,7 +2,7 @@
 ## Exectuble Options
 # --------------------------------------------------------------------------- #
 
-option(ENABLE_BUILD_VOTESS   "build the votess cli executable"            OFF )
+option(ENABLE_BUILD_VOTESS   "build the votess cli executable"            ON )
 option(ENABLE_BUILD_PYVOTESS "build the pyvotess so library"              ON )
 option(ENABLE_BUILD_TEST     "build the test executable"                  ON )
 
