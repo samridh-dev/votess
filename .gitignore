@@ -6,6 +6,8 @@
 .tmp.in
 .tmp.out
 
+make
+
 *.sh
 !/make.sh
 
