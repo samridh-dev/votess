@@ -77,6 +77,6 @@ elseif(CMAKE_CXX_COMPILER MATCHES "acpp$")
 endif()
 
 configure_file(
-  ${CMAKE_CURRENT_%_DIR}/cmake/libsycl.hpp.in 
-  ${CMAKE_CURRENT_%_DIR}/include/libsycl.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libsycl.hpp.in 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/libsycl.hpp
 )
