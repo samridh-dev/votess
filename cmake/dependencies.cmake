@@ -3,7 +3,7 @@
 add_library(Threads::Threads INTERFACE IMPORTED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-if (ENABLE_BUILD_VOTESS)
+if (ENABLE_BUILD_CLI)
 
 endif()
 

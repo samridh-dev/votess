@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-if (ENABLE_BUILD_VOTESS OR ENABLE_BUILD_PYVOTESS)
+if (ENABLE_BUILD_CLI OR ENABLE_BUILD_PYVOTESS)
   file(GLOB SOURCE_LIB "*.cpp")
   if (NOT SOURCE_LIB)
     message(FATAL_ERROR "No source files found.")
@@ -12,10 +12,10 @@ if (ENABLE_BUILD_VOTESS OR ENABLE_BUILD_PYVOTESS)
   endif()
 endif()
 
-if (ENABLE_BUILD_VOTESS)
-  add_executable(votess ${SOURCE_LIB})
-  target_link_libraries(votess PRIVATE common)
-  set_target_properties(votess 
+if (ENABLE_BUILD_CLI)
+  add_executable(clvotess ${SOURCE_LIB})
+  target_link_libraries(clvotess PRIVATE common)
+  set_target_properties(clvotess 
     PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
   )

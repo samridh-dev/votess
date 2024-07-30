@@ -17,6 +17,6 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 # Add votess as a library
-add_library(votess INTERFACE)
-target_include_directories(votess INTERFACE 
+add_library(libvotess INTERFACE)
+target_include_directories(libvotess INTERFACE 
                            ${CMAKE_CURRENT_SOURCE_DIR}/include)
