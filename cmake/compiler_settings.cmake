@@ -75,7 +75,8 @@ if(CMAKE_CXX_COMPILER MATCHES "icpx$")
 elseif(CMAKE_CXX_COMPILER MATCHES "acpp$")
   set(SYCL_LIBRARY "<sycl/sycl.hpp>")
 endif()
+
 configure_file(
-  ${CMAKE_SOURCE_DIR}/cmake/libsycl.hpp.in 
-  ${CMAKE_SOURCE_DIR}/include/libsycl.hpp
+  ${CMAKE_CURRENT_%_DIR}/cmake/libsycl.hpp.in 
+  ${CMAKE_CURRENT_%_DIR}/include/libsycl.hpp
 )
