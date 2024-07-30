@@ -1,12 +1,6 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if (USE_ACPP)
-  set(CMAKE_CXX_COMPILER acpp CACHE PATH "C++ compiler")
-else()
-  set(CMAKE_CXX_COMPILER icpx CACHE PATH "C++ compiler")
-endif()
-
 if (ENABLE_DEBUG)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 else()

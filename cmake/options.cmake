@@ -16,7 +16,8 @@ option(ENABLE_DEBUG          "build project in debug mode"                ON )
 ## Compiler Options
 # --------------------------------------------------------------------------- #
 
-option(USE_ACPP              "Uses acpp compiler instead of icpx default" OFF )
+# NOTE: This option is deprecated. Supply compiler through command line instead
+# option(USE_ACPP            "Uses acpp compiler instead of icpx default" OFF )
 
 # --------------------------------------------------------------------------- #
 ## End
