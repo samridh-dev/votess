@@ -21,6 +21,8 @@
 
 #define FP_INFINITY 128.00f
 
+#define USE_NEW_TESSELLATE 1
+
 namespace votess {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,18 +40,24 @@ struct vtargs {
 
   vtargs(
     const int _k,
-    const int _grid_resolution,
+    const int _grid_resolution = 1,
     const int _nthreads = 1,
     const int _p_maxsize = ARGS_DEFAULT_P_MAXSIZE,
-    const int _t_maxsize = ARGS_DEFAULT_T_MAXSIZE
-  ) : global(_k),
+    const int _t_maxsize = ARGS_DEFAULT_T_MAXSIZE) 
+    : global(_k),
       xyzset(_grid_resolution),
       knn(_k, _grid_resolution),
       cc(_k, _p_maxsize , _t_maxsize),
-      nthreads(_nthreads)
-  {}
+      nthreads(_nthreads) {}
+
+  void set_k(const int k) {
+    global.k = k;
+    knn.k = k;
+    cc.k = k;
+  }
 
 };
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal functions
@@ -82,6 +90,7 @@ class dnn {
 
     dnn();
     dnn(std::vector<Ti>& _list, std::vector<Ti>& _offs);
+    dnn(std::vector<Ti>&& _list, std::vector<Ti>&& _offs);
 
     const proxy operator[](const int i) const;
     proxy operator[](const int i);
@@ -90,46 +99,54 @@ class dnn {
     void print() const;
     void savetxt(const std::string& fname) const;
 
-  private:
     std::vector<Ti> list;
     std::vector<Ti> offs;
 
+  private:
+
 };
 
-template<typename T>
-dnn<T>::dnn() {
-  internal::check_sinteger<T>();
+template<typename Ti>
+dnn<Ti>::dnn() {
+  internal::check_sinteger<Ti>();
 }
 
-template<typename T>
-dnn<T>::dnn(std::vector<T>& _list, std::vector<T>& _offs)
+template<typename Ti>
+dnn<Ti>::dnn(std::vector<Ti>& _list, std::vector<Ti>& _offs)
 : list(_list), offs(_offs) {
-  internal::check_sinteger<T>();
+  internal::check_sinteger<Ti>();
 }
 
-template<typename T>
-const typename dnn<T>::proxy dnn<T>::operator[](const int i) const {
+template<typename Ti>
+dnn<Ti>::dnn(std::vector<Ti>&& _list, std::vector<Ti>&& _offs)
+: list(std::move(_list)), offs(std::move(_offs)) {
+  internal::check_sinteger<Ti>();
+}
+
+
+template<typename Ti>
+const typename dnn<Ti>::proxy dnn<Ti>::operator[](const int i) const {
   return proxy(list, offs, i);
 }
 
-template<typename T>
-typename dnn<T>::proxy dnn<T>::operator[](const int i) {
+template<typename Ti>
+typename dnn<Ti>::proxy dnn<Ti>::operator[](const int i) {
   return proxy(list, offs, i);
 }
 
-template<typename T>
-size_t dnn<T>::size() const {
+template<typename Ti>
+size_t dnn<Ti>::size() const {
   return offs.size() - 1;
 }
 
-template <typename T>
-void dnn<T>::print() const {
+template <typename Ti>
+void dnn<Ti>::print() const {
   if (this->list.empty()) {
     std::cout<<"{}"<<std::endl;
     return;
   }
 
-  T index = 0;
+  Ti index = 0;
   size_t counter = 1;
   std::cout<<"{\n  {";
   for (auto i : this->list) {
@@ -146,15 +163,15 @@ void dnn<T>::print() const {
   std::cout<<"\n}"<<std::endl;;
 }
 
-template <typename T>
-void dnn<T>::savetxt(const std::string& fname) const {
+template <typename Ti>
+void dnn<Ti>::savetxt(const std::string& fname) const {
   std::ofstream fp(fname);
   if (!fp) {
     std::cerr<<"Failed to open file: "<<fname<<std::endl;
     return;
   }
 
-  T index = 0;
+  Ti index = 0;
   size_t counter = 1;
   for (auto i : this->list) {
     if (index == this->offs[counter]) {
@@ -279,9 +296,9 @@ cpu(
   const struct vtargs& args
 ) {
 
-  const auto sort_pair = xyzset::sort<Ti,Tf>(inset, args.xyzset);
-  const auto& id       = sort_pair.first;
-  const auto& offset   = sort_pair.second;
+  const auto pair = xyzset::sort<Ti,Tf>(inset, args.xyzset);
+  const auto& id       = pair.first;
+  const auto& offset   = pair.second;
 
   if (!xyzset::validate_xyzset<Tf>(inset)) {
     std::cerr<<"oops1"<<std::endl;
@@ -309,8 +326,8 @@ cpu(
   std::vector<uint8_t>  T(xyzsize * args.cc.t_maxsize * 3);
   std::vector<uint8_t> dR(xyzsize * args.cc.p_maxsize);
   
-  const size_t nthreads = args.nthreads > std::thread::hardware_concurrency() ? 
-                          std::thread::hardware_concurrency() : args.nthreads;
+  const size_t nthreads = std::thread::hardware_concurrency(); 
+
   const size_t chunksize  = refsize / nthreads;
 
   std::vector<std::thread> threads(nthreads);
@@ -431,6 +448,7 @@ gpu(
   });
 
   auto beg = std::chrono::high_resolution_clock::now();
+
   queue.submit([&](sycl::handler& cgh) {
 
     using namespace sycl;
@@ -509,6 +527,7 @@ gpu(
   for (size_t n_i = 1; n_i < refsize + 1; n_i++) {
     _offs[n_i] += _offs[n_i - 1];
   }
+
   class dnn<Ti> dnn(_list,_offs);
 
   end = std::chrono::high_resolution_clock::now();
@@ -528,16 +547,21 @@ gpu(
 }
 
 } // namespace dtessellate 
-  
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Votess Tesellate Function                                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename Ti, typename Tf>
 class dnn<Ti>
+#if USE_NEW_TESSELLATE
+newtesellate(
+#else
 tesellate(
+#endif
   std::vector<std::array<Tf,3>>& xyzset,
-  const struct vtargs& args,
+  struct vtargs args,
   const enum device device
 ) {
 
@@ -557,6 +581,246 @@ tesellate(
   class dnn<Ti> err;
   return err;
   
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// New Tesellate Functions                                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename Ti>
+void 
+tmpnn_fill(
+  std::vector<std::vector<Ti>>& tmpnn,
+  const std::vector<Ti>& indices,
+  const std::vector<cc::state>& states,
+  const std::vector<Ti>& knn,
+  const struct vtargs& args
+) {
+
+  const auto& k = args.knn.k;
+
+  for (size_t i = 0; i < indices.size(); i++) {
+    const auto& index = indices[i];
+
+//  if (!states[i].get(cc::security_radius_reached)) {
+//    continue;
+//  }
+
+    tmpnn[index].resize(k);
+    std::copy(knn.begin() + k * (i + 0),
+              knn.begin() + k * (i + 1),
+              tmpnn[index].begin());
+
+  }
+
+}
+
+template <typename Ti>
+class dnn<Ti>
+tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
+
+  const Ti xyzsize =  tmpnn.size();
+  std::vector<Ti> _list(0);
+  std::vector<Ti> _offs(xyzsize + 1);
+  _offs[0] = 0;
+
+  for (size_t i = 0; i < xyzsize; i++) {
+
+    for (const auto& neighbor : tmpnn[i]) {
+      if (neighbor == cc::k_undefined) {
+        break;
+      }
+      _list.push_back(neighbor);
+      _offs[i+1] += 1;
+    }
+    
+    tmpnn[i].clear();
+    tmpnn[i].shrink_to_fit();
+
+  }
+
+  for (size_t i = 1; i < xyzsize + 1; i++) {
+    _offs[i] += _offs[i - 1];
+  }
+
+  return dnn(std::move(_list), std::move(_offs));
+
+}
+
+template <typename Ti, typename Tf>
+void
+__cpu__tesellate(
+
+  const std::vector<std::array<Tf,3>>& xyzset,
+  const std::vector<Ti>& id,
+  const std::vector<Ti>& offset,
+
+  std::vector<std::vector<Ti>>& tmpnn,
+  const std::vector<Ti>& indices,
+  std::vector<cc::state>& states, 
+
+  const struct vtargs& args
+
+) {
+  
+  const Ti xyzsize = xyzset.size();
+  const Ti subsize = indices.size();
+
+  const auto& k = args.global.k;
+  const auto& p_maxsize = args.cc.p_maxsize;
+  const auto& t_maxsize = args.cc.t_maxsize;
+
+  std::vector<Ti> heap_id(subsize * k, 0);
+  std::vector<Tf> heap_pq(subsize * k, FP_INFINITY);
+  std::vector<Ti>& knn = heap_id;
+
+  std::vector<Ti> dknn(subsize * k, __INTERNAL__K_UNDEFINED);
+
+  std::vector<Tf>       P(subsize * p_maxsize * 4);
+  std::vector<uint8_t>  T(subsize * t_maxsize * 3);
+  std::vector<uint8_t> dR(subsize * p_maxsize);
+
+  const size_t nthreads = std::thread::hardware_concurrency(); 
+  const size_t chunksize  = subsize / nthreads;
+
+  std::vector<std::thread> threads(nthreads);
+  for (size_t i = 0; i < nthreads; i++) {
+
+    const size_t _start = i * chunksize;
+    const size_t _end = (i == nthreads - 1) ? subsize : _start + chunksize;
+
+    threads[i] = std::thread([&,_start,_end]() {
+      for (size_t idx = _start; idx < _end; idx++) {
+        knni::compute<Ti,Tf>(
+          idx, indices[idx], 
+          xyzset, xyzsize, id, offset, 
+          xyzset, subsize,
+          heap_id, heap_pq,
+          args.knn
+        );
+
+        dnni::compute<Ti, Tf, uint8_t>( 
+          idx, indices[idx],
+          states, 
+          P.data(), T.data(), dR.data(),
+          knn, dknn,
+          xyzset, xyzsize,
+          xyzset, xyzsize,
+          args.cc
+        );
+      }
+    });
+
+  }
+  for (auto& thread : threads) thread.join();
+
+  tmpnn_fill(tmpnn, indices, states, knn, args);
+
+}
+
+
+template <typename Ti, typename Tf>
+class dnn<Ti>
+
+#if USE_NEW_TESSELLATE
+tesellate(
+#else
+newtesellate(
+#endif
+  std::vector<std::array<Tf,3>>& xyzset,
+  struct vtargs args,
+  const enum device device
+) {
+
+  static_assert(std::is_integral<Ti>::value && std::is_signed<Ti>::value,
+    "Template type Ti must be a signed integer type."
+  );
+
+  static_assert(std::is_floating_point<Tf>::value,
+  "Template type Tf must be a floating-point type."
+  );
+
+  const auto [id,offset] = xyzset::sort<Ti,Tf>(xyzset, args.xyzset);
+  const size_t xyzsize = xyzset.size();
+  const auto k0 = args.global.k;
+
+  // TODO : Make errors actually good
+  if (!xyzset::validate_xyzset<Tf>(xyzset)) {
+    std::cerr<<"oops1"<<std::endl;
+  }
+  if (!xyzset::validate_id<Ti>(id)) {
+    std::cerr<<"oops2"<<std::endl;
+  }
+  if (!xyzset::validate_offset<Ti>(offset)) {
+    std::cerr<<"oops3"<<std::endl;
+  }
+  
+  std::vector<std::vector<Ti>> tmpnn(xyzsize);
+
+  const int chunksize = 10000;
+  const int nruns = chunksize < xyzsize ? xyzsize / chunksize : 1;
+
+  for (int run = 0; run < nruns; run++) {
+
+    std::cout << "[data] run : " << run << " / " << nruns << std::endl;
+
+    const size_t _start = run * chunksize;
+    const size_t _end = (run == nruns - 1) ? xyzsize : _start + chunksize;
+
+    size_t subsize = _end - _start;
+    auto& k = args.global.k;
+
+    std::vector<struct cc::state> states(subsize);
+    std::vector<Ti> indices(subsize);
+
+    for (size_t i = 0; i < subsize; i++) {
+      indices[i] = _start + i;
+    }
+
+    args.set_k(k0);
+
+    __cpu__tesellate(xyzset, id, offset, tmpnn, indices, states, args);
+    
+    while (1) {
+
+      size_t cur = 0; 
+      for (size_t i = 0; i < subsize; i++) {
+        if (!states[i].get(cc::security_radius_reached)) {
+          indices[cur++] = indices[i];
+        }
+      }
+      subsize = cur;
+
+      states.resize(subsize);
+      for (size_t i = 0; i < subsize; i++) states[i].reset();
+
+      if (subsize <= 0) {
+        break;
+      }
+   
+      args.set_k(k * 2);
+      if (k > (xyzsize - 1)) {
+        args.set_k(xyzsize - 1);
+      }
+
+      std::cout << "\t[data] recomputing with"
+                << "\tk : " << k 
+                << "\tsize : " << subsize 
+                << std::endl;
+
+      __cpu__tesellate(xyzset, id, offset, tmpnn, indices, states, args);
+
+      if (k >= (xyzsize - 1)) {
+        break;
+      }
+
+    }
+
+  }
+
+
+  return tmpnn_getdnn(tmpnn);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
