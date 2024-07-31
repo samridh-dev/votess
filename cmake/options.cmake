@@ -10,7 +10,7 @@ option(ENABLE_BUILD_TEST     "build the test executable"                  ON )
 ## Build Options
 # --------------------------------------------------------------------------- #
 
-option(ENABLE_DEBUG          "build project in debug mode"                ON )
+option(ENABLE_DEBUG          "build project in debug mode"                OFF )
 
 # --------------------------------------------------------------------------- #
 ## Compiler Options
