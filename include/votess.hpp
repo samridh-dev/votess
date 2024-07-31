@@ -16,7 +16,7 @@ template <typename Ti, typename Tf>
 class dnn<Ti> 
 tesellate(
   std::vector<std::array<Tf,3>>& xyzset,
-  const struct vtargs& args,
+  struct vtargs args,
   const enum device device = device::cpu
 );
 
