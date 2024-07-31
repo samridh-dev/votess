@@ -37,6 +37,23 @@ void compute(
   const struct args::cc& args
 );
 
+template <typename T1, typename T2, typename T3>
+void compute(
+  const T1 i,
+  const T1 index,
+  std::vector<cc::state>& states,
+  T2* P,
+  T3* T,
+  T3* dR,
+  std::vector<T1>& knn,
+  std::vector<T1>& dknn,
+  const std::vector<std::array<T2,3>>& xyzset,
+  const size_t xyzsize,
+  const std::vector<std::array<T2,3>>& refset,
+  const size_t refsize,
+  const struct args::cc& args
+);
+
 /* ------------------------------------------------------------------------- */
 /// SYCL Implementation
 /* ------------------------------------------------------------------------- */

@@ -30,6 +30,21 @@ void compute(
   const struct args::knn& args
 );
 
+template <typename Ti, typename Tf>
+void compute(
+  const Ti i,
+  const Ti index,
+  const std::vector<std::array<Tf,3>>& xyzset,
+  const size_t xyzsize,
+  const std::vector<Ti>& id,
+  const std::vector<Ti>& offset,
+  const std::vector<std::array<Tf,3>>& refset,
+  const size_t refsize,
+  std::vector<Ti>& heap_id,
+  std::vector<Tf>& heap_pq,
+  const struct args::knn& args
+);
+
 /* ------------------------------------------------------------------------- */
 /// SYCL Implementation
 /* ------------------------------------------------------------------------- */
