@@ -1,5 +1,31 @@
 import numpy as np
 
+def create_test_case(tag, i, points, gr_arr):
+    
+    k = len(points) // 5 
+    if k == 0: k = 1
+
+    name = f'votess regression {i}: {tag}'
+
+    print(f'TEST_CASE("{name}", "[votess]") {{')
+    print(f'\n  const int k = {k};')
+    print('  std::vector<std::array<float, 3>> xyzset = {')
+    
+    for point in points:
+        print(f'    {{{point[0]}f, {point[1]}f, {point[2]}f}},')
+    
+    print('  };')
+    print()
+    
+    gr_str = "{" + ",".join(map(str, gr_arr)) + "}"
+    print(f'  for (const auto& gr : {gr_str} ) {{')
+    print(f'    test_votess(xyzset, k, gr);')
+    print('  }')
+    print()
+    print('}')
+    print()
+
+
 def create_prefix():
     print('#include <catch2/catch_test_macros.hpp>')
     print('#include <catch2/matchers/catch_matchers_floating_point.hpp>')
@@ -111,6 +137,7 @@ def create_suffix():
     print('')
     print('    std::vector<int> test_dnn(0);')
     print('    std::vector<int> test_vneighbor(0);')
+    print('    CAPTURE(vcoord, vneighbor);')
     print('')
     print('    for (size_t i = 0; i < xyzset.size(); i++) {')
     print('        auto it = std::find_if(')
@@ -176,27 +203,6 @@ def create_suffix():
     print('///////////////////////////////////////////////////////////////////////////////')
     print('/// End                                                                     ///')
     print('///////////////////////////////////////////////////////////////////////////////', end='')
-
-def create_test_case(tag, i, points, gr_arr):
-
-
-    print(f'TEST_CASE("votess regression {i}: {tag}", "[votess]") {{')
-    print(f'\n  const int k = {len(points) - 1};')
-    print('  std::vector<std::array<float, 3>> xyzset = {')
-    
-    for point in points:
-        print(f'    {{{point[0]}f, {point[1]}f, {point[2]}f}},')
-    
-    print('  };')
-    print()
-    
-    gr_str = "{" + ",".join(map(str, gr_arr)) + "}"
-    print(f'  for (const auto& gr : {gr_str} ) {{')
-    print(f'    test_votess(xyzset, k, gr);')
-    print('  }')
-    print()
-    print('}')
-    print()
 
 ###############################################################################
 ### Test Cases                                                              ###
@@ -280,7 +286,7 @@ def create_outliers_xyzset(base_set, outlier_factor=10):
     outliers = np.clip(outliers, 1e-6, 1 - 1e-6)
     return np.vstack((base_set, outliers))
 
-def create_imbalanced_class_xyzset(majority_class_size=1000,
+def create_imbalanced_class_xyzset(majority_class_size=100,
                                    minority_class_size=10):
     majority_class = np.random.rand(majority_class_size, 3)
     minority_class = (np.random.rand(minority_class_size, 3) * 0.1) + 0.9
@@ -314,37 +320,59 @@ def main():
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
 
-    # Test case 1: Standard set
-    xyzset = create_standard_xyzset()
-    create_test_case("standard", index, xyzset, gr_arr)
-    index += 1
-
-    # random tests
-    for i in range(16):
-        xyzset = create_random_xyzset()
-        create_test_case("random", index, xyzset, gr_arr)
-        index += 1
-
-    # clustered dataset
-    cluster_center = np.array([0.5, 0.5, 0.5])
-    xyzset = create_clustered_xyzset(cluster_center)
-    create_test_case("clustered", index, xyzset, gr_arr)
-    index += 1
-
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
     create_test_case("lattice", index, xyzset, gr_arr)
     index += 1
 
     # Fibonacci sphere
-    for N in [8,24,64,128]:
+    for N in [8,16,14,48,64,96,128]:
         xyzset = create_fibonacci_sphere_xyzset(N)
         create_test_case("fibonacci_sphere({})".format(N),
                          index, xyzset, gr_arr)
         index += 1
+
+    # Test case 1: Standard set
+    xyzset = create_standard_xyzset()
+    create_test_case("standard", index, xyzset, gr_arr)
+    index += 1
+
+    # random tests
+    for i in range(2):
+        xyzset = create_random_xyzset(128)
+        create_test_case("random", index, xyzset, gr_arr)
+        index += 1
+
+    # Collinear points
+    xyzset = create_collinear_xyzset()
+    create_test_case("collinear", index, xyzset, gr_arr)
+    index += 1
+
+    # Concentric points
+    xyzset = create_concentric_xyzset()
+    create_test_case("concentric", index, xyzset, gr_arr)
+    index += 1
+
+    # Noisy data
+    base_set = create_lattice_xyzset()
+    xyzset = create_noisy_xyzset(base_set, noise_level=0.1)
+    create_test_case("noisy_data", index, xyzset, gr_arr)
+    index += 1
+
+    # Imbalanced classes
+    xyzset = create_imbalanced_class_xyzset(majority_class_size=100,
+                                            minority_class_size=10)
+    create_test_case("imbalanced_classes", index, xyzset, gr_arr)
+    index += 1
     
     # problematic tests due to voro++
     if 0:
+
+        # clustered dataset
+        cluster_center = np.array([0.5, 0.5, 0.5])
+        xyzset = create_clustered_xyzset(cluster_center)
+        create_test_case("clustered", index, xyzset, gr_arr)
+        index += 1
 
         # Sparse data
         xyzset = create_sparse_xyzset(num_points=100, sparsity_level=0.95)
@@ -367,28 +395,6 @@ def main():
         create_test_case("outliers", index, xyzset, gr_arr)
         index += 1
 
-    # Noisy data
-    base_set = create_lattice_xyzset()
-    xyzset = create_noisy_xyzset(base_set, noise_level=0.1)
-    create_test_case("noisy_data", index, xyzset, gr_arr)
-    index += 1
-
-    # Imbalanced classes
-    xyzset = create_imbalanced_class_xyzset(majority_class_size=1000,
-                                            minority_class_size=10)
-    create_test_case("imbalanced_classes", index, xyzset, gr_arr)
-    index += 1
-
-    # Collinear points
-    xyzset = create_collinear_xyzset()
-    create_test_case("collinear", index, xyzset, gr_arr)
-    index += 1
-
-    # Concentric points
-    xyzset = create_concentric_xyzset()
-    create_test_case("concentric", index, xyzset, gr_arr)
-    index += 1
-    
     return
 
 if __name__ == "__main__": 

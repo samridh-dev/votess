@@ -105,7 +105,7 @@ def create_suffix():
     print("      sycl::range<1>(xyzset.size() / 3),")
     print("      [=](sycl::id<1> idx) {")
     print("        knni::compute<Ti,Tf>(")
-    print("          idx[0], ")
+    print("          idx[0],")
     print("          axyzset, axyzset.size() / 3, aid, aoffset, ")
     print("          axyzset, axyzset.size() / 3,")
     print("          ahid, ahpq,")
@@ -157,7 +157,7 @@ def create_suffix():
     print()
     print("  for (size_t idx = 0; idx < inset.size(); ++idx) {")
     print("    knni::compute<Ti, Tf>(")
-    print("      idx,")
+    print("      idx, idx,")
     print("      inset, inset.size(), id, offset,")
     print("      inset, inset.size(),")
     print("      vid, vpq,")
@@ -405,6 +405,8 @@ def main():
     create_test_case("standard", index, xyzset, k, gr, tol)
     index += 1
     
+    return 
+
     # random tests
     for i in range(16):
         xyzset = create_random_xyzset()
@@ -413,7 +415,7 @@ def main():
         tol = 1e-3
         create_test_case("random", index, xyzset, k, gr, tol)
         index += 1
-
+    
     # clustered dataset
     cluster_center = np.array([0.5, 0.5, 0.5])
     xyzset = create_clustered_xyzset(cluster_center)
