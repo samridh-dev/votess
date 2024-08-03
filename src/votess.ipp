@@ -586,6 +586,7 @@ tesellate(
 /// New Tesellate Functions                                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
+// NOTE: This is the source of continuosly increasing memory for long runs
 template <typename Ti>
 static void 
 tmpnn_fill(
@@ -596,25 +597,41 @@ tmpnn_fill(
   const struct vtargs& args
 ) {
 
-  for (size_t i = 0; i < indices.size(); i++) {
+  size_t totalAllocatedMemory = 0;
+  size_t maxMemoryPerVector = args.knn.k * sizeof(Ti);
 
+  for (size_t i = 0; i < indices.size(); i++) {
     const auto& k = args.knn.k;
     const auto& index = indices[i];
     auto& tmpnni = tmpnn[index]; 
 
-//  if (!states[i].get(cc::security_radius_reached)) {
-//    continue;
-//  }
+//    if (!states[i].get(cc::security_radius_reached)) {
+//      continue;
+//    }
 
-    if (tmpnni.size() != k) {
-      tmpnni.resize(k);
+    size_t size = 0;
+    for (size_t j = 0; j < k; j++) {
+      if (knn[k * i + j] == __INTERNAL__K_UNDEFINED) break;
+      size++;
     }
 
-    std::copy(knn.begin() + k * (i + 0),
-              knn.begin() + k * (i + 1),
-              tmpnni.begin());
+    tmpnni.resize(size);
+    totalAllocatedMemory += tmpnni.capacity() * sizeof(Ti);
+    
+    for (size_t j = 0; j < size; j++) {
+      const auto& ki = knn[k * i + j];
+      if (ki == __INTERNAL__K_UNDEFINED) break;
+      tmpnni[j] = ki;
+    }
 
   }
+
+  // Calculate and print memory usage in kilobytes
+  size_t allocatedMemoryKB = totalAllocatedMemory / 1024;
+  size_t maxMemoryKB = (indices.size() * maxMemoryPerVector) / 1024;
+
+  std::cout << "Allocated Memory: " << allocatedMemoryKB << " KB\n";
+  std::cout << "Maximum Memory: " << maxMemoryKB << " KB\n";
 
 }
 
@@ -669,7 +686,7 @@ __cpu__tesellate(
   const Ti xyzsize = xyzset.size();
   const Ti refsize = refset.size();
 
-  const int chunksize = 8912;
+  const int chunksize = 8192;
   const int nruns = chunksize < refsize ? 1 + refsize / chunksize : 1;
 
   Ti subsize = chunksize < refsize ? chunksize : refsize;
