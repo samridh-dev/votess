@@ -261,7 +261,7 @@ void dnni::compute(
     2,5,0, 5,3,0, 1,5,2, 5,1,3, 
     4,2,0, 4,0,3, 2,4,1, 4,3,1 
   };
-
+  
   const unsigned short int p_initsize = sizeof(p_init) / (sizeof(*p_init) * 4);
   const unsigned short int t_initsize = sizeof(t_init) / (sizeof(*t_init) * 3);
 
@@ -273,7 +273,7 @@ void dnni::compute(
   unsigned short int t_size = t_initsize; 
   unsigned short int r_size = 0; 
 
-  cc::state& state = states[i];
+  cc::state& state = states[index];
 
   T2 vertex[4];
   T2 bisector[4];
@@ -294,7 +294,7 @@ void dnni::compute(
     T[3 * t_maxsize * i + 3 * j + 1] = t_init[3 * j + 1];
     T[3 * t_maxsize * i + 3 * j + 2] = t_init[3 * j + 2];
   }
-  
+
   for (size_t neighbor = 0; neighbor < k; neighbor++) {
   
     auto& q = knn[k * i + neighbor];
@@ -650,6 +650,7 @@ void dnni::compute(
     }
   
     if (state.get(cc::error_occurred)) {
+      std::cerr << "oh no error occured\n";
       state.set_false(cc::error_occurred);
     }
     if (state.get(cc::error_nonvalid_neighbor)) {
