@@ -1,4 +1,3 @@
-
 #include <arguments.hpp>
 #include <xyzset.hpp>
 #include <status.hpp>
@@ -588,7 +587,7 @@ tesellate(
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename Ti>
-void 
+static void 
 tmpnn_fill(
   std::vector<std::vector<Ti>>& tmpnn,
   const std::vector<Ti>& indices,
@@ -597,26 +596,30 @@ tmpnn_fill(
   const struct vtargs& args
 ) {
 
-  const auto& k = args.knn.k;
-
   for (size_t i = 0; i < indices.size(); i++) {
+
+    const auto& k = args.knn.k;
     const auto& index = indices[i];
+    auto& tmpnni = tmpnn[index]; 
 
 //  if (!states[i].get(cc::security_radius_reached)) {
 //    continue;
 //  }
 
-    tmpnn[index].resize(k);
+    if (tmpnni.size() != k) {
+      tmpnni.resize(k);
+    }
+
     std::copy(knn.begin() + k * (i + 0),
               knn.begin() + k * (i + 1),
-              tmpnn[index].begin());
+              tmpnni.begin());
 
   }
 
 }
 
 template <typename Ti>
-class dnn<Ti>
+static class dnn<Ti>
 tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
 
   const Ti xyzsize =  tmpnn.size();
@@ -648,15 +651,15 @@ tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
 }
 
 template <typename Ti, typename Tf>
-void
+static void
 __cpu__tesellate(
 
   const std::vector<std::array<Tf,3>>& xyzset,
   const std::vector<Ti>& id,
   const std::vector<Ti>& offset,
 
+  const std::vector<std::array<Tf,3>>& refset,
   std::vector<std::vector<Ti>>& tmpnn,
-  const std::vector<Ti>& indices,
   std::vector<cc::state>& states, 
 
   const struct vtargs& args
@@ -664,11 +667,18 @@ __cpu__tesellate(
 ) {
   
   const Ti xyzsize = xyzset.size();
-  const Ti subsize = indices.size();
+  const Ti refsize = refset.size();
+
+  const int chunksize = 8912;
+  const int nruns = chunksize < refsize ? 1 + refsize / chunksize : 1;
+
+  Ti subsize = chunksize < refsize ? chunksize : refsize;
 
   const auto& k = args.global.k;
   const auto& p_maxsize = args.cc.p_maxsize;
   const auto& t_maxsize = args.cc.t_maxsize;
+
+  std::vector<Ti> indices(subsize);
 
   std::vector<Ti> heap_id(subsize * k, 0);
   std::vector<Tf> heap_pq(subsize * k, FP_INFINITY);
@@ -680,44 +690,68 @@ __cpu__tesellate(
   std::vector<uint8_t>  T(subsize * t_maxsize * 3);
   std::vector<uint8_t> dR(subsize * p_maxsize);
 
-  const size_t nthreads = std::thread::hardware_concurrency(); 
-  const size_t chunksize  = subsize / nthreads;
+  for (int run = 0; run < nruns; run++) {
 
-  std::vector<std::thread> threads(nthreads);
-  for (size_t i = 0; i < nthreads; i++) {
+    std::fill(dknn.begin(), dknn.end(), __INTERNAL__K_UNDEFINED);
+    std::fill(heap_id.begin(), heap_id.end(), 0);
+    std::fill(heap_pq.begin(), heap_pq.end(), 
+              std::numeric_limits<Tf>::infinity());
 
-    const size_t _start = i * chunksize;
-    const size_t _end = (i == nthreads - 1) ? subsize : _start + chunksize;
+    const size_t nthreads = std::thread::hardware_concurrency(); 
+    const size_t threadsize  = subsize / nthreads;
 
-    threads[i] = std::thread([&,_start,_end]() {
-      for (size_t idx = _start; idx < _end; idx++) {
-        knni::compute<Ti,Tf>(
-          idx, indices[idx], 
-          xyzset, xyzsize, id, offset, 
-          xyzset, subsize,
-          heap_id, heap_pq,
-          args.knn
-        );
+    const size_t _cstart = run * chunksize;
+    const size_t _cend = (run == nruns - 1) ? refsize : _cstart + chunksize;
 
-        dnni::compute<Ti, Tf, uint8_t>( 
-          idx, indices[idx],
-          states, 
-          P.data(), T.data(), dR.data(),
-          knn, dknn,
-          xyzset, xyzsize,
-          xyzset, xyzsize,
-          args.cc
-        );
-      }
-    });
+    subsize = _cend - _cstart;
+    if (indices.size() != subsize) {
+      indices.resize(subsize);
+    }
+
+    for (size_t i = 0; i < subsize; i++) {
+      indices[i] = _cstart + i;
+    }
+
+    std::cout << "[data] run : " << run << " / " << nruns 
+              << ", size : " << subsize << std::endl;
+
+    std::vector<std::thread> threads(nthreads);
+    for (size_t i = 0; i < nthreads; i++) {
+
+      const size_t _tstart = i * threadsize;
+      const size_t _tend = (i != nthreads - 1) ? _tstart + threadsize 
+                                               : subsize;
+
+      threads[i] = std::thread([&,_tstart,_tend]() {
+        for (size_t idx = _tstart; idx < _tend; idx++) {
+          knni::compute<Ti,Tf>(
+            idx, indices[idx], 
+            xyzset, xyzsize, id, offset, 
+            refset, subsize,
+            heap_id, heap_pq,
+            args.knn
+          );
+
+          dnni::compute<Ti, Tf, uint8_t>( 
+            idx, indices[idx],
+            states, 
+            P.data(), T.data(), dR.data(),
+            knn, dknn,
+            xyzset, xyzsize,
+            refset, subsize,
+            args.cc
+          );
+        }
+      });
+
+    }
+    for (auto& thread : threads) thread.join();
+
+    tmpnn_fill(tmpnn, indices, states, knn, args);
 
   }
-  for (auto& thread : threads) thread.join();
-
-  tmpnn_fill(tmpnn, indices, states, knn, args);
 
 }
-
 
 template <typename Ti, typename Tf>
 class dnn<Ti>
@@ -754,71 +788,16 @@ newtesellate(
   if (!xyzset::validate_offset<Ti>(offset)) {
     std::cerr<<"oops3"<<std::endl;
   }
+
+  const auto& refset = xyzset;
+  const size_t refsize = refset.size();
+  std::vector<std::vector<Ti>>  tmpnn(refsize);
+  std::vector<struct cc::state> states(refsize);
+
+  for (size_t i = 0; i < states.size(); i++) states[i].reset();
+
+  __cpu__tesellate(xyzset, id, offset,  xyzset, tmpnn, states, args);
   
-  std::vector<std::vector<Ti>> tmpnn(xyzsize);
-
-  const int chunksize = 10000;
-  const int nruns = chunksize < xyzsize ? xyzsize / chunksize : 1;
-
-  for (int run = 0; run < nruns; run++) {
-
-    std::cout << "[data] run : " << run << " / " << nruns << std::endl;
-
-    const size_t _start = run * chunksize;
-    const size_t _end = (run == nruns - 1) ? xyzsize : _start + chunksize;
-
-    size_t subsize = _end - _start;
-    auto& k = args.global.k;
-
-    std::vector<struct cc::state> states(subsize);
-    std::vector<Ti> indices(subsize);
-
-    for (size_t i = 0; i < subsize; i++) {
-      indices[i] = _start + i;
-    }
-
-    args.set_k(k0);
-
-    __cpu__tesellate(xyzset, id, offset, tmpnn, indices, states, args);
-    
-    while (1) {
-
-      size_t cur = 0; 
-      for (size_t i = 0; i < subsize; i++) {
-        if (!states[i].get(cc::security_radius_reached)) {
-          indices[cur++] = indices[i];
-        }
-      }
-      subsize = cur;
-
-      states.resize(subsize);
-      for (size_t i = 0; i < subsize; i++) states[i].reset();
-
-      if (subsize <= 0) {
-        break;
-      }
-   
-      args.set_k(k * 2);
-      if (k > (xyzsize - 1)) {
-        args.set_k(xyzsize - 1);
-      }
-
-      std::cout << "\t[data] recomputing with"
-                << "\tk : " << k 
-                << "\tsize : " << subsize 
-                << std::endl;
-
-      __cpu__tesellate(xyzset, id, offset, tmpnn, indices, states, args);
-
-      if (k >= (xyzsize - 1)) {
-        break;
-      }
-
-    }
-
-  }
-
-
   return tmpnn_getdnn(tmpnn);
 
 }
