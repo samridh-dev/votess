@@ -13,6 +13,13 @@ if (ENABLE_BUILD_PYVOTESS)
 endif()
 
 if (ENABLE_BUILD_TEST)
+
   add_subdirectory(extern/catch2)
+
+  set(VORO_BUILD_SHARED_LIBS OFF)
+  set(VORO_BUILD_EXAMPLES OFF)
+  set(VORO_BUILD_CMD_LINE OFF)
+  set(VORO_ENABLE_DOXYGEN OFF)
   add_subdirectory(extern/voropp)
+
 endif()
