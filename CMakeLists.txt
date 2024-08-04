@@ -15,6 +15,7 @@ include(cmake/include.cmake)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(test/regression)
 
 # Add votess as a library
 add_library(votess INTERFACE)
