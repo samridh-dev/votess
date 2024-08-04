@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp> 
 #include <libsycl.hpp>
-#include <votess.hpp>
+#include <arguments.hpp>
 #include <xyzset.hpp>
 
 #include <vector>

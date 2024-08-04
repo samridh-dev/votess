@@ -4,6 +4,7 @@ def create_test_case(tag, i, points, gr_arr):
     
     k = len(points) // 5 
     if k == 0: k = 1
+    k = len(points) - 1
 
     name = f'votess regression {i}: {tag}'
 
@@ -194,10 +195,13 @@ def create_suffix():
     print('    struct votess::vtargs vtargs(k,gr);')
     print('    run_test(xyzset, vtargs, votess::device::cpu);')
     print('  }')
-    print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
-    print('    struct votess::vtargs vtargs(k,gr);')
-    print('    run_test(xyzset, vtargs, votess::device::gpu);')
-    print('  }')
+
+    if 0:
+        print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
+        print('    struct votess::vtargs vtargs(k,gr);')
+        print('    run_test(xyzset, vtargs, votess::device::gpu);')
+        print('  }')
+
     print('}')
     print('')
     print('///////////////////////////////////////////////////////////////////////////////')
@@ -320,6 +324,27 @@ def main():
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
 
+    # Test case 1: Standard set
+    xyzset = create_standard_xyzset()
+    create_test_case("standard", index, xyzset, gr_arr)
+    index += 1
+
+    # random tests
+    for i in range(2):
+        xyzset = create_random_xyzset(128)
+        create_test_case("random", index, xyzset, gr_arr)
+        index += 1
+
+    # large random test
+    xyzset = create_random_xyzset(10000)
+    create_test_case("random - large", index, xyzset, gr_arr)
+    index += 1
+
+    # Collinear points
+    xyzset = create_collinear_xyzset()
+    create_test_case("collinear", index, xyzset, gr_arr)
+    index += 1
+
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
     create_test_case("lattice", index, xyzset, gr_arr)
@@ -332,21 +357,6 @@ def main():
                          index, xyzset, gr_arr)
         index += 1
 
-    # Test case 1: Standard set
-    xyzset = create_standard_xyzset()
-    create_test_case("standard", index, xyzset, gr_arr)
-    index += 1
-
-    # random tests
-    for i in range(2):
-        xyzset = create_random_xyzset(128)
-        create_test_case("random", index, xyzset, gr_arr)
-        index += 1
-
-    # Collinear points
-    xyzset = create_collinear_xyzset()
-    create_test_case("collinear", index, xyzset, gr_arr)
-    index += 1
 
     # Concentric points
     xyzset = create_concentric_xyzset()

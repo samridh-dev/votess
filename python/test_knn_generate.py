@@ -14,7 +14,7 @@ def create_prefix():
     print('#include <libsycl.hpp>')
     print()
     print('#include <knn.hpp>')
-    print('#include <votess.hpp>')
+    print('#include <arguments.hpp>')
     print('#include <xyzset.hpp>')
     print()
     print('#define TEST_KNN_RUN_GPU true')
@@ -405,8 +405,6 @@ def main():
     create_test_case("standard", index, xyzset, k, gr, tol)
     index += 1
     
-    return 
-
     # random tests
     for i in range(16):
         xyzset = create_random_xyzset()
