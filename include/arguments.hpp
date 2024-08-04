@@ -67,4 +67,37 @@ struct cc {
 /* ------------------------------------------------------------------------- */
 } // namespace args
 
+namespace votess {
+
+struct vtargs {
+
+  struct args::global global;
+  struct args::xyzset xyzset;
+  struct args::knn knn;
+  struct args::cc cc;
+
+  const size_t nthreads;
+
+  vtargs(
+    const int _k,
+    const int _grid_resolution = 1,
+    const int _nthreads = 1,
+    const int _p_maxsize = ARGS_DEFAULT_P_MAXSIZE,
+    const int _t_maxsize = ARGS_DEFAULT_T_MAXSIZE) 
+    : global(_k),
+      xyzset(_grid_resolution),
+      knn(_k, _grid_resolution),
+      cc(_k, _p_maxsize , _t_maxsize),
+      nthreads(_nthreads) {}
+
+  void set_k(const int k) {
+    global.k = k;
+    knn.k = k;
+    cc.k = k;
+  }
+
+};
+
+} // namespace votess
+
 #endif
