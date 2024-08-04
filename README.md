@@ -1,5 +1,7 @@
 # Votess
 
+
+
 Votess is a library to perform 3D voronoi tesellation computations. It
 leverages the SYCL framework, giving it the ability to run on heterogenous
 platforms, including GPUs and FPGAs. It was developed to be parallel,
@@ -53,8 +55,7 @@ variables. Instructions on how to do so are provided for:
  - [Linux](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-linux.html) 
  - [Windows](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-windows.html).
 
-To install AdaptiveCpp, refer to the installation page on
-[github](.https://github.com/AdaptiveCpp/AdaptiveCpp/blob/develop/doc/installing.md).
+To install AdaptiveCpp, refer to the installation page on github [here](https://github.com/AdaptiveCpp/AdaptiveCpp/blob/develop/doc/installing.md).
 
 ### Application Compilation
 To get the repository, first clone the repository and change to the cloned 
@@ -199,14 +200,14 @@ print("size of direct neighbors for point 0", direct_neighbors[0].size())
 ```
 ### Command Line
 
-There exists a executable named `votess`. For basic usage, refer to
+There exists the executable named `clvotess`. For basic usage, refer to
 ```bash
-votess -h
+clvotess -h
 ```
 For an extended usage, and a description of all command line arguments, refer
 instead to:
 ```bash
-votess --help-all
+clvotess --help-all
 ```
 
 Currently, only space separated text files are supported. 
