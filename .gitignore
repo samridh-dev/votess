@@ -20,3 +20,5 @@ make
 /benchmarks/*
 !/benchmarks/*.py
 !/benchmarks/plots/
+
+/paper/*
