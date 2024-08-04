@@ -114,6 +114,9 @@ on nature of dataset). The program will throw an error otherwise.
 To change the parameters of votess::tesellate, the struct `votess::vtargs`
 is provided. Please refer to the example below for a basic usage.
 
+### NOTE 
+The API for ```struct votess::vtargs``` will change in the near future.
+
 ### Example Usage
 ```cpp
 #include <votess.hpp>
