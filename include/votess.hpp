@@ -6,8 +6,6 @@
 
 namespace votess {
 
-struct vtargs;
-
 enum device { cpu, gpu, };
 
 template <typename Ti> class dnn;
