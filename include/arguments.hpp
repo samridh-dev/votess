@@ -2,6 +2,11 @@
 #define ARGUMENTS_HPP
 
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <variant>
+
+#define USE_NEW_ARGS 0
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Compile time default parameters
@@ -21,13 +26,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 /// Function specific arguments (internal)
 ///////////////////////////////////////////////////////////////////////////////
-
 namespace args {
 
 /* ------------------------------------------------------------------------- */
 
 struct global {
-  unsigned short int k;
+  int k;
+  int __cpu__nthreads;
+  int __gpu__ndworksize;
   global(const int k0) : 
     k(k0) 
   {}
@@ -36,7 +42,7 @@ struct global {
 /* ------------------------------------------------------------------------- */
 
 struct xyzset {
-  unsigned short int grid_resolution;
+  int grid_resolution;
   xyzset(const int gr0) : 
     grid_resolution(gr0) 
   {}
@@ -45,8 +51,8 @@ struct xyzset {
 /* ------------------------------------------------------------------------- */
 
 struct knn {
-  unsigned short int k;
-  unsigned short int grid_resolution;
+  int k;
+  int grid_resolution;
   knn(const int k0, const int gr0) : 
     k(k0),
     grid_resolution(gr0) 
@@ -56,9 +62,9 @@ struct knn {
 /* ------------------------------------------------------------------------- */
 
 struct cc {
-  unsigned short int k;
-  unsigned short int p_maxsize;
-  unsigned short int t_maxsize;
+  int k;
+  int p_maxsize;
+  int t_maxsize;
   cc(const unsigned short int k0,
       const unsigned short int pms0, const unsigned short int tms0
   ) : k(k0), p_maxsize(pms0), t_maxsize(tms0) {}
@@ -69,6 +75,84 @@ struct cc {
 
 namespace votess {
 
+#if USE_NEW_ARGS
+class vtargs {
+
+  private:
+    
+    // global
+    int k;
+    int __cpu__nthreads;
+    int __gpu__ndsize;
+    int chunksize;
+    bool use_recompute;
+    
+    // knn
+    int gr;
+
+    // dnn
+    int p_maxsize;
+    int t_maxsize;
+
+    struct args::xyzset xyzset;
+    struct args::knn knn;
+    struct args::cc cc;
+  
+    using arg_t std::variant<int, bool>
+    std::unordered_map<std::string, arg_t> map;
+
+    void update(void);
+    void init(void);
+
+  public:
+
+    vtargs(void);
+    vtargs(const int _k);
+
+    arg_t operator[](const std::string& key) const;
+    arg_t& operator[](const std::string& key);
+  
+};
+} // namespace votess
+
+void votess::vtargs::init(void) {
+  map["k"] = k;
+  map["cpu_nthread"] = __cpu__nthreads;
+  map["gpu_nd_worksize"] = __gpu__ndsize;
+  map["chunk_size"] = chunksize;
+  map["allow_recompute"] = chunksize;
+  map["knn_grid_resolution"] = gr;
+  map["dnn_p_maxsize"] = p_maxsize;
+  map["dnn_t_maxsize"] = t_maxsize;
+}
+
+votess::vtargs::vtargs(void) {
+  init();
+}
+
+votess::vtargs::vtargs(const int _k) {
+  init();
+  k = _k;
+}
+
+arg_t votess::vtargs::operator[](const std::string& key) const {
+  auto it = map.find(key);
+  if (it != map.end()) {
+    return it->second;
+  } else {
+    throw std::invalid_argument("Key not found");
+  }
+}
+
+arg_t& votess::vtargs::operator[](const std::string& key) {
+  auto it = map.find(key);
+  if (it == map.end()) {
+    throw std::invalid_argument("Key not found");
+  }
+  return it->second;
+}
+
+#else
 struct vtargs {
 
   struct args::global global;
@@ -97,7 +181,8 @@ struct vtargs {
   }
 
 };
-
 } // namespace votess
+#endif // USE_NEW_ARGS
+
 
 #endif
