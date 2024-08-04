@@ -80,7 +80,7 @@ static int run_test(
   struct votess::vtargs vtargs,
   const enum votess::device device
 ) {
-  __internal__suppress_stdout s; // to preventstdout 
+  // __internal__suppress_stdout s; // to preventstdout 
 
   (void)xyzset::sort<int,T>(xyzset, vtargs.xyzset);
 
@@ -151,24 +151,24 @@ static int run_test(
 }
 
 #include <random>
-static std::vector<std::array<double, 3>> generate_set(int count) {
-  std::vector<std::array<double, 3>> xyzset;
+static std::vector<std::array<float, 3>> generate_set(int count) {
+  std::vector<std::array<float, 3>> xyzset;
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<double> dis(0.001f, 0.999);
+  std::uniform_real_distribution<float> dis(0.001f, 0.999);
   for (size_t i = 0; i < count; ++i) {
    xyzset.push_back({dis(gen), dis(gen), dis(gen)});
   }
   return xyzset;
 }
 
-static std::vector<std::array<double, 3>> read_set(const std::string& fname) {
+static std::vector<std::array<float, 3>> read_set(const std::string& fname) {
   std::ifstream infile(fname);
   std::string line;
-  std::vector<std::array<double, 3>> xyzset;
+  std::vector<std::array<float, 3>> xyzset;
   while (std::getline(infile, line)) {
     std::istringstream iss(line);
-    std::array<double, 3> point;
+    std::array<float, 3> point;
     if (!(iss >> point[0] >> point[1] >> point[2])) {
       break;
     }
@@ -177,7 +177,7 @@ static std::vector<std::array<double, 3>> read_set(const std::string& fname) {
   return xyzset;
 }
 
-static void save_set(const std::vector<std::array<double, 3>>& xyzset,
+static void save_set(const std::vector<std::array<float, 3>>& xyzset,
                      const std::string& fname) {
 
   std::ofstream outfile(fname);
@@ -214,23 +214,22 @@ int main(int argc, char* argv[]) {
   }
 
   k = k < N ? k : N - 1;
+  std::cout << "k : " << k << std::endl;
 
-  std::vector<std::array<double, 3>> xyzset = fname.empty() ? 
+  std::vector<std::array<float, 3>> xyzset = fname.empty() ? 
                                               generate_set(N):
                                               read_set(fname);
   struct votess::vtargs args(k, gr, 32);
 
+  save_set(xyzset, "dat/fail.xyz");
+
   auto start = std::chrono::high_resolution_clock::now();
   int nerrors = run_test(xyzset, args, votess::device::cpu);
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = end - start;
+  std::chrono::duration<float> elapsed = end - start;
   std::cout << "CPU Execution time: " << elapsed.count() << " seconds" 
             << ", Number of errors reported: " << nerrors
             << std::endl;
-
-  if (nerrors > 0) {
-    save_set(xyzset, "dat/fail.xyz");
-  } 
 
   return 0;
   
