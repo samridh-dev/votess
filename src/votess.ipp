@@ -20,43 +20,7 @@
 
 #define FP_INFINITY 128.00f
 
-#define USE_NEW_TESSELLATE 1
-
 namespace votess {
-
-///////////////////////////////////////////////////////////////////////////////
-/// Struct Votess Arguments                                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-struct vtargs {
-
-  struct args::global global;
-  struct args::xyzset xyzset;
-  struct args::knn knn;
-  struct args::cc cc;
-
-  const size_t nthreads;
-
-  vtargs(
-    const int _k,
-    const int _grid_resolution = 1,
-    const int _nthreads = 1,
-    const int _p_maxsize = ARGS_DEFAULT_P_MAXSIZE,
-    const int _t_maxsize = ARGS_DEFAULT_T_MAXSIZE) 
-    : global(_k),
-      xyzset(_grid_resolution),
-      knn(_k, _grid_resolution),
-      cc(_k, _p_maxsize , _t_maxsize),
-      nthreads(_nthreads) {}
-
-  void set_k(const int k) {
-    global.k = k;
-    knn.k = k;
-    cc.k = k;
-  }
-
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Internal functions
@@ -279,311 +243,7 @@ print_device(const sycl::queue& queue) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Votess Internal Functions                                               ///
-///////////////////////////////////////////////////////////////////////////////
-
-namespace dtessellate {
-
-/* ------------------------------------------------------------------------- */
-/* CPU Implementation                                                        */
-/* ------------------------------------------------------------------------- */
-
-template <typename Ti, typename Tf>
-class dnn<Ti>
-cpu(
-  std::vector<std::array<Tf,3>>& inset,
-  const struct vtargs& args
-) {
-
-  const auto pair = xyzset::sort<Ti,Tf>(inset, args.xyzset);
-  const auto& id       = pair.first;
-  const auto& offset   = pair.second;
-
-  if (!xyzset::validate_xyzset<Tf>(inset)) {
-    std::cerr<<"oops1"<<std::endl;
-  }
-  if (!xyzset::validate_id<Ti>(id)) {
-    std::cerr<<"oops2"<<std::endl;
-  }
-  if (!xyzset::validate_offset<Ti>(offset)) {
-    std::cerr<<"oops3"<<std::endl;
-  }
-
-  const std::vector<std::array<Tf,3>>& xyzset = inset;
-
-  const size_t xyzsize = xyzset.size();
-  const size_t refsize = xyzsize;
-
-  std::vector<Ti> heap_id(inset.size() * (args.knn.k + 0), 0);
-  std::vector<Tf> heap_pq(inset.size() * (args.knn.k + 0), FP_INFINITY);
-  std::vector<Ti>& knn = heap_id;
-
-  std::vector<cc::state> states(xyzset.size());
-  std::vector<Ti> dknn(refsize * args.cc.k, __INTERNAL__K_UNDEFINED);
-
-  std::vector<Tf>       P(xyzsize * args.cc.p_maxsize * 4);
-  std::vector<uint8_t>  T(xyzsize * args.cc.t_maxsize * 3);
-  std::vector<uint8_t> dR(xyzsize * args.cc.p_maxsize);
-  
-  const size_t nthreads = std::thread::hardware_concurrency(); 
-
-  const size_t chunksize  = refsize / nthreads;
-
-  std::vector<std::thread> threads(nthreads);
-  for (size_t i = 0; i < nthreads; i++) {
-
-    const size_t _start = i * chunksize;
-    const size_t _end = (i == nthreads - 1) ? refsize : _start + chunksize;
-
-    threads[i] = std::thread([&,_start,_end]() {
-      for (size_t idx = _start; idx < _end; idx++) {
-        knni::compute<Ti,Tf>(
-          idx, 
-          xyzset, xyzsize, id, offset, 
-          xyzset, refsize,
-          heap_id, heap_pq,
-          args.knn
-        );
-
-        dnni::compute<Ti, Tf, uint8_t>( 
-          idx,
-          states, 
-          P.data(), T.data(), dR.data(),
-          knn, dknn,
-          xyzset, xyzsize,
-          xyzset, xyzsize,
-          args.cc
-        );
-      }
-    });
-
-  }
-  for (auto& thread : threads) thread.join();
-
-  std::vector<Ti> _list(0);
-  std::vector<Ti> _offs(refsize + 1);
-  _offs[0] = 0;
-  
-  for (size_t n_i = 0; n_i < refsize; n_i++) {
-    for (size_t k_i = 0; k_i < args.cc.k; k_i++) {
-      const Ti neighbor = knn[n_i * args.cc.k + k_i];
-      if (neighbor == cc::k_undefined) break;
-      _list.push_back(neighbor);
-      _offs[n_i + 1] += 1;
-    }
-  }
-
-  for (size_t n_i = 1; n_i < refsize + 1; n_i++) {
-    _offs[n_i] += _offs[n_i - 1];
-  }
-
-  class dnn<Ti> dnn(_list,_offs);
-
-  return dnn;
-
-}
-
-/* ------------------------------------------------------------------------- */
-/* SYCL Implementation                                                       */
-/* ------------------------------------------------------------------------- */
-
-template <typename Ti, typename Tf>
-class dnn<Ti>
-gpu(
-  std::vector<std::array<Tf,3>>& inset, 
-  const struct vtargs& args
-) {
-  auto total_beg = std::chrono::high_resolution_clock::now();
-  
-  // get id, offset, and sort array
-  const auto [id, offset] = xyzset::sort<Ti,Tf>(inset, args.xyzset);
-  if (!xyzset::validate_xyzset<Tf>(inset)) {
-    std::cout<<"oops1"<<std::endl;
-  }
-  if (!xyzset::validate_id<Ti>(id)) {
-    std::cout<<"oops2"<<std::endl;
-  }
-  if (!xyzset::validate_offset<Ti>(offset)) {
-    std::cout<<"oops3"<<std::endl;
-  }
-
-  std::vector<Tf> xyzset(3 * inset.size());
-  for (size_t i = 0; i < inset.size(); i++) {
-    xyzset[inset.size() * 0 + i] = inset[i][0];
-    xyzset[inset.size() * 1 + i] = inset[i][1];
-    xyzset[inset.size() * 2 + i] = inset[i][2];
-  }
-
-  const size_t xyzsize = xyzset.size() / 3;
-  const size_t refsize = xyzsize;
-
-  sycl::buffer<Tf,1> bxyzset(xyzset.data(), sycl::range<1>(xyzset.size()));
-  sycl::buffer<Ti,1> boffset(offset.data(), sycl::range<1>(offset.size()));
-  sycl::buffer<Ti,1> bid(id.data(), sycl::range<1>(id.size()));
-
-  sycl::buffer<Ti,1> bheap_id(sycl::range<1>(refsize * (args.knn.k + 0)));
-  sycl::buffer<Tf,1> bheap_pq(sycl::range<1>(refsize * (args.knn.k + 0)));
-
-  sycl::buffer<cc::state,1> bstates(sycl::range<1>(xyzset.size() / 3));
-  sycl::buffer<Ti,1>      bdknn(sycl::range<1>(refsize * args.cc.k));
-  sycl::buffer<Tf,1>      bP(sycl::range<1>(refsize * args.cc.p_maxsize * 4));
-  sycl::buffer<uint8_t,1> bT(sycl::range<1>(refsize * args.cc.t_maxsize * 3));
-  sycl::buffer<uint8_t,1> bdR(sycl::range<1>(refsize * args.cc.p_maxsize));
-
-  sycl::queue queue;
-  print_device(queue);
-
-  queue.submit([&](sycl::handler& cgh) {
-    auto aheap_id = sycl::accessor(bheap_id, cgh, sycl::read_write);
-    cgh.fill(aheap_id, 0);
-  });
-  queue.submit([&](sycl::handler& cgh) {
-    auto aheap_pq = sycl::accessor(bheap_pq, cgh, sycl::read_write);
-    cgh.fill(aheap_pq, FP_INFINITY);
-  });
-  queue.submit([&](sycl::handler& cgh) {
-    auto adknn = sycl::accessor(bdknn, cgh, sycl::read_write);
-    cgh.fill(adknn, __INTERNAL__K_UNDEFINED);
-  });
-
-  auto beg = std::chrono::high_resolution_clock::now();
-
-  queue.submit([&](sycl::handler& cgh) {
-
-    using namespace sycl;
-
-    auto aheap_id = sycl::accessor(bheap_id, cgh, read_write);
-    auto aheap_pq = sycl::accessor(bheap_pq, cgh, read_write);
-    auto adknn = sycl::accessor(bdknn, cgh, read_write);
-    auto aknn = aheap_id;
-
-    auto axyzset = sycl::accessor(bxyzset, cgh, read_only);
-    auto aoffset = sycl::accessor(boffset, cgh, read_only);
-    auto aid = accessor(bid, cgh, read_only);
-    
-    auto aP  = sycl::accessor(bP,  cgh, sycl::read_write, property::no_init());
-    auto aT  = sycl::accessor(bT,  cgh, sycl::read_write, property::no_init());
-    auto adR = sycl::accessor(bdR, cgh, sycl::read_write, property::no_init());
-    auto astates = sycl::accessor(bstates, cgh, sycl::read_write, 
-                                  property::no_init());
-
-    auto aargs_knn = args.knn;
-    auto aargs_cc = args.cc;
-
-    sycl::range<1> global_range(refsize);
-    sycl::range<1> local_range(args.nthreads);
-    sycl::nd_range<1> nd_range(global_range, local_range);
-    
-    cgh.parallel_for<class __sycl__main>(nd_range, [=](sycl::nd_item<1> item) {
-      knni::compute<Ti,Tf>(
-        item.get_global_id()[0], 
-        axyzset, xyzsize, aid, aoffset, 
-        axyzset, refsize,
-        aheap_id, aheap_pq,
-        aargs_knn
-      );
-      dnni::compute<Ti, Tf, uint8_t>( 
-        item.get_global_id()[0], 
-        astates, 
-        aP, aT, adR,
-        aknn, adknn,
-        axyzset, xyzsize,
-        axyzset, xyzsize,
-        aargs_cc
-      );
-    });
-    queue.wait();
-
-  });
-
-  auto end = std::chrono::high_resolution_clock::now();
-  auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
-  std::cout << "tesellation time: " 
-    << time.count() / (1000.00f * 1000.00f) 
-    << " s" << std::endl;
-
-  beg = std::chrono::high_resolution_clock::now();
-  auto hknn = bheap_id.get_host_access();
-  end = std::chrono::high_resolution_clock::now();
-  time = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
-  std::cout << "knn transfer time: " 
-    << time.count() / (1000.00f * 1000.00f) 
-    << " s" << std::endl;
-
-  beg = std::chrono::high_resolution_clock::now();
-  std::vector<Ti> _list(0);
-  std::vector<Ti> _offs(refsize + 1);
-  _offs[0] = 0;
-  
-  for (size_t n_i = 0; n_i < refsize; n_i++) {
-    for (size_t k_i = 0; k_i < args.cc.k; k_i++) {
-      const Ti neighbor = hknn[n_i * args.cc.k + k_i];
-      if (neighbor == cc::k_undefined) break;
-      _list.push_back(neighbor);
-      _offs[n_i + 1] += 1;
-    }
-  }
-  for (size_t n_i = 1; n_i < refsize + 1; n_i++) {
-    _offs[n_i] += _offs[n_i - 1];
-  }
-
-  class dnn<Ti> dnn(_list,_offs);
-
-  end = std::chrono::high_resolution_clock::now();
-  time = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
-  std::cout << "dnn processing time: " 
-            << time.count() / (1000.00f * 1000.00f) 
-            << " s" << std::endl;
-
-  auto total_end = std::chrono::high_resolution_clock::now();
-  time = std::chrono::duration_cast<std::chrono::microseconds>
-         (total_end - total_beg);
-  std::cout << "total tesellation time: " 
-            << time.count() / (1000.00f * 1000.00f) 
-            << " s" << std::endl;
-  return dnn;
-
-}
-
-} // namespace dtessellate 
-
-
-///////////////////////////////////////////////////////////////////////////////
-/// Votess Tesellate Function                                               ///
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename Ti, typename Tf>
-class dnn<Ti>
-#if USE_NEW_TESSELLATE
-newtesellate(
-#else
-tesellate(
-#endif
-  std::vector<std::array<Tf,3>>& xyzset,
-  struct vtargs args,
-  const enum device device
-) {
-
-  static_assert(std::is_integral<Ti>::value && std::is_signed<Ti>::value,
-    "Template type Ti must be a signed integer type."
-  );
-
-  static_assert(std::is_floating_point<Tf>::value,
-  "Template type Tf must be a floating-point type."
-  );
-
-  switch (device) {
-    case (device::cpu): return dtessellate::cpu<Ti,Tf>(xyzset, args);
-    case (device::gpu): return dtessellate::gpu<Ti,Tf>(xyzset, args);
-  }
-
-  class dnn<Ti> err;
-  return err;
-  
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// New Tesellate Functions                                                 ///
+/// Tesellate Internal Functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // NOTE: This is the source of continuosly increasing memory for long runs
@@ -591,47 +251,41 @@ template <typename Ti>
 static void 
 tmpnn_fill(
   std::vector<std::vector<Ti>>& tmpnn,
-  const std::vector<Ti>& indices,
+  const std::vector<Ti>& indices, const size_t size,
   const std::vector<cc::state>& states,
   const std::vector<Ti>& knn,
   const struct vtargs& args
 ) {
 
-  size_t totalAllocatedMemory = 0;
-  size_t maxMemoryPerVector = args.knn.k * sizeof(Ti);
-
-  for (size_t i = 0; i < indices.size(); i++) {
+  for (size_t i = 0; i < size; i++) {
+    
     const auto& k = args.knn.k;
     const auto& index = indices[i];
-    auto& tmpnni = tmpnn[index]; 
+    tmpnn[index].clear();
 
 //    if (!states[i].get(cc::security_radius_reached)) {
 //      continue;
 //    }
 
-    size_t size = 0;
-    for (size_t j = 0; j < k; j++) {
-      if (knn[k * i + j] == __INTERNAL__K_UNDEFINED) break;
-      size++;
+    size_t nsize = 0;
+    for (int j = 0; j < k; j++) {
+      if (knn[k * i + j] == __INTERNAL__K_UNDEFINED) {
+        break;
+      }
+      nsize++;
     }
-
-    tmpnni.resize(size);
-    totalAllocatedMemory += tmpnni.capacity() * sizeof(Ti);
+  
+    tmpnn[index].resize(nsize);
     
-    for (size_t j = 0; j < size; j++) {
+    for (size_t j = 0; j < nsize; j++) {
       const auto& ki = knn[k * i + j];
-      if (ki == __INTERNAL__K_UNDEFINED) break;
-      tmpnni[j] = ki;
+      if (ki == __INTERNAL__K_UNDEFINED) {
+        continue;
+      }
+      tmpnn[index][j] = ki;
     }
 
   }
-
-  // Calculate and print memory usage in kilobytes
-  size_t allocatedMemoryKB = totalAllocatedMemory / 1024;
-  size_t maxMemoryKB = (indices.size() * maxMemoryPerVector) / 1024;
-
-  std::cout << "Allocated Memory: " << allocatedMemoryKB << " KB\n";
-  std::cout << "Maximum Memory: " << maxMemoryKB << " KB\n";
 
 }
 
@@ -644,7 +298,7 @@ tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
   std::vector<Ti> _offs(xyzsize + 1);
   _offs[0] = 0;
 
-  for (size_t i = 0; i < xyzsize; i++) {
+  for (Ti i = 0; i < xyzsize; i++) {
 
     for (const auto& neighbor : tmpnn[i]) {
       if (neighbor == cc::k_undefined) {
@@ -659,13 +313,178 @@ tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
 
   }
 
-  for (size_t i = 1; i < xyzsize + 1; i++) {
+  for (Ti i = 1; i < xyzsize + 1; i++) {
     _offs[i] += _offs[i - 1];
   }
 
   return dnn(std::move(_list), std::move(_offs));
 
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// GPU Tesellate                                                           ///
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename Ti, typename Tf>
+static void
+__gpu__tesellate(
+
+  const std::vector<std::array<Tf,3>>& _xyzset,
+  const std::vector<Ti>& id,
+  const std::vector<Ti>& offset,
+
+  const std::vector<std::array<Tf,3>>& _refset,
+  std::vector<std::vector<Ti>>& tmpnn,
+  std::vector<cc::state>& states, 
+
+  const struct vtargs& args
+
+) {
+
+  const Ti xyzsize = _xyzset.size();
+  const Ti refsize = _refset.size();
+
+  const int chunksize = 100000;
+  const int nruns = chunksize < refsize ? 1 + refsize / chunksize : 1;
+
+  Ti subsize = chunksize < refsize ? chunksize : refsize;
+
+  const auto& k = args.global.k;
+  const auto& p_maxsize = args.cc.p_maxsize;
+  const auto& t_maxsize = args.cc.t_maxsize;
+
+  std::vector<Tf> xyzset(3 * xyzsize);
+  for (size_t i = 0; i < xyzsize; i++) {
+    xyzset[xyzsize * 0 + i] = _xyzset[i][0];
+    xyzset[xyzsize * 1 + i] = _xyzset[i][1];
+    xyzset[xyzsize * 2 + i] = _xyzset[i][2];
+  }
+
+  // will help me when I need to separate xyzset and refset
+  auto& refset = _refset;
+
+  sycl::buffer<Ti, 1> bindices((sycl::range<1>(subsize)));
+
+  sycl::buffer<Tf,1> bxyzset(xyzset.data(), sycl::range<1>(xyzset.size()));
+  sycl::buffer<Ti,1> boffset(offset.data(), sycl::range<1>(offset.size()));
+  sycl::buffer<Ti,1> bid(id.data(), sycl::range<1>(id.size()));
+
+  sycl::buffer<Ti,1> bheap_id(sycl::range<1>(subsize * k));
+  sycl::buffer<Tf,1> bheap_pq(sycl::range<1>(subsize * k));
+
+  sycl::buffer<cc::state,1> bstates((sycl::range<1>(xyzsize)));
+  sycl::buffer<Ti,1>      bdknn(sycl::range<1>(subsize * k));
+  sycl::buffer<Tf,1>      bP(sycl::range<1>(subsize * p_maxsize * 4));
+  sycl::buffer<uint8_t,1> bT(sycl::range<1>(subsize * t_maxsize * 3));
+  sycl::buffer<uint8_t,1> bdR(sycl::range<1>(subsize * p_maxsize));
+
+  sycl::queue queue;
+
+  for (int run = 0; run < nruns; run++) {
+    
+    std::cout << "[chunking] run : " << run << "/" << nruns << std::endl;
+
+    const size_t _cstart = run * chunksize;
+    const size_t _cend = (run == nruns - 1) ? refsize : _cstart + chunksize;
+    subsize = _cend - _cstart;
+
+    queue.submit([&](sycl::handler& cgh) {
+      auto a = sycl::accessor(bheap_id, cgh, sycl::write_only, sycl::no_init);
+      cgh.parallel_for<class fill_heap_id>
+      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) { 
+        a[idx] = 0; 
+      });
+    });
+
+    queue.submit([&](sycl::handler& cgh) {
+      auto a = sycl::accessor(bheap_pq, cgh, sycl::write_only, sycl::no_init);
+      cgh.parallel_for<class fill_heap_pq>
+      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) {
+        a[idx] = FP_INFINITY;
+      });
+    });
+
+    queue.submit([&](sycl::handler& cgh) {
+      auto a = sycl::accessor(bdknn, cgh, sycl::write_only, sycl::no_init);
+      cgh.parallel_for<class fill_dknn>
+      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) {
+        a[idx] = __INTERNAL__K_UNDEFINED;
+      });
+    });
+
+    queue.submit([&](sycl::handler& cgh) {
+      auto a = sycl::accessor(bindices, cgh, sycl::write_only, sycl::no_init);
+      cgh.parallel_for<class indices_init>
+      (sycl::range<1>(subsize), [=](sycl::id<1> idx) {
+        a[idx] = _cstart + idx[0];
+      });
+    });
+
+    queue.wait();
+
+    queue.submit([&](sycl::handler& cgh) {
+
+      using namespace sycl;
+
+      auto aindices = sycl::accessor(bindices, cgh, read_only);
+      auto axyzset = sycl::accessor(bxyzset, cgh, read_only);
+      auto aoffset = sycl::accessor(boffset, cgh, read_only);
+      auto aid = sycl::accessor(bid, cgh, read_only);
+
+      auto aheap_id = sycl::accessor(bheap_id, cgh, read_write);
+      auto aheap_pq = sycl::accessor(bheap_pq, cgh, read_write);
+      auto adknn = sycl::accessor(bdknn, cgh, read_write);
+      
+      auto aP  = sycl::accessor(bP,  cgh, read_write, property::no_init());
+      auto aT  = sycl::accessor(bT,  cgh, read_write, property::no_init());
+      auto adR = sycl::accessor(bdR, cgh, read_write, property::no_init());
+      auto astates = accessor(bstates, cgh, read_write, property::no_init());
+
+      auto aargs_knn = args.knn;
+      auto aargs_cc = args.cc;
+
+      cgh.parallel_for<class __sycl__tessellate>
+      (sycl::range<1>(subsize), [=](sycl::id<1> idx) {
+
+        knni::compute<Ti, Tf>(
+          idx[0], aindices[idx[0]],
+          axyzset, xyzsize, aid, aoffset,
+          axyzset, subsize,
+          aheap_id, aheap_pq,
+          aargs_knn
+        );
+
+        dnni::compute<Ti, Tf, uint8_t>(
+          idx[0], aindices[idx[0]],
+          astates,
+          aP, aT, adR,
+          aheap_id, adknn,
+          axyzset, xyzsize,
+          axyzset, subsize,
+          aargs_cc
+        );
+
+      });
+    });
+    queue.wait();
+
+    auto hindices = bindices.get_host_access();
+    auto hstates = bstates.get_host_access();
+    auto hknn = bheap_id.get_host_access();
+
+    std::vector<Ti> indices(hindices.begin(), hindices.end());
+    std::vector<cc::state> states(hstates.begin(), hstates.end());
+    std::vector<Ti> knn(hknn.begin(), hknn.end());
+
+    tmpnn_fill(tmpnn, indices, subsize, states, knn, args);
+
+  }
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// CPU Tesellate                                                           ///
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename Ti, typename Tf>
 static void
@@ -719,18 +538,11 @@ __cpu__tesellate(
 
     const size_t _cstart = run * chunksize;
     const size_t _cend = (run == nruns - 1) ? refsize : _cstart + chunksize;
-
     subsize = _cend - _cstart;
-    if (indices.size() != subsize) {
-      indices.resize(subsize);
-    }
 
-    for (size_t i = 0; i < subsize; i++) {
+    for (Ti i = 0; i < subsize; i++) {
       indices[i] = _cstart + i;
     }
-
-    std::cout << "[data] run : " << run << " / " << nruns 
-              << ", size : " << subsize << std::endl;
 
     std::vector<std::thread> threads(nthreads);
     for (size_t i = 0; i < nthreads; i++) {
@@ -764,20 +576,159 @@ __cpu__tesellate(
     }
     for (auto& thread : threads) thread.join();
 
-    tmpnn_fill(tmpnn, indices, states, knn, args);
+    tmpnn_fill(tmpnn, indices, subsize, states, knn, args);
 
   }
 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// CPU Recompute                                                           ///
+///////////////////////////////////////////////////////////////////////////////
+
+// NOTE: I decided to reimplement tesellation to recompute, not because I
+//        could've done a DRY job, but because I needed to ensure memory
+//        efficiency. I would not get that if I reused __cpu__tesellate.
+//        I also thought of embedding recompute to the tesellate functions as
+//        that could improve cache locality, but it would become an issue
+//        maintaining memory usage. Heap fragmentation is a serious problem in
+//        this program as in a single run, I have observed worsening
+//        performance over time.
+
+template <typename Ti, typename Tf>
+static void
+__cpu__recompute(
+
+  const std::vector<std::array<Tf,3>>& xyzset,
+  const std::vector<Ti>& id,
+  const std::vector<Ti>& offset,
+
+  const std::vector<std::array<Tf,3>>& refset,
+  std::vector<std::vector<Ti>>& tmpnn,
+  std::vector<cc::state>& states, 
+
+  struct vtargs args
+
+) {
+
+  const Ti xyzsize = xyzset.size();
+  const Ti refsize = refset.size();
+
+  Ti subsize = 0;
+  for (auto& s : states) {
+    if (!s.get(cc::security_radius_reached)) {
+      subsize++;
+    }
+  }
+
+  std::vector<Ti> indices(refsize);
+  for (Ti i = 0, cur = 0; i < refsize; i++) {
+    if (!states[i].get(cc::security_radius_reached)) {
+      indices[cur++] = i;
+    }
+  } indices.resize(subsize);
+
+  const auto k0 = args.global.k;
+  const auto& k = args.global.k;
+  const auto& p_maxsize = args.cc.p_maxsize;
+  const auto& t_maxsize = args.cc.t_maxsize;
+
+  std::vector<Ti> heap_id(subsize * k, 0);
+  std::vector<Tf> heap_pq(subsize * k, std::numeric_limits<Tf>::infinity());
+  std::vector<Ti> dknn(subsize * k, __INTERNAL__K_UNDEFINED);
+  std::vector<Ti>& knn = heap_id;
+
+  std::vector<Tf>       P(subsize * p_maxsize * 4);
+  std::vector<uint8_t>  T(subsize * t_maxsize * 3);
+  std::vector<uint8_t> dR(subsize * p_maxsize);
+
+  while (1) {
+  
+    Ti cur = 0;
+    for (Ti i = 0; i < subsize; i++) {
+      const auto index = indices[i];
+      if (!states[index].get(cc::security_radius_reached)) {
+        indices[cur++] = index;
+      } 
+    } 
+
+    subsize = cur;
+    for (Ti i = 0; i < refsize; i++) states[i].reset();
+
+
+    if (subsize <= 0) {
+      break;
+    }
+
+    args.set_k(k * 2);
+    if (k > (refsize - 1)) {
+      args.set_k(refsize - 1);
+    }
+
+    heap_id.clear();
+    heap_pq.clear();
+    dknn.clear();
+    P.clear();
+    T.clear();
+    dR.clear();
+    
+    heap_id.resize(subsize * k, 0);
+    heap_pq.resize(subsize * k, std::numeric_limits<Tf>::infinity());
+    dknn.resize(subsize * k, __INTERNAL__K_UNDEFINED);
+    P.resize(subsize * p_maxsize * 4);
+    T.resize(subsize * t_maxsize * 3);
+    dR.resize(subsize * p_maxsize);
+
+    const size_t nthreads = std::thread::hardware_concurrency(); 
+    const size_t threadsize  = subsize / nthreads;
+    std::vector<std::thread> threads(nthreads);
+    for (size_t i = 0; i < nthreads; i++) {
+
+      const size_t _tstart = i * threadsize;
+      const size_t _tend = (i != nthreads - 1) ? _tstart + threadsize : subsize;
+
+      threads[i] = std::thread([&,_tstart,_tend]() {
+        for (size_t idx = _tstart; idx < _tend; idx++) {
+          knni::compute<Ti,Tf>(
+            idx, indices[idx], 
+            xyzset, xyzsize, id, offset, 
+            refset, subsize,
+            heap_id, heap_pq,
+            args.knn
+          );
+
+          dnni::compute<Ti, Tf, uint8_t>( 
+            idx, indices[idx],
+            states, 
+            P.data(), T.data(), dR.data(),
+            knn, dknn,
+            xyzset, xyzsize,
+            refset, subsize,
+            args.cc
+          );
+        }
+      });
+
+    }
+    for (auto& thread : threads) thread.join();
+
+    tmpnn_fill(tmpnn, indices, subsize, states, knn, args);
+
+    if (k >= (refsize - 1)) {
+      break;
+    }
+
+  }
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Tesellate End Function                                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
 template <typename Ti, typename Tf>
 class dnn<Ti>
-
-#if USE_NEW_TESSELLATE
 tesellate(
-#else
-newtesellate(
-#endif
   std::vector<std::array<Tf,3>>& xyzset,
   struct vtargs args,
   const enum device device
@@ -808,13 +759,23 @@ newtesellate(
 
   const auto& refset = xyzset;
   const size_t refsize = refset.size();
+
   std::vector<std::vector<Ti>>  tmpnn(refsize);
   std::vector<struct cc::state> states(refsize);
 
   for (size_t i = 0; i < states.size(); i++) states[i].reset();
 
-  __cpu__tesellate(xyzset, id, offset,  xyzset, tmpnn, states, args);
-  
+  switch (device) {
+    case (device::gpu): 
+      __gpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      break;
+    case (device::cpu): 
+      __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      break;
+  }
+
+  __cpu__recompute(xyzset, id, offset, refset, tmpnn, states, args);
+
   return tmpnn_getdnn(tmpnn);
 
 }
@@ -822,4 +783,5 @@ newtesellate(
 ///////////////////////////////////////////////////////////////////////////////
 /// End                                                                     ///
 ///////////////////////////////////////////////////////////////////////////////
+
 } // namespace votess
