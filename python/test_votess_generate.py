@@ -4,7 +4,6 @@ def create_test_case(tag, i, points, gr_arr):
     
     k = len(points) // 5 
     if k == 0: k = 1
-    k = len(points) - 1
 
     name = f'votess regression {i}: {tag}'
 
@@ -25,7 +24,6 @@ def create_test_case(tag, i, points, gr_arr):
     print()
     print('}')
     print()
-
 
 def create_prefix():
     print('#include <catch2/catch_test_macros.hpp>')
@@ -196,11 +194,10 @@ def create_suffix():
     print('    run_test(xyzset, vtargs, votess::device::cpu);')
     print('  }')
 
-    if 0:
-        print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
-        print('    struct votess::vtargs vtargs(k,gr);')
-        print('    run_test(xyzset, vtargs, votess::device::gpu);')
-        print('  }')
+    print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
+    print('    struct votess::vtargs vtargs(k,gr);')
+    print('    run_test(xyzset, vtargs, votess::device::gpu);')
+    print('  }')
 
     print('}')
     print('')
@@ -232,7 +229,7 @@ def create_random_xyzset(n_points=128):
 def create_clustered_xyzset(center, n_points=100, scale=0.1):
     return np.random.normal(loc=center, scale=scale, size=(n_points, 3))
 
-def create_lattice_xyzset(grid_size=3):
+def create_lattice_xyzset(grid_size=4):
     return np.array([[x, y, z] for x in np.linspace(0.1, 0.9, grid_size)
                                 for y in np.linspace(0.1, 0.9, grid_size)
                                 for z in np.linspace(0.1, 0.9, grid_size)])
@@ -324,19 +321,31 @@ def main():
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
 
+
+    # lattice (between 0,1 exclusive)
+    xyzset = create_lattice_xyzset()
+    create_test_case("lattice", index, xyzset, gr_arr)
+    index += 1
+
+    # clustered dataset
+    cluster_center = np.array([0.5, 0.5, 0.5])
+    xyzset = create_clustered_xyzset(cluster_center)
+    create_test_case("clustered", index, xyzset, gr_arr)
+    index += 1
+
     # Test case 1: Standard set
     xyzset = create_standard_xyzset()
     create_test_case("standard", index, xyzset, gr_arr)
     index += 1
 
     # random tests
-    for i in range(2):
+    for i in range(8):
         xyzset = create_random_xyzset(128)
         create_test_case("random", index, xyzset, gr_arr)
         index += 1
 
     # large random test
-    xyzset = create_random_xyzset(10000)
+    xyzset = create_random_xyzset(1000)
     create_test_case("random - large", index, xyzset, gr_arr)
     index += 1
 
@@ -345,10 +354,6 @@ def main():
     create_test_case("collinear", index, xyzset, gr_arr)
     index += 1
 
-    # lattice (between 0,1 exclusive)
-    xyzset = create_lattice_xyzset()
-    create_test_case("lattice", index, xyzset, gr_arr)
-    index += 1
 
     # Fibonacci sphere
     for N in [8,16,14,48,64,96,128]:
@@ -374,16 +379,9 @@ def main():
                                             minority_class_size=10)
     create_test_case("imbalanced_classes", index, xyzset, gr_arr)
     index += 1
-    
+
     # problematic tests due to voro++
     if 0:
-
-        # clustered dataset
-        cluster_center = np.array([0.5, 0.5, 0.5])
-        xyzset = create_clustered_xyzset(cluster_center)
-        create_test_case("clustered", index, xyzset, gr_arr)
-        index += 1
-
         # Sparse data
         xyzset = create_sparse_xyzset(num_points=100, sparsity_level=0.95)
         create_test_case("sparse_data", index, xyzset, gr_arr)

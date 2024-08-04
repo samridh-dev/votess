@@ -105,7 +105,7 @@ def create_suffix():
     print("      sycl::range<1>(xyzset.size() / 3),")
     print("      [=](sycl::id<1> idx) {")
     print("        knni::compute<Ti,Tf>(")
-    print("          idx[0],")
+    print("          idx[0], idx[0],")
     print("          axyzset, axyzset.size() / 3, aid, aoffset, ")
     print("          axyzset, axyzset.size() / 3,")
     print("          ahid, ahpq,")
@@ -169,7 +169,7 @@ def create_suffix():
     print("}")
     print("} // namespace cpu")
     print()
-    print("#define KNN_TEST_USE_LOOP 0")
+    print("#define KNN_TEST_USE_LOOP 1")
     print("template <typename Ti, typename Tf>")
     print("static void test_knn(")
     print("  std::vector<std::array<Tf, 3>>& xyzset,")
@@ -183,7 +183,7 @@ def create_suffix():
     print()
     print("#if KNN_TEST_USE_LOOP")
     print("  for (auto gr0 = 1; gr0 <= gr_max; gr0++) {")
-    print("  for (auto k0 = 1; k0 <= k_max; k0++) {")
+    print("    const auto k0 = k_max;")
     print('    INFO("Looping with gr0 = " + std::to_string(gr0) + ", k0 = " + std::to_string(k0));')
     print("#else")
     print("    const auto k0 = k_max;")
@@ -199,7 +199,7 @@ def create_suffix():
     print("                              gpu::get_knn<Ti, Tf>(xyzset, args):")
     print("                              cpu::get_knn<Ti, Tf>(xyzset, args); ")
     print()
-    print("      for (auto i = 0; i < xyzset.size(); i++) {")
+    print("      for (size_t i = 0; i < xyzset.size(); i++) {")
     print("        const auto& point = xyzset[i];")
     print()
     print("        int index = -1;")
@@ -234,7 +234,7 @@ def create_suffix():
     print("    }")
     print()
     print("#if KNN_TEST_USE_LOOP")
-    print("  }}")
+    print("  }")
     print("#endif")
     print()
     print("}")
@@ -363,8 +363,8 @@ def create_outliers_xyzset(base_set, outlier_factor=10):
     outliers = np.clip(outliers, 1e-6, 1 - 1e-6)
     return np.vstack((base_set, outliers))
 
-def create_imbalanced_class_xyzset(majority_class_size=1000,
-                                   minority_class_size=10):
+def create_imbalanced_class_xyzset(majority_class_size=200,
+                                   minority_class_size=4):
     majority_class = np.random.rand(majority_class_size, 3)
     minority_class = (np.random.rand(minority_class_size, 3) * 0.1) + 0.9
     majority_class = np.clip(majority_class, 1e-10, 1 - 1e-10)
@@ -426,7 +426,7 @@ def main():
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("lattice", index, xyzset, k, gr, tol)
     index += 1
@@ -435,7 +435,7 @@ def main():
     for N in [8,24,64,128]:
         xyzset = create_fibonacci_sphere_xyzset(N)
         k = len(xyzset) - 1
-        gr = 1
+        gr = 24
         tol = 1e-3
         create_test_case("fibonacci_sphere({})".format(N),
                          index, xyzset, k, gr, tol)
@@ -444,7 +444,7 @@ def main():
     # Two points separated by epsilon
     xyzset = create_two_points_epsilon_xyzset()
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-12
     create_test_case("two_points_epsilon", index, xyzset, k, gr, tol)
     index += 1
@@ -452,7 +452,7 @@ def main():
     # Degenerate cases
     xyzset = create_degenerate_xyzset()
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("degenerate_cases", index, xyzset, k, gr, tol)
     index += 1
@@ -460,7 +460,7 @@ def main():
     # Sparse data
     xyzset = create_sparse_xyzset(num_points=100, sparsity_level=0.95)
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("sparse_data", index, xyzset, k, gr, tol)
     index += 1
@@ -469,7 +469,7 @@ def main():
     base_set = create_lattice_xyzset()
     xyzset = create_noisy_xyzset(base_set, noise_level=0.1)
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("noisy_data", index, xyzset, k, gr, tol)
     index += 1
@@ -478,16 +478,16 @@ def main():
     base_set = create_standard_xyzset()
     xyzset = create_outliers_xyzset(base_set, outlier_factor=10)
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("outliers", index, xyzset, k, gr, tol)
     index += 1
 
     # Imbalanced classes
-    xyzset = create_imbalanced_class_xyzset(majority_class_size=1000,
-                                            minority_class_size=10)
+    xyzset = create_imbalanced_class_xyzset(majority_class_size=200,
+                                            minority_class_size=4)
     k = len(xyzset) - 1
-    gr = 1
+    gr = 16 
     tol = 1e-3
     create_test_case("imbalanced_classes", index, xyzset, k, gr, tol)
     index += 1
@@ -495,14 +495,14 @@ def main():
     # Collinear points
     xyzset = create_collinear_xyzset()
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     index += 1
 
     # Concentric points
     xyzset = create_concentric_xyzset()
     k = len(xyzset) - 1
-    gr = 1
+    gr = 24
     tol = 1e-3
     create_test_case("concentric", index, xyzset, k, gr, tol)
     index += 1
