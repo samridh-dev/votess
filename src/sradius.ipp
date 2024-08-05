@@ -24,7 +24,7 @@ inline bool sr::is_reached(
   const Tf dx = utils::square(x1 - x2);
   const Tf dy = utils::square(y1 - y2);
   const Tf dz = utils::square(z1 - z2);
-  const Tf radius  = dx + dy + dz;
+  const Tf radius = dx + dy + dz;
   const bool cond = radius > 4.0f * security_radius;
   return cond;
 }

@@ -41,8 +41,9 @@ inline T utils::bfmod(const T x, const T y) {
 }
 
 template <typename T>
-inline void utils::swap(T& a, T& b) {
-  const T tmp = a;
-  a = b;
-  b = tmp;
+inline void
+utils::swap(T& a, T& b) {
+    T tmp = a;
+    a = b;
+    b = tmp;
 }
