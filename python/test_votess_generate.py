@@ -80,9 +80,9 @@ def create_suffix():
     print('  using namespace voro;')
     print('  container con(')
     print('    0, 1, 0, 1, 0, 1,')
-    print('    vtargs.xyzset.grid_resolution,')
-    print('    vtargs.xyzset.grid_resolution,')
-    print('    vtargs.xyzset.grid_resolution,')
+    print('    vtargs.get_xyzset().grid_resolution,')
+    print('    vtargs.get_xyzset().grid_resolution,')
+    print('    vtargs.get_xyzset().grid_resolution,')
     print('    false, false, false,')
     print('    xyzset.size()')
     print('  );')
@@ -129,7 +129,7 @@ def create_suffix():
     print(') {')
     print('    __internal__suppress_stdout s; // to preventstdout ')
     print('')
-    print('    (void)xyzset::sort<int,T>(xyzset, vtargs.xyzset);')
+    print('    (void)xyzset::sort<int,T>(xyzset, vtargs.get_xyzset());')
     print('')
     print('    auto [vcoord, vneighbor] = run_voro<T>(xyzset, vtargs);')
     print('    auto dnn = votess::tesellate<int, T>(xyzset, vtargs, device);')
@@ -190,12 +190,16 @@ def create_suffix():
     print('  const int gr')
     print(') {')
     print('  SECTION("(CPU) case : grid_resolution = " + std::to_string(gr)) {')
-    print('    struct votess::vtargs vtargs(k,gr);')
+    print('    struct votess::vtargs vtargs;')
+    print('    vtargs["k"] = k;')
+    print('    vtargs["knn_grid_resolution"] = gr;')
     print('    run_test(xyzset, vtargs, votess::device::cpu);')
     print('  }')
 
     print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
-    print('    struct votess::vtargs vtargs(k,gr);')
+    print('    struct votess::vtargs vtargs;')
+    print('    vtargs["k"] = k;')
+    print('    vtargs["knn_grid_resolution"] = gr;')
     print('    run_test(xyzset, vtargs, votess::device::gpu);')
     print('  }')
 
@@ -326,7 +330,7 @@ def main():
     xyzset = create_lattice_xyzset()
     create_test_case("lattice", index, xyzset, gr_arr)
     index += 1
-
+    
     # clustered dataset
     cluster_center = np.array([0.5, 0.5, 0.5])
     xyzset = create_clustered_xyzset(cluster_center)
