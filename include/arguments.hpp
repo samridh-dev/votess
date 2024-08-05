@@ -101,8 +101,8 @@ class vtargs {
     using arg_t std::variant<int, bool>
     std::unordered_map<std::string, arg_t> map;
 
-    void update(void);
     void init(void);
+    void update(void);
 
   public:
 
@@ -111,6 +111,7 @@ class vtargs {
 
     arg_t operator[](const std::string& key) const;
     arg_t& operator[](const std::string& key);
+    void operator()(const std::string& key, const arg_t& val);
   
 };
 } // namespace votess
@@ -150,6 +151,16 @@ arg_t& votess::vtargs::operator[](const std::string& key) {
     throw std::invalid_argument("Key not found");
   }
   return it->second;
+}
+
+void votess::vtargs::operator()(const std::string& key, const arg_t& val) {
+  auto it = map.find(key);
+  if (it != map.end()) {
+    it->second = val;
+    update();
+  } else {
+    throw std::invalid_argument("Key not found");
+  }
 }
 
 #else
