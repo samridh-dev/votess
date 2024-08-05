@@ -57,6 +57,7 @@ static int grid_resolution = 24;
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <getopt.h>
+#if 1
 int main(int argc, char* argv[]) {
 
   int opt = 0;
@@ -136,3 +137,56 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+#else
+
+#include <random>
+static std::vector<std::array<float, 3>> generate_set(int count) {
+  std::vector<std::array<float, 3>> xyzset;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis(0.001f, 0.999);
+
+  for (size_t i = 0; i < count; ++i) {
+   xyzset.push_back({dis(gen), dis(gen), dis(gen)});
+  }
+
+  return xyzset;
+}
+
+int main(int argc, char* argv[]) {
+
+  int k = 80;
+  int gr = 16;
+  int N = 100000;
+
+  int option;
+  while ((option = getopt(argc, argv, "k:g:N:")) != -1) {
+    switch (option) {
+      case 'k': { k = std::atoi(optarg); break; }
+      case 'g': { gr = std::atoi(optarg); break; }
+      case 'N': { N = std::atoi(optarg); break; }
+      default:
+        std::cerr << "Usage: " << argv[0] 
+                  << " [-k value] [-g value] [-N value]" 
+                  << std::endl;
+        return 1;
+    }
+  }
+  
+  auto xyzset = generate_set(N);
+  struct votess::vtargs args(k, gr, 32);
+
+  auto start = std::chrono::high_resolution_clock::now();
+  auto dnn = votess::tesellate<int, float>(xyzset, args, votess::device::gpu);
+  auto end = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<float> elapsed = end - start;
+  std::cout << "Execution time: " 
+            << elapsed.count() << " seconds" 
+            << std::endl;
+
+  return 0;
+
+}
+
+#endif
