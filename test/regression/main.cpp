@@ -24,7 +24,7 @@ template <typename T>
 static std::pair<std::vector<std::array<T, 3>>, std::vector<std::vector<int>>>
 run_voro(
   const std::vector<std::array<T,3>>& xyzset,
-  const struct votess::vtargs vtargs
+  const class votess::vtargs vtargs
 ) {
   std::vector<std::array<T, 3>> coords;
   std::vector<std::vector<int>> neighbor_list;
@@ -33,9 +33,9 @@ run_voro(
   using namespace voro;
   container con(
     0, 1, 0, 1, 0, 1,
-    vtargs.xyzset.grid_resolution,
-    vtargs.xyzset.grid_resolution,
-    vtargs.xyzset.grid_resolution,
+    vtargs.get_xyzset().grid_resolution,
+    vtargs.get_xyzset().grid_resolution,
+    vtargs.get_xyzset().grid_resolution,
     false, false, false,
     xyzset.size()
   );
@@ -77,12 +77,12 @@ run_voro(
 template <typename T>
 static int run_test(
   std::vector<std::array<T,3>>& xyzset,
-  struct votess::vtargs vtargs,
+  class votess::vtargs vtargs,
   const enum votess::device device
 ) {
   // __internal__suppress_stdout s; // to preventstdout 
 
-  (void)xyzset::sort<int,T>(xyzset, vtargs.xyzset);
+  (void)xyzset::sort<int,T>(xyzset, vtargs.get_xyzset());
 
   auto [vcoord, vneighbor] = run_voro<T>(xyzset, vtargs);
   auto dnn = votess::tesellate<int, T>(xyzset, vtargs, device);
@@ -219,7 +219,10 @@ int main(int argc, char* argv[]) {
   std::vector<std::array<float, 3>> xyzset = fname.empty() ? 
                                               generate_set(N):
                                               read_set(fname);
-  struct votess::vtargs args(k, gr, 32);
+  class votess::vtargs args;
+  args["k"] = k;
+  args["knn_grid_resolution"] = gr;
+  args["gpu_ndsize"] = 32;
 
   save_set(xyzset, "dat/fail.xyz");
 
@@ -231,9 +234,8 @@ int main(int argc, char* argv[]) {
             << ", Number of errors reported: " << nerrors
             << std::endl;
 
-  return 0;
-  
   // Use this when you have a working gpu implementation.
+  args["use_chunking"] = false;
   start = std::chrono::high_resolution_clock::now();
   nerrors = run_test(xyzset, args, votess::device::gpu);
   end = std::chrono::high_resolution_clock::now();

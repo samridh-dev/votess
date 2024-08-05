@@ -12,7 +12,7 @@
 template <typename Ti, typename Tf>
 static void test_xyzset(
   std::vector<std::array<Tf, 3>> xyzset,
-  const unsigned int k, const unsigned int gr_max 
+  const int k, const int gr_max 
 );
 
 TEST_CASE("xyzset regression 1: standard", "[xyzset]") {
@@ -25,8 +25,8 @@ TEST_CASE("xyzset regression 1: standard", "[xyzset]") {
     {0.094412f, 0.861991f, 0.798644f}, {0.511958f, 0.560537f, 0.345479f}
   };
 
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 16;
+  const int k = 1;
+  const int gr_max = 16;
   test_xyzset<int, float>(xyzset, k, gr_max);
 
 }
@@ -164,8 +164,8 @@ TEST_CASE("xyzset regression 2: small fibonacci sphere", "[xyzset]") {
     {0.531019f, 0.251961f, 0.503793f}, {0.500000f, 0.250000f, 0.500000f}
   };
   
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 16;
+  const int k = 1;
+  const int gr_max = 16;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
@@ -190,44 +190,44 @@ create_fibonacci(const size_t n) {
 TEST_CASE("xyzset regression 3: Large Fibonacci Sphere - float", "[xyzset]") {
   const size_t size = 1000000;
   auto xyzset = create_fibonacci<float>(size);
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 32;
+  const int k = 1;
+  const int gr_max = 32;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
 TEST_CASE("xyzset regression 3: Large Fibonacci Sphere - double", "[xyzset]") {
   const size_t size = 1000000;
   auto xyzset = create_fibonacci<double>(size);
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 32;
+  const int k = 1;
+  const int gr_max = 32;
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
 TEST_CASE("xyzset regression 5: Empty Input - float", "[xyzset]") {
   std::vector<std::array<float, 3>> xyzset = {};
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 0;
+  const int k = 1;
+  const int gr_max = 0;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
 TEST_CASE("xyzset regression 5: Empty Input - double", "[xyzset]") {
   std::vector<std::array<double, 3>> xyzset = {};
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 0;
+  const int k = 1;
+  const int gr_max = 0;
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
 TEST_CASE("xyzset regression 6: Single Point - float", "[xyzset]") {
   std::vector<std::array<float, 3>> xyzset = {{0.5f, 0.5f, 0.5f}};
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 0;
+  const int k = 1;
+  const int gr_max = 0;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
 TEST_CASE("xyzset regression 6: Single Point - double", "[xyzset]") {
   std::vector<std::array<double, 3>> xyzset = {{0.5f, 0.5f, 0.5f}};
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 0;
+  const int k = 1;
+  const int gr_max = 0;
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
@@ -238,8 +238,8 @@ TEST_CASE("xyzset regression 7: Boundary Values - float", "[xyzset]") {
     {eps, eps, 1.0f - eps}, {1.0f - eps, 1.0f - eps, eps},
     {eps, 1.0f - eps, eps}, {1.0f - eps, eps, 1.0f - eps}
   };
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 1;
+  const int k = 1;
+  const int gr_max = 1;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
@@ -250,8 +250,8 @@ TEST_CASE("xyzset regression 7: Boundary Values - double", "[xyzset]") {
     {eps, eps, 1.0 - eps}, {1.0 - eps, 1.0 - eps, eps},
     {eps, 1.0 - eps, eps}, {1.0 - eps, eps, 1.0 - eps}
   };
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 1;
+  const int k = 1;
+  const int gr_max = 1;
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
@@ -265,8 +265,8 @@ TEST_CASE("xyzset regression 8: Random Points - float", "[xyzset]") {
     xyzset.push_back({dis(gen), dis(gen), dis(gen)});
   }
 
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 16;
+  const int k = 1;
+  const int gr_max = 16;
   test_xyzset<int, float>(xyzset, k, gr_max);
 }
 
@@ -280,8 +280,8 @@ TEST_CASE("xyzset regression 8: Random Points - double", "[xyzset]") {
     xyzset.push_back({dis(gen), dis(gen), dis(gen)});
   }
 
-  const unsigned short int k = 1;
-  const unsigned short int gr_max = 16;
+  const int k = 1;
+  const int gr_max = 16;
   test_xyzset<int, double>(xyzset, k, gr_max);
 }
 
@@ -291,7 +291,7 @@ TEST_CASE("xyzset regression 8: Random Points - double", "[xyzset]") {
 template <typename Ti, typename Tf>
 static void test_xyzset(
   std::vector<std::array<Tf, 3>> xyzset,
-  const unsigned int k, const unsigned int gr_max
+  const int k, const int gr_max
 ) {
   
   std::vector<std::array<Tf, 3>> refset = xyzset;
@@ -299,8 +299,10 @@ static void test_xyzset(
   for (size_t gr = 0; gr <= gr_max; gr++) {
 
     SECTION("case: gr = " + std::to_string(gr)) {
-      votess::vtargs args(k, gr);
-      auto [id, offset] = xyzset::sort<Ti, Tf>(xyzset, args.xyzset);
+      votess::vtargs args;
+      args["k"] = k;
+      args["knn_grid_resolution"] = gr;
+      auto [id, offset] = xyzset::sort<Ti, Tf>(xyzset, args.get_xyzset());
 
       REQUIRE(xyzset::validate_xyzset<Tf>(xyzset) == true);
       REQUIRE(xyzset::validate_id<Ti>(id) == true);
