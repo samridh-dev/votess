@@ -111,11 +111,22 @@ integer type (preferably int32_t or int64_t for larger datasets),
 and `typename T2` must strictly be a decimal type (float or double depending
 on nature of dataset). The program will throw an error otherwise. 
 
-To change the parameters of votess::tesellate, the struct `votess::vtargs`
-is provided. Please refer to the example below for a basic usage.
+### Changing Parameters
 
-### NOTE 
-The API for ```struct votess::vtargs``` will change in the near future.
+To change the parameters of `votess::tesellate`, the class `votess::vtargs` is
+provided. All possible parameters is listed in the table below. 
+
+| Parameter Name         | Description                                                                               |
+|------------------------|-------------------------------------------------------------------------------------------|
+| `k`                    | Number of nearest neighbors                                                               |
+| `cpu_nthreads`         | Number of CPU threads to use. Set to 0 for highest thread count available in the machine  |
+| `gpu_ndsize`           | GPU work size. Recommended to set in multiples of 16                                      |
+| `use_recompute`        | Set to `true` to enable cpu fallback. This will ensure all points are valid voronoi cells |
+| `use_chunking`         | Set to `true` to split processing in chunks.                                              |
+| `chunksize`            | Size of chunks for processing. Set a small value for the CPU, and a large one for the GPU |
+| `knn_grid_resolution`  | Grid resolution for k-nearest-neighbors algorithm                                         |
+| `cc_p_maxsize`         | Maximum size of P parameter for convex cell algorithm                                     |
+| `cc_t_maxsize`         | Maximum size of T parameter for convex cell algorithm                                     |
 
 ### Example Usage
 ```cpp
@@ -144,7 +155,9 @@ int main(int argc, char* argv[]) {
   };
 
   // votess::tesellate parameter struct
-  struct votess::vtargs vtargs(k,grid_resolution);
+  struct votess::vtargs vtargs();
+  vtargs["k"] = k;
+  vtargs["knn_grid_resolution"] = grid_resolution;
 
   // get direct neighbors that constitute a voronoi cell for each point.
   auto dnn = votess::tesellate<int, float>(xyzset, vtargs);
@@ -190,7 +203,10 @@ xyzset = np.array([
   [0.511958, 0.560537, 0.345479]
 ])
 
-vtargs = vt.vtargs(k, grid_resolution)
+vtargs = pyvotess.vtargs()
+vtargs["k"] = k
+vtargs["knn_grid_resolution"] = grid_resolution 
+
 direct_neighbors = vt.tesellate(xyzset, vtargs)
 
 # Alternatively, get direct neighbors via cpu
