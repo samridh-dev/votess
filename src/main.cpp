@@ -57,7 +57,7 @@ static int grid_resolution = 24;
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <getopt.h>
-#if 1
+#if 0
 int main(int argc, char* argv[]) {
 
   int opt = 0;
@@ -132,7 +132,9 @@ int main(int argc, char* argv[]) {
              xyzset.size() : default_k_init;
   }
 
-  struct votess::vtargs vtargs(k_init, grid_resolution);
+  class votess::vtargs vtargs;
+  vtargs["k"] = k_init;
+  vtargs["knn_grid_resolution"] = grid_resolution;
   auto dnn = votess::tesellate<int, float>(xyzset, vtargs);
 
   return 0;
@@ -174,7 +176,11 @@ int main(int argc, char* argv[]) {
   }
   
   auto xyzset = generate_set(N);
-  struct votess::vtargs args(k, gr, 32);
+
+  class votess::vtargs args;
+  args["k"] = k;
+  args["knn_grid_resolution"] = gr;
+  args["gpu_ndsize"] = 32;
 
   auto start = std::chrono::high_resolution_clock::now();
   auto dnn = votess::tesellate<int, float>(xyzset, args, votess::device::gpu);
