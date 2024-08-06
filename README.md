@@ -203,7 +203,7 @@ xyzset = np.array([
   [0.511958, 0.560537, 0.345479]
 ])
 
-vtargs = pyvotess.vtargs()
+vtargs = vt.vtargs()
 vtargs["k"] = k
 vtargs["knn_grid_resolution"] = grid_resolution 
 
