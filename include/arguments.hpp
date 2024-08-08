@@ -5,24 +5,48 @@
 //  * pybind11 compatibility
 //  * ability to have mixed types
 
-#define ARGS_DEFAULT_K 80
+#ifndef ARGS_DEFAULT_K
+#define ARGS_DEFAULT_K 64
+#endif
 
+#ifndef ARGS_DEFAULT_CPU_NTHREADS
 #define ARGS_DEFAULT_CPU_NTHREADS 0
+#endif
+
+#ifndef ARGS_DEFAULT_GPU_NDWORKSIZE
 #define ARGS_DEFAULT_GPU_NDWORKSIZE 1
+#endif
 
+#ifndef ARGS_DEFAULT_CHUNKSIZE
 #define ARGS_DEFAULT_CHUNKSIZE 8196
+#endif
+
+#ifndef ARGS_DEFAULT_USE_CHUNKING
 #define ARGS_DEFAULT_USE_CHUNKING false
+#endif
 
-#define ARGS_DEFAULT_USE_RECOMPUTE true
+#ifndef ARGS_DEFAULT_USE_RECOMPUTE
+#define ARGS_DEFAULT_USE_RECOMPUTE false
+#endif
 
+#ifndef ARGS_DEFAULT_GRID_RESOLUTION
 #define ARGS_DEFAULT_GRID_RESOLUTION 16
-#define ARGS_DEFAULT_P_MAXSIZE 128
-#define ARGS_DEFAULT_T_MAXSIZE 128
+#endif
+
+#ifndef ARGS_DEFAULT_P_MAXSIZE
+#define ARGS_DEFAULT_P_MAXSIZE 32
+#endif
+
+#ifndef ARGS_DEFAULT_T_MAXSIZE
+#define ARGS_DEFAULT_T_MAXSIZE 32
+#endif
 
 #include <string>
 #include <unordered_map>
 #include <sstream>
 #include <stdexcept>
+
+#include <initializer_list>
 
 namespace args {
 
@@ -72,6 +96,7 @@ class vtargref {
     }
   
   public:
+
     template <typename T> 
     vtargref& operator=(const T& other) {
       this->str = to_str(other);
@@ -87,6 +112,7 @@ class vtargref {
     T get() const {
       return from_str<T>(str);
     }
+
 };
 
 class vtargs {
@@ -116,7 +142,7 @@ class vtargs {
     if (it == map.end()) {
       throw std::invalid_argument("key: " + key + 
                                   " not found in file: " + __FILE__ + 
-                                   " at line: " + std::to_string(__LINE__));
+                                  " at line: " + std::to_string(__LINE__));
     }
     return it->second;
   }
@@ -126,7 +152,7 @@ class vtargs {
     if (it == map.end()) {
       throw std::invalid_argument("key: " + key + 
                                   " not found in file: " + __FILE__ + 
-                                   " at line: " + std::to_string(__LINE__));
+                                  " at line: " + std::to_string(__LINE__));
     }
     return it->second;
   }
@@ -148,6 +174,7 @@ class vtargs {
       int t_maxsize = (*this)["cc_t_maxsize"];
       return args::cc(k, p_maxsize, t_maxsize);
     }
+
 };
 
 } // namespace votess
