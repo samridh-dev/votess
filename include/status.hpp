@@ -22,6 +22,8 @@ enum status : signed char {
   error_infinite_boundary,
   error_nonvalid_vertices,
   error_nonvalid_neighbor,
+  error_p_overflow,
+  error_t_overflow,
   error_occurred,
 
   status_enum_size,
