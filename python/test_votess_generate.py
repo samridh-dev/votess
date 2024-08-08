@@ -4,6 +4,7 @@ def create_test_case(tag, i, points, gr_arr):
     
     k = len(points) // 5 
     if k == 0: k = 1
+    k = len(points) - 1
 
     name = f'votess regression {i}: {tag}'
 
@@ -189,6 +190,7 @@ def create_suffix():
     print('  const int k,')
     print('  const int gr')
     print(') {')
+
     print('  SECTION("(CPU) case : grid_resolution = " + std::to_string(gr)) {')
     print('    struct votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
@@ -230,7 +232,7 @@ def create_standard_xyzset():
 def create_random_xyzset(n_points=128):
     return np.random.rand(n_points, 3)
 
-def create_clustered_xyzset(center, n_points=100, scale=0.1):
+def create_clustered_xyzset(center, n_points=128, scale=0.1):
     return np.random.normal(loc=center, scale=scale, size=(n_points, 3))
 
 def create_lattice_xyzset(grid_size=4):
@@ -274,7 +276,7 @@ def create_degenerate_xyzset(N=128):
     point = np.array([[0.5, 0.5, 0.5]])
     return np.tile(point, (N, 1))
 
-def create_sparse_xyzset(num_points=100, sparsity_level=0.95):
+def create_sparse_xyzset(num_points=128, sparsity_level=0.95):
     data = np.random.rand(num_points, 3)
     mask = np.random.rand(num_points, 3) > sparsity_level
     sparse_data = data * mask
@@ -291,7 +293,7 @@ def create_outliers_xyzset(base_set, outlier_factor=10):
     outliers = np.clip(outliers, 1e-6, 1 - 1e-6)
     return np.vstack((base_set, outliers))
 
-def create_imbalanced_class_xyzset(majority_class_size=100,
+def create_imbalanced_class_xyzset(majority_class_size=118,
                                    minority_class_size=10):
     majority_class = np.random.rand(majority_class_size, 3)
     minority_class = (np.random.rand(minority_class_size, 3) * 0.1) + 0.9
@@ -306,7 +308,7 @@ def create_collinear_xyzset(x_range=(0.01, 0.99),
                      for x in np.linspace(x_range[0], x_range[1], n_points)])
 
 def create_concentric_xyzset(center=np.array([0.5, 0.5, 0.5]),
-                             radius=0.1, n_points=100):
+                             radius=0.1, n_points=128):
 
     angles = np.random.uniform(0, 2*np.pi, n_points)
     z = np.random.uniform(-1, 1, n_points)
@@ -324,23 +326,23 @@ def main():
     index = 0
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
-
+    gr_arr = np.array([1])
 
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
     create_test_case("lattice", index, xyzset, gr_arr)
     index += 1
-    
+
     # clustered dataset
     cluster_center = np.array([0.5, 0.5, 0.5])
     xyzset = create_clustered_xyzset(cluster_center)
     create_test_case("clustered", index, xyzset, gr_arr)
     index += 1
-
+    
     # Test case 1: Standard set
-    xyzset = create_standard_xyzset()
-    create_test_case("standard", index, xyzset, gr_arr)
-    index += 1
+#   xyzset = create_standard_xyzset()
+#   create_test_case("standard", index, xyzset, gr_arr)
+#   index += 1
 
     # random tests
     for i in range(8):
@@ -349,7 +351,7 @@ def main():
         index += 1
 
     # large random test
-    xyzset = create_random_xyzset(1000)
+    xyzset = create_random_xyzset(1024)
     create_test_case("random - large", index, xyzset, gr_arr)
     index += 1
 
@@ -360,7 +362,7 @@ def main():
 
 
     # Fibonacci sphere
-    for N in [8,16,14,48,64,96,128]:
+    for N in [32, 64, 128, 256]:
         xyzset = create_fibonacci_sphere_xyzset(N)
         create_test_case("fibonacci_sphere({})".format(N),
                          index, xyzset, gr_arr)
@@ -379,8 +381,7 @@ def main():
     index += 1
 
     # Imbalanced classes
-    xyzset = create_imbalanced_class_xyzset(majority_class_size=100,
-                                            minority_class_size=10)
+    xyzset = create_imbalanced_class_xyzset()
     create_test_case("imbalanced_classes", index, xyzset, gr_arr)
     index += 1
 
