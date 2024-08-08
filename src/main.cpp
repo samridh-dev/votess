@@ -157,8 +157,8 @@ static std::vector<std::array<float, 3>> generate_set(int count) {
 
 int main(int argc, char* argv[]) {
 
-  int k = 80;
-  int gr = 16;
+  int k = 64;
+  int gr = 24;
   int N = 100000;
 
   int option;
@@ -180,16 +180,33 @@ int main(int argc, char* argv[]) {
   class votess::vtargs args;
   args["k"] = k;
   args["knn_grid_resolution"] = gr;
-  args["gpu_ndsize"] = 32;
+  args["gpu_ndsize"] = 24;
+  args["use_recompute"] = false;
+
+  args["use_chunking"] = false;
+  args["chunksize"] = 102400;
 
   auto start = std::chrono::high_resolution_clock::now();
   auto dnn = votess::tesellate<int, float>(xyzset, args, votess::device::gpu);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<float> elapsed = end - start;
-  std::cout << "Execution time: " 
+  std::cout << "[GPU] Execution time: " 
             << elapsed.count() << " seconds" 
             << std::endl;
+  
+#if 0
+  args["use_chunking"] = true;
+  args["chunksize"] = 8196;
+  start = std::chrono::high_resolution_clock::now();
+  dnn = votess::tesellate<int, float>(xyzset, args, votess::device::cpu);
+  end = std::chrono::high_resolution_clock::now();
+
+  elapsed = end - start;
+  std::cout << "[CPU] Execution time: " 
+            << elapsed.count() << " seconds" 
+            << std::endl;
+#endif
 
   return 0;
 
