@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
 )
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
-  -O3"
+  -g3 -O3 -funroll-loops -gline-tables-only  -fdebug-info-for-profiling -debug inline-debug-info"
 )
 
 set(CMAKE_CXX_LINK_FLAGS_ALL 
