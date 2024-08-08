@@ -43,6 +43,7 @@ TEST_CASE("vtargref assignment and conversion", "[vtargs]") {
 
     b = obj;
     REQUIRE(b == false);
+
   }
 
   SECTION("Assigning and converting character values") {
