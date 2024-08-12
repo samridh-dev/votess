@@ -121,14 +121,22 @@ class vtargs {
 
     void init(void) {
       map["k"] = ARGS_DEFAULT_K;
+
       map["cpu_nthreads"] = ARGS_DEFAULT_CPU_NTHREADS;
       map["gpu_ndsize"] = ARGS_DEFAULT_GPU_NDWORKSIZE;
+
       map["chunksize"] = ARGS_DEFAULT_CHUNKSIZE;
+
       map["use_chunking"] = ARGS_DEFAULT_USE_CHUNKING;
       map["use_recompute"] = ARGS_DEFAULT_USE_RECOMPUTE;
+
       map["knn_grid_resolution"] = ARGS_DEFAULT_GRID_RESOLUTION;
+
       map["cc_p_maxsize"] = ARGS_DEFAULT_P_MAXSIZE;
       map["cc_t_maxsize"] = ARGS_DEFAULT_T_MAXSIZE;
+
+      map["dev_suppress_stdout"] = true;
+
     }
 
   public:
