@@ -3,25 +3,6 @@
 
 #include "votess.hpp"
 #include "arguments.hpp"
-
-///////////////////////////////////////////////////////////////////////////////
-/// Internal Functions                                                      ///
-///////////////////////////////////////////////////////////////////////////////
-
-#include <iostream>
-class __internal__suppress_stdout {
-  public:
-    __internal__suppress_stdout() : buf(std::cout.rdbuf()) {
-      std::cout.rdbuf(__tmp__buf.rdbuf());
-    }
-    ~__internal__suppress_stdout() {
-      std::cout.rdbuf(buf);
-    }
-  private:
-    std::streambuf* buf;
-    std::stringstream __tmp__buf;
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Pybind Module                                                           ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,10 +76,7 @@ module.def(
   [](std::vector<std::array<float, 3>>& xyzset,
      class votess::vtargs vtargs, 
      const enum votess::device device) {
-
-      __internal__suppress_stdout s;
       return votess::tesellate<int, float>(xyzset, vtargs, device);
-
   }, pybind11::arg("xyzset"),
      pybind11::arg("args"),
      pybind11::arg("device") = votess::device::gpu,
