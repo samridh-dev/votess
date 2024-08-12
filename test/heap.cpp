@@ -1,208 +1,363 @@
 #include <catch2/catch_test_macros.hpp> 
 #include <catch2/matchers/catch_matchers_floating_point.hpp> 
-#include <libsycl.hpp>
-
 #include <heap.hpp>
-
 #include <vector>
 #include <utility>
-
-///////////////////////////////////////////////////////////////////////////////
+#include <limits>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// heap:swap()                                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/* ------------------------------------------------------------------------- */
-/* Device: [GPU]                                                             */
-/* ------------------------------------------------------------------------- */
+TEST_CASE("[GPU] [float] heap::swap", "[heap]") {
 
-TEST_CASE("heap::swap - GPU - float", "[heap]") {
+  sycl::queue q;
 
-  std::vector<int> hid = {1,2};
-  std::vector<float> hpq = {3.5f,4.1f};
+  std::vector<int> hid = { 1, 4, 7, 
+                           2, 5, 8,
+                           3, 6, 9 };
+
+  std::vector<float> hpq = { 1.0f, 4.0f, 7.0f, 
+                             2.0f, 5.0f, 8.0f,
+                             3.0f, 6.0f, 9.0f };
+
+  const int rowsize = 3;
+
   sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
   sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-  sycl::queue q;
-  
-  SECTION("ftest 1") {
+
+  SECTION("case: 1") {
+
+    int index = 0;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestswap_1>([=]() {
+      h.single_task<class fcase_swap_1>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::swap(did, dpq, 0, 0, 1);
+        heap::swap(did, dpq, rowsize, index, 0, 1);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 2);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(4.1f));
-    REQUIRE(rhid[1] == 1);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(3.5f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 2);
+    REQUIRE(rhid[rowsize * 1 + index] == 1);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(2.0f));
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(1.0f));
+
   }
 
-  SECTION("ftest 2") {
+  SECTION("case: 2") {
+
+    int index = 1;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestswap_2>([=]() {
+      h.single_task<class fcase_swap_2>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::swap(did, dpq, 0, 1, 0);
+        heap::swap(did, dpq, rowsize, index, 1, 2);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 2);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(4.1f));
-    REQUIRE(rhid[1] == 1);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(3.5f));
+
+    REQUIRE(rhid[rowsize * 1 + index] == 6);
+    REQUIRE(rhid[rowsize * 2 + index] == 5);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(6.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(5.0f));
+
   }
 
-  SECTION("ftest 3") {
+  SECTION("case: 3") {
+
+    int index = 2;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestswap_3>([=]() {
+      h.single_task<class fcase_swap_3>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::swap(did, dpq, 0, 1, 1);
+        heap::swap(did, dpq, rowsize, index, 0, 2);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(3.5f));
-    REQUIRE(rhid[1] == 2);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(4.1f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 9);
+    REQUIRE(rhid[rowsize * 2 + index] == 7);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(9.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(7.0f));
+
   }
 
-  SECTION("ftest 4") {
+  SECTION("case: 4") {
+
+    int index = 0;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestswap_4>([=]() {
+      h.single_task<class fcase_swap_4>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::swap(did, dpq, 0, 0, 0);
+        heap::swap(did, dpq, rowsize, index, 0, 0);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(3.5f));
-    REQUIRE(rhid[1] == 2);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(4.1f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 1);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(1.0f));
+    REQUIRE(rhid[rowsize * 1 + index] == 2);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(2.0f));
+    REQUIRE(rhid[rowsize * 2 + index] == 3);
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(3.0f));
+
+  }
+
+  SECTION("case: 5") {
+
+    int index = 1;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_swap_5>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::swap(did, dpq, rowsize, index, 0, 2);
+      });
+      q.wait();
+    });
+
+    auto rhid = bhid.get_host_access();
+    auto rhpq = bhpq.get_host_access();
+
+    REQUIRE(rhid[rowsize * 0 + index] == 6);
+    REQUIRE(rhid[rowsize * 2 + index] == 4);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(6.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(4.0f));
+
+  }
+
+  SECTION("case: 6") {
+
+    int index = 2;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_swap_6>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::swap(did, dpq, rowsize, index, 1, 1);
+      });
+      q.wait();
+    });
+
+    auto rhid = bhid.get_host_access();
+    auto rhpq = bhpq.get_host_access();
+
+    REQUIRE(rhid[rowsize * 1 + index] == 8);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(8.0f));
+
   }
 
 }
 
-TEST_CASE("heap::swap - GPU - double", "[heap]") {
+TEST_CASE("[GPU] [double] heap::swap", "[heap]") {
 
-  std::vector<int> hid = {1,2};
-  std::vector<double> hpq = {3.5f,4.1f};
-  sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-  sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
   sycl::queue q;
 
   if (!q.get_device().has(sycl::aspect::fp64)) {
     REQUIRE(1==1);
     return; // Skip the test if fp64 is not supported
   }
-  
-  SECTION("dtest 1") {
+
+  std::vector<int> hid = { 1, 4, 7, 
+                           2, 5, 8,
+                           3, 6, 9 };
+
+  std::vector<double> hpq = { 1.0f, 4.0f, 7.0f, 
+                             2.0f, 5.0f, 8.0f,
+                             3.0f, 6.0f, 9.0f };
+
+  const int rowsize = 3;
+
+  sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+
+  SECTION("case: 1") {
+
+    int index = 0;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestswap_1>([=]() {
+      h.single_task<class dcase_swap_1>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::swap(did, dpq, 0, 0, 1);
+        heap::swap(did, dpq, rowsize, index, 0, 1);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 2);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(4.1f));
-    REQUIRE(rhid[1] == 1);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(3.5f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 2);
+    REQUIRE(rhid[rowsize * 1 + index] == 1);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(2.0f));
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(1.0f));
+
   }
 
-  SECTION("dtest 2") {
+  SECTION("case: 2") {
+
+    int index = 1;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestswap_2>([=]() {
+      h.single_task<class dcase_swap_2>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::swap(did, dpq, 0, 1, 0);
+        heap::swap(did, dpq, rowsize, index, 1, 2);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 2);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(4.1f));
-    REQUIRE(rhid[1] == 1);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(3.5f));
+
+    REQUIRE(rhid[rowsize * 1 + index] == 6);
+    REQUIRE(rhid[rowsize * 2 + index] == 5);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(6.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(5.0f));
+
   }
 
-  SECTION("dtest 3") {
+  SECTION("case: 3") {
+
+    int index = 2;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestswap_3>([=]() {
+      h.single_task<class dcase_swap_3>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::swap(did, dpq, 0, 1, 1);
+        heap::swap(did, dpq, rowsize, index, 0, 2);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(3.5f));
-    REQUIRE(rhid[1] == 2);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(4.1f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 9);
+    REQUIRE(rhid[rowsize * 2 + index] == 7);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(9.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(7.0f));
+
   }
 
-  SECTION("dtest 4") {
+  SECTION("case: 4") {
+
+    int index = 0;
+
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestswap_4>([=]() {
+      h.single_task<class dcase_swap_4>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::swap(did, dpq, 0, 0, 0);
+        heap::swap(did, dpq, rowsize, index, 0, 0);
       });
       q.wait();
     });
+
     auto rhid = bhid.get_host_access();
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE_THAT(rhpq[0], Catch::Matchers::WithinRel(3.5f));
-    REQUIRE(rhid[1] == 2);
-    REQUIRE_THAT(rhpq[1], Catch::Matchers::WithinRel(4.1f));
+
+    REQUIRE(rhid[rowsize * 0 + index] == 1);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(1.0f));
+    REQUIRE(rhid[rowsize * 1 + index] == 2);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(2.0f));
+    REQUIRE(rhid[rowsize * 2 + index] == 3);
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(3.0f));
+
+  }
+
+  SECTION("case: 5") {
+
+    int index = 1;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_swap_5>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::swap(did, dpq, rowsize, index, 0, 2);
+      });
+      q.wait();
+    });
+
+    auto rhid = bhid.get_host_access();
+    auto rhpq = bhpq.get_host_access();
+
+    REQUIRE(rhid[rowsize * 0 + index] == 6);
+    REQUIRE(rhid[rowsize * 2 + index] == 4);
+    REQUIRE_THAT(rhpq[rowsize * 0 + index], Catch::Matchers::WithinRel(6.0f));
+    REQUIRE_THAT(rhpq[rowsize * 2 + index], Catch::Matchers::WithinRel(4.0f));
+
+  }
+
+  SECTION("case: 6") {
+
+    int index = 2;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_swap_6>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::swap(did, dpq, rowsize, index, 1, 1);
+      });
+      q.wait();
+    });
+
+    auto rhid = bhid.get_host_access();
+    auto rhpq = bhpq.get_host_access();
+
+    REQUIRE(rhid[rowsize * 1 + index] == 8);
+    REQUIRE_THAT(rhpq[rowsize * 1 + index], Catch::Matchers::WithinRel(8.0f));
+
   }
 
 }
 
-/* ------------------------------------------------------------------------- */
-/* Device: [CPU]                                                             */
-/* ------------------------------------------------------------------------- */
+TEST_CASE("[CPU] [float] heap::swap", "[heap]") {
 
-TEST_CASE("heap::swap - CPU - float", "[heap]") {
   std::vector<int> hid = {1, 2};
   std::vector<float> hpq = {3.5f, 4.1f};
 
-  SECTION("test 1") {
+  SECTION("case: 1") {
     heap::swap(hid, hpq, 0, 0, 1);
     REQUIRE(hid[0] == 2);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
@@ -210,7 +365,7 @@ TEST_CASE("heap::swap - CPU - float", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
   }
 
-  SECTION("test 2") {
+  SECTION("case: 2") {
     heap::swap(hid, hpq, 0, 1, 0);
     REQUIRE(hid[0] == 2);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
@@ -218,7 +373,7 @@ TEST_CASE("heap::swap - CPU - float", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
   }
 
-  SECTION("test 3") {
+  SECTION("case: 3") {
     heap::swap(hid, hpq, 0, 1, 1);
     REQUIRE(hid[0] == 1);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
@@ -226,7 +381,7 @@ TEST_CASE("heap::swap - CPU - float", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(4.1f));
   }
 
-  SECTION("test 4") {
+  SECTION("case: 4") {
     heap::swap(hid, hpq, 0, 0, 0);
     REQUIRE(hid[0] == 1);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
@@ -236,11 +391,12 @@ TEST_CASE("heap::swap - CPU - float", "[heap]") {
 
 }
 
-TEST_CASE("heap::swap - CPU - double", "[heap]") {
+TEST_CASE("[CPU] [double] heap::swap", "[heap]") {
+
   std::vector<int> hid = {1, 2};
   std::vector<double> hpq = {3.5f, 4.1f};
 
-  SECTION("test 1") {
+  SECTION("case: 1") {
     heap::swap(hid, hpq, 0, 0, 1);
     REQUIRE(hid[0] == 2);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
@@ -248,7 +404,7 @@ TEST_CASE("heap::swap - CPU - double", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
   }
 
-  SECTION("test 2") {
+  SECTION("case: 2") {
     heap::swap(hid, hpq, 0, 1, 0);
     REQUIRE(hid[0] == 2);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(4.1f));
@@ -256,7 +412,7 @@ TEST_CASE("heap::swap - CPU - double", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(3.5f));
   }
 
-  SECTION("test 3") {
+  SECTION("case: 3") {
     heap::swap(hid, hpq, 0, 1, 1);
     REQUIRE(hid[0] == 1);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
@@ -264,7 +420,7 @@ TEST_CASE("heap::swap - CPU - double", "[heap]") {
     REQUIRE_THAT(hpq[1], Catch::Matchers::WithinRel(4.1f));
   }
 
-  SECTION("test 4") {
+  SECTION("case: 4") {
     heap::swap(hid, hpq, 0, 0, 0);
     REQUIRE(hid[0] == 1);
     REQUIRE_THAT(hpq[0], Catch::Matchers::WithinRel(3.5f));
@@ -273,130 +429,231 @@ TEST_CASE("heap::swap - CPU - double", "[heap]") {
   }
 
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 /// heap::maxheapify()                                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/* ------------------------------------------------------------------------- */
-/* Device: [GPU]                                                             */
-/* ------------------------------------------------------------------------- */
+TEST_CASE("[GPU] [float] heap::maxheapify", "[heap]") {
 
-TEST_CASE("heap::maxheapify - GPU - float", "[heap]") {
+  sycl::queue q;
 
-  SECTION("regular") {
-    std::vector<int> hid = {4, 3, 2, 1};
-    std::vector<float> hpq = {0.0f, 32.0f, 0.01f, 32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  std::vector<int> hid = { 01, 07, 13,
+                           02, 07, 14,
+                           03, 07, 15,
+                           04, 10, 16,  
+                           05, 11, 17, 
+                           06, 12, 18 }; 
+
+  const int rowsize = 3;
+  const int colsize = 6;
+
+  sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+
+  SECTION("case: 1") {
+
+    std::vector<float> hpq = { 05.0f, 09.0f, 13.0f,
+                               04.0f, 08.0f, 14.0f,
+                               03.0f, 07.0f, 15.0f,
+                               02.0f, 10.0f, 16.0f,  
+                               01.0f, 11.0f, 17.0f, 
+                               06.0f, 12.0f, 18.0f };
+
     sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
 
-    SECTION("fTest 1") {
-      q.submit([&](sycl::handler& h) {
-        auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
-        auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-        h.single_task<class ftestmaxheapify_1>([=]() {
-          device_accessor_readwrite_t<int> did(ahid);
-          device_accessor_readwrite_t<float> dpq(ahpq);
-          heap::maxheapify(did, dpq, 0, 0, 0);
-        });
-        q.wait();
-      });
-      auto rhpq = bhpq.get_host_access();
-      REQUIRE(rhpq[0] < rhpq[1]);
-      REQUIRE(rhpq[0] < rhpq[2]);
-    }
-
-    SECTION("fTest 2") {
-      q.submit([&](sycl::handler& h) {
-        auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
-        auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-        h.single_task<class ftestmaxheapify_2>([=]() {
-          device_accessor_readwrite_t<int> did(ahid);
-          device_accessor_readwrite_t<float> dpq(ahpq);
-          heap::maxheapify(did, dpq, 0, did.size(), 0);
-        });
-        q.wait();
-      });
-      auto rhpq = bhpq.get_host_access();
-      REQUIRE(rhpq[0] >= rhpq[1]);
-      REQUIRE(rhpq[0] >= rhpq[2]);
-    }
-  }
-
-  SECTION("Heap with single element") {
-    std::vector<int> hid = {4};
-    std::vector<float> hpq = {0.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+    int index = 0;  // First column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestmaxheapify_single_element>([=]() {
+      h.single_task<class fcase_maxheapify_1>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, 0, 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
-    auto rhid = bhid.get_host_access();
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid.size() == 1);
-    REQUIRE(rhpq[0] == 0.0f);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
   }
 
-  SECTION("Heap with all elements the same") {
-    std::vector<int> hid = {1, 1, 1, 1};
-    std::vector<float> hpq = {32.0f, 32.0f, 32.0f, 32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  SECTION("case: 2") {
+
+    std::vector<float> hpq = { 18.0f, 17.0f, 16.0f,
+                               15.0f, 14.0f, 13.0f,
+                               12.0f, 11.0f, 10.0f,
+                               09.0f, 08.0f, 07.0f,  
+                               06.0f, 05.0f, 04.0f, 
+                               03.0f, 02.0f, 01.0f };
+
     sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+    int index = 1;  // Second column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestmaxheapify_all_elements_same>([=]() {
+      h.single_task<class fcase_maxheapify_2>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, did.size(), 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
-    auto rhid = bhid.get_host_access();
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE(rhpq[0] == 32.0f);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
   }
 
-  SECTION("Max Heap already in correct order") {
-    std::vector<int> hid = {4, 3, 2, 1};
-    std::vector<float> hpq = {32.0f, 0.01f, 0.0f, -32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  SECTION("case: 3") {
+
+    std::vector<float> hpq = { 10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f, 
+                               10.0f, 10.0f, 10.0f };
+
     sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+    int index = 2;  // Third column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class ftestmaxheapify_correct_order>([=]() {
+      h.single_task<class fcase_maxheapify_3>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<float> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, did.size(), 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhpq[0] >= rhpq[1]);
-    REQUIRE(rhpq[0] >= rhpq[2]);
+    REQUIRE(rhpq[rowsize * 0 + index] == 10.0f);
+    REQUIRE(rhpq[rowsize * 1 + index] == 10.0f);
+    REQUIRE(rhpq[rowsize * 2 + index] == 10.0f);
+  }
+
+  SECTION("case: 4") {
+
+    std::vector<float> hpq = { 01.0f, 02.0f, 03.0f,
+                               10.0f, 20.0f, 30.0f,
+                               05.0f, 15.0f, 25.0f,
+                               07.0f, 17.0f, 27.0f,  
+                               06.0f, 16.0f, 26.0f, 
+                               09.0f, 19.0f, 29.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;  // First column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_maxheapify_4>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 5") {
+
+    std::vector<float> hpq = { 10.0f, 20.0f, 30.0f,
+                               05.0f, 15.0f, 25.0f,
+                               07.0f, 17.0f, 27.0f,  
+                               06.0f, 16.0f, 26.0f, 
+                               09.0f, 19.0f, 29.0f,
+                               04.0f, 14.0f, 24.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 2;  // Last column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_maxheapify_5>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 6") {
+
+    std::vector<float> hpq = { 30.0f, 29.0f, 28.0f,
+                               27.0f, 26.0f, 25.0f,
+                               24.0f, 23.0f, 22.0f,
+                               21.0f, 20.0f, 19.0f,
+                               18.0f, 17.0f, 16.0f, 
+                               15.0f, 14.0f, 13.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;  // First column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_maxheapify_6>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 7 - heapify with epsilon values") {
+
+    float epsilon = std::numeric_limits<float>::epsilon();
+
+    std::vector<float> hpq = { 3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 1;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class fcase_maxheapify_7>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+
   }
 
 }
 
-TEST_CASE("heap::maxheapify - GPU - double", "[heap]") {
+TEST_CASE("[GPU] [double] heap::maxheapify", "[heap]") {
 
   sycl::queue q;
   if (!q.get_device().has(sycl::aspect::fp64)) {
@@ -404,138 +661,242 @@ TEST_CASE("heap::maxheapify - GPU - double", "[heap]") {
     return; // Skip the test if fp64 is not supported
   }
 
-  SECTION("regular") {
+  std::vector<int> hid = { 01, 07, 13,
+                           02, 07, 14,
+                           03, 07, 15,
+                           04, 10, 16,  
+                           05, 11, 17, 
+                           06, 12, 18 }; 
 
-    std::vector<int> hid = {4, 3, 2, 1};
-    std::vector<double> hpq = {0.0f, 32.0f, 0.01f, 32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  const int rowsize = 3;
+  const int colsize = 6;
+
+  sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+
+  SECTION("case: 1") {
+
+    std::vector<double> hpq = { 05.0f, 09.0f, 13.0f,
+                               04.0f, 08.0f, 14.0f,
+                               03.0f, 07.0f, 15.0f,
+                               02.0f, 10.0f, 16.0f,  
+                               01.0f, 11.0f, 17.0f, 
+                               06.0f, 12.0f, 18.0f };
+
     sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
 
-    SECTION("dtest 1") {
-      q.submit([&](sycl::handler& h) {
-        auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
-        auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-        h.single_task<class dtestmaxheapify_1>([=]() {
-          device_accessor_readwrite_t<int> did(ahid);
-          device_accessor_readwrite_t<double> dpq(ahpq);
-          heap::maxheapify(did, dpq, 0, 0, 0);
-        });
-        q.wait();
-      });
-      auto rhpq = bhpq.get_host_access();
-      REQUIRE(rhpq[0] < rhpq[1]);
-      REQUIRE(rhpq[0] < rhpq[2]);
-    }
-
-    SECTION("dtest 2") {
-      q.submit([&](sycl::handler& h) {
-        auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
-        auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-        h.single_task<class dtestmaxheapify_2>([=]() {
-          device_accessor_readwrite_t<int> did(ahid);
-          device_accessor_readwrite_t<double> dpq(ahpq);
-          heap::maxheapify(did, dpq, 0, did.size(), 0);
-        });
-        q.wait();
-      });
-      auto rhpq = bhpq.get_host_access();
-      REQUIRE(rhpq[0] >= rhpq[1]);
-      REQUIRE(rhpq[0] >= rhpq[2]);
-    }
-  }
-
-  SECTION("Heap with single element") {
-    std::vector<int> hid = {4};
-    std::vector<double> hpq = {0.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-    sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;  // First column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestmaxheapify_single_element>([=]() {
+      h.single_task<class dcase_maxheapify_1>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, 0, 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
-    auto rhid = bhid.get_host_access();
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid.size() == 1);
-    REQUIRE(rhpq[0] == 0.0f);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
   }
 
-  SECTION("Heap with all elements the same") {
-    std::vector<int> hid = {1, 1, 1, 1};
-    std::vector<double> hpq = {32.0f, 32.0f, 32.0f, 32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  SECTION("case: 2") {
+
+    std::vector<double> hpq = { 18.0f, 17.0f, 16.0f,
+                               15.0f, 14.0f, 13.0f,
+                               12.0f, 11.0f, 10.0f,
+                               09.0f, 08.0f, 07.0f,  
+                               06.0f, 05.0f, 04.0f, 
+                               03.0f, 02.0f, 01.0f };
+
     sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 1;  // Second column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestmaxheapify_all_elements_same>([=]() {
+      h.single_task<class dcase_maxheapify_2>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, did.size(), 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
-    auto rhid = bhid.get_host_access();
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhid[0] == 1);
-    REQUIRE(rhpq[0] == 32.0f);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
   }
 
-  SECTION("Max Heap already in correct order") {
-    std::vector<int> hid = {4, 3, 2, 1};
-    std::vector<double> hpq = {32.0f, 0.01f, 0.0f, -32.0f};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+  SECTION("case: 3") {
+
+    std::vector<double> hpq = { 10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f,
+                               10.0f, 10.0f, 10.0f, 
+                               10.0f, 10.0f, 10.0f };
+
     sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 2;  // Third column
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class dtestmaxheapify_correct_order>([=]() {
+      h.single_task<class dcase_maxheapify_3>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
         device_accessor_readwrite_t<double> dpq(ahpq);
-        heap::maxheapify(did, dpq, 0, did.size(), 0);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
       });
       q.wait();
     });
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhpq[0] >= rhpq[1]);
-    REQUIRE(rhpq[0] >= rhpq[2]);
+    REQUIRE(rhpq[rowsize * 0 + index] == 10.0f);
+    REQUIRE(rhpq[rowsize * 1 + index] == 10.0f);
+    REQUIRE(rhpq[rowsize * 2 + index] == 10.0f);
+  }
+
+  SECTION("case: 4") {
+
+    std::vector<double> hpq = { 01.0f, 02.0f, 03.0f,
+                               10.0f, 20.0f, 30.0f,
+                               05.0f, 15.0f, 25.0f,
+                               07.0f, 17.0f, 27.0f,  
+                               06.0f, 16.0f, 26.0f, 
+                               09.0f, 19.0f, 29.0f };
+
+    sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;  // First column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_maxheapify_4>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 5") {
+
+    std::vector<double> hpq = { 10.0f, 20.0f, 30.0f,
+                               05.0f, 15.0f, 25.0f,
+                               07.0f, 17.0f, 27.0f,  
+                               06.0f, 16.0f, 26.0f, 
+                               09.0f, 19.0f, 29.0f,
+                               04.0f, 14.0f, 24.0f };
+
+    sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 2;  // Last column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_maxheapify_5>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 6") {
+
+    std::vector<double> hpq = { 30.0f, 29.0f, 28.0f,
+                               27.0f, 26.0f, 25.0f,
+                               24.0f, 23.0f, 22.0f,
+                               21.0f, 20.0f, 19.0f,
+                               18.0f, 17.0f, 16.0f, 
+                               15.0f, 14.0f, 13.0f };
+
+    sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;  // First column
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_maxheapify_6>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+  }
+
+  SECTION("case: 7 - heapify with epsilon values") {
+
+    double epsilon = std::numeric_limits<double>::epsilon();
+
+    std::vector<double> hpq = { 3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon,
+                               3 * epsilon, 2 * epsilon, epsilon };
+
+    sycl::buffer<double> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 1;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class dcase_maxheapify_7>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<double> dpq(ahpq);
+        heap::maxheapify(did, dpq, rowsize, index, colsize, 0);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 1 + index]);
+    REQUIRE(rhpq[rowsize * 0 + index] >= rhpq[rowsize * 2 + index]);
+
   }
 
 }
 
-/* ------------------------------------------------------------------------- */
-/* Device: [CPU]                                                             */
-/* ------------------------------------------------------------------------- */
-
-TEST_CASE("heap::maxheapify - CPU - float", "[heap]") {
+TEST_CASE("[CPU] [float] heap::maxheapify", "[heap]") {
 
   SECTION("regular") {
     std::vector<int> hid = {4, 3, 2, 1};
     std::vector<float> hpq = {0.0f, 32.0f, 0.01f, 32.0f};
 
-    SECTION("Test 1") {
+    SECTION("case: 1") {
       heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
       REQUIRE(hpq[0] == 32.0f);
       REQUIRE(hpq[1] <= hpq[0]);
       REQUIRE(hpq[2] <= hpq[0]);
     }
 
-    SECTION("Test 2") {
+    SECTION("case: 2") {
       heap::maxheapify(hid, hpq, 0, hpq.size(), 1);
       REQUIRE(hpq[1] == 32.0f);
       REQUIRE(hpq[3] <= hpq[1]);
     }
   }
 
-  SECTION("Heap with single element") {
+  SECTION("single element") {
     std::vector<int> hid = {4};
     std::vector<float> hpq = {0.0f};
 
@@ -544,7 +905,7 @@ TEST_CASE("heap::maxheapify - CPU - float", "[heap]") {
     REQUIRE(hpq[0] == 0.0f);
   }
 
-  SECTION("Heap with all elements the same") {
+  SECTION("equal elements") {
     std::vector<int> hid = {1, 1, 1, 1};
     std::vector<float> hpq = {32.0f, 32.0f, 32.0f, 32.0f};
 
@@ -553,7 +914,7 @@ TEST_CASE("heap::maxheapify - CPU - float", "[heap]") {
     REQUIRE(hpq[0] == 32.0f);
   }
 
-  SECTION("Max Heap already in correct order") {
+  SECTION("correct order") {
     std::vector<int> hid = {4, 3, 2, 1};
     std::vector<float> hpq = {32.0f, 0.01f, 0.0f, -32.0f};
 
@@ -564,27 +925,27 @@ TEST_CASE("heap::maxheapify - CPU - float", "[heap]") {
 
 }
 
-TEST_CASE("heap::maxheapify - CPU - double", "[heap]") {
+TEST_CASE("[CPU] [double] heap::maxheapify", "[heap]") {
 
   SECTION("regular") {
     std::vector<int> hid = {4, 3, 2, 1};
     std::vector<double> hpq = {0.0f, 32.0f, 0.01f, 32.0f};
 
-    SECTION("Test 1") {
+    SECTION("case: 1") {
       heap::maxheapify(hid, hpq, 0, hpq.size(), 0);
       REQUIRE(hpq[0] == 32.0f);
       REQUIRE(hpq[1] <= hpq[0]);
       REQUIRE(hpq[2] <= hpq[0]);
     }
 
-    SECTION("Test 2") {
+    SECTION("case: 2") {
       heap::maxheapify(hid, hpq, 0, hpq.size(), 1);
       REQUIRE(hpq[1] == 32.0f);
       REQUIRE(hpq[3] <= hpq[1]);
     }
   }
 
-  SECTION("Heap with single element") {
+  SECTION("single element") {
     std::vector<int> hid = {4};
     std::vector<double> hpq = {0.0f};
 
@@ -593,7 +954,7 @@ TEST_CASE("heap::maxheapify - CPU - double", "[heap]") {
     REQUIRE(hpq[0] == 0.0f);
   }
 
-  SECTION("Heap with all elements the same") {
+  SECTION("equal elements") {
     std::vector<int> hid = {1, 1, 1, 1};
     std::vector<double> hpq = {32.0f, 32.0f, 32.0f, 32.0f};
 
@@ -602,7 +963,7 @@ TEST_CASE("heap::maxheapify - CPU - double", "[heap]") {
     REQUIRE(hpq[0] == 32.0f);
   }
 
-  SECTION("Max Heap already in correct order") {
+  SECTION("correct order") {
     std::vector<int> hid = {4, 3, 2, 1};
     std::vector<double> hpq = {32.0f, 0.01f, 0.0f, -32.0f};
 
@@ -614,130 +975,260 @@ TEST_CASE("heap::maxheapify - CPU - double", "[heap]") {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
 /// heap::sort()                                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-/* ------------------------------------------------------------------------- */
-/* Device: [GPU]                                                             */
-/* ------------------------------------------------------------------------- */
+TEST_CASE("[GPU] heap::sort", "[heap]") {
 
-TEST_CASE("heap::sort", "[heap]") {
+  sycl::queue q;
 
-  SECTION("regular") {
-    std::vector<int> hid = {1, 4, 2, 3};
-    std::vector<int> hpq = {4, 1, 3, 2};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-    sycl::buffer<int> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+  std::vector<int> hid = { 01, 07, 13,
+                           02, 07, 14,
+                           03, 07, 15,
+                           04, 10, 16,  
+                           05, 11, 17, 
+                           06, 12, 18 }; 
+
+  const int rowsize = 3;
+  const int colsize = 6;
+
+  sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
+
+  SECTION("case: 1") {
+
+    std::vector<float> hpq = { 5.0f, 9.0f, 13.0f,
+                               4.0f, 8.0f, 14.0f,
+                               3.0f, 7.0f, 15.0f,
+                               2.0f, 10.0f, 16.0f,  
+                               1.0f, 11.0f, 17.0f, 
+                               6.0f, 12.0f, 18.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class testHeapSort>([=]() {
+      h.single_task<class heapsort_1>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
-        device_accessor_readwrite_t<int> dpq(ahpq);
-        heap::sort(did,dpq,0,did.size());
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
       });
       q.wait();
     });
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhpq[0] <= rhpq[1]);
-    REQUIRE(rhpq[1] <= rhpq[2]);
-    REQUIRE(rhpq[2] <= rhpq[3]);
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
+    }
   }
 
-  SECTION("Heap with Single Element") {
-    std::vector<int> hid = {4};
-    std::vector<int> hpq = {32};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-    sycl::buffer<int> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+  SECTION("case: 2") {
+
+    std::vector<float> hpq = { 1.0f, 2.0f, 3.0f,
+                               4.0f, 5.0f, 6.0f,
+                               7.0f, 8.0f, 9.0f,
+                               10.0f, 11.0f, 12.0f,  
+                               13.0f, 14.0f, 15.0f, 
+                               16.0f, 17.0f, 18.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 1;
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class testHeapSortSingleElement>([=]() {
+      h.single_task<class heapsort_2>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
-        device_accessor_readwrite_t<int> dpq(ahpq);
-        heap::sort(did, dpq, 0, did.size());
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
       });
       q.wait();
     });
+
     auto rhpq = bhpq.get_host_access();
-    REQUIRE(rhpq.size() == 1);
-    REQUIRE(rhpq[0] == 32);
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
+    }
   }
 
-  SECTION("Heap with All Elements the Same") {
-    std::vector<int> hid = {1, 1, 1, 1};
-    std::vector<int> hpq = {32, 32, 32, 32};
-    sycl::buffer<int> bhid(hid.data(), sycl::range<1>(hid.size()));
-    sycl::buffer<int> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
-    sycl::queue q;
+  SECTION("case: 3") {
+
+    std::vector<float> hpq = { 18.0f, 17.0f, 16.0f,
+                               15.0f, 14.0f, 13.0f,
+                               12.0f, 11.0f, 10.0f,
+                               9.0f, 8.0f, 7.0f,  
+                               6.0f, 5.0f, 4.0f, 
+                               3.0f, 2.0f, 1.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 2;
 
     q.submit([&](sycl::handler& h) {
       auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
       auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
-      h.single_task<class testHeapSortAllElementsSame>([=]() {
+      h.single_task<class heapsort_3>([=]() {
         device_accessor_readwrite_t<int> did(ahid);
-        device_accessor_readwrite_t<int> dpq(ahpq);
-        heap::sort(did, dpq, 0, did.size());
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
       });
       q.wait();
     });
+
     auto rhpq = bhpq.get_host_access();
-    for (int i = 0; i < static_cast<int>(rhpq.size()) - 1; ++i) {
-      REQUIRE(rhpq[i] == rhpq[i + 1]);
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
+    }
+  }
+
+  SECTION("case: 4") {
+
+    std::vector<float> hpq = { 10.0f, 10.0f, 10.0f,
+                               8.0f, 8.0f, 8.0f,
+                               6.0f, 6.0f, 6.0f,
+                               4.0f, 4.0f, 4.0f,  
+                               2.0f, 2.0f, 2.0f, 
+                               1.0f, 1.0f, 1.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class heapsort_4>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
+    }
+  }
+
+  SECTION("case: 5") {
+
+    std::vector<float> hpq = { 18.0f, 1.0f, 13.0f,
+                               18.0f, 1.0f, 14.0f,
+                               18.0f, 1.0f, 15.0f,
+                               18.0f, 1.0f, 16.0f,  
+                               18.0f, 1.0f, 17.0f, 
+                               18.0f, 1.0f, 18.0f };
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 1;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class heapsort_5>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
+    }
+  }
+
+  SECTION("case: 6") {
+
+    std::vector<float> hpq = { 5.0f, 9.0f, 13.0f,
+                               4.0f, 8.0f, 14.0f,
+                               3.0f, 7.0f, 15.0f,
+                               2.0f, 10.0f, 16.0f,  
+                               1.0f, 11.0f, 17.0f, 
+                               6.0f, 12.0f, 18.0f };
+   
+    for (auto& it : hpq) it *= std::numeric_limits<float>::epsilon();
+
+    sycl::buffer<float> bhpq(hpq.data(), sycl::range<1>(hpq.size()));
+    int index = 0;
+
+    q.submit([&](sycl::handler& h) {
+      auto ahid = bhid.get_access<sycl::access::mode::read_write>(h);
+      auto ahpq = bhpq.get_access<sycl::access::mode::read_write>(h);
+      h.single_task<class heapsort_6>([=]() {
+        device_accessor_readwrite_t<int> did(ahid);
+        device_accessor_readwrite_t<float> dpq(ahpq);
+        heap::sort(did, dpq, rowsize, index, colsize);
+      });
+      q.wait();
+    });
+
+    auto rhpq = bhpq.get_host_access();
+
+    for (int i = 0; i < colsize - 1; ++i) {
+      REQUIRE(rhpq[rowsize * i + index] <= rhpq[rowsize * (i + 1) + index]);
     }
   }
 
 }
 
-/* ------------------------------------------------------------------------- */
-/* Device: [CPU]                                                             */
-/* ------------------------------------------------------------------------- */
-
-TEST_CASE("heap::sort - CPU", "[heap]") {
+TEST_CASE("[CPU] heap::sort", "[heap]") {
 
   SECTION("regular") {
+
     std::vector<int> hid = {1, 4, 2, 3};
     std::vector<int> hpq = {4, 1, 3, 2};
 
     heap::sort(hid, hpq, 0, hid.size());
+
     REQUIRE(hpq[0] <= hpq[1]);
     REQUIRE(hpq[1] <= hpq[2]);
     REQUIRE(hpq[2] <= hpq[3]);
+
   }
 
-  SECTION("Heap with Single Element") {
+  SECTION("single element") {
+
     std::vector<int> hid = {4};
     std::vector<int> hpq = {32};
 
     heap::sort(hid, hpq, 0, hid.size());
+
     REQUIRE(hpq.size() == 1);
     REQUIRE(hpq[0] == 32);
+
   }
 
-  SECTION("Heap with All Elements the Same") {
+  SECTION("equal elements") {
+
     std::vector<int> hid = {1, 1, 1, 1};
     std::vector<int> hpq = {32, 32, 32, 32};
 
     heap::sort(hid, hpq, 0, hid.size());
+
     for (size_t i = 0; i < hpq.size() - 1; ++i) {
       REQUIRE(hpq[i] == hpq[i + 1]);
     }
+
   }
 
-  SECTION("Already Sorted Heap") {
+  SECTION("sorted elements") {
+
     std::vector<int> hid = {1, 2, 3, 4};
     std::vector<int> hpq = {1, 2, 3, 4};
 
     heap::sort(hid, hpq, 0, hid.size());
+
     for (size_t i = 0; i < hpq.size() - 1; ++i) {
       REQUIRE(hpq[i] <= hpq[i + 1]);
     }
+
   }
 
 }

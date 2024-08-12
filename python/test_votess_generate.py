@@ -191,14 +191,14 @@ def create_suffix():
     print('  const int gr')
     print(') {')
 
-    print('  SECTION("(CPU) case : grid_resolution = " + std::to_string(gr)) {')
+    print('  SECTION("[CPU] case : grid_resolution = " + std::to_string(gr)) {')
     print('    struct votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
     print('    vtargs["knn_grid_resolution"] = gr;')
     print('    run_test(xyzset, vtargs, votess::device::cpu);')
     print('  }')
 
-    print('  SECTION("(GPU) case : grid_resolution = " + std::to_string(gr)) {')
+    print('  SECTION("[GPU] case : grid_resolution = " + std::to_string(gr)) {')
     print('    struct votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
     print('    vtargs["knn_grid_resolution"] = gr;')
