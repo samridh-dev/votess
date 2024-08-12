@@ -187,26 +187,38 @@ int main(int argc, char* argv[]) {
   args["use_chunking"] = false;
   args["chunksize"] = 102400;
 
-  auto start = std::chrono::high_resolution_clock::now();
-  auto dnn = votess::tesellate<int, float>(xyzset, args, votess::device::gpu);
-  auto end = std::chrono::high_resolution_clock::now();
-
-  std::chrono::duration<float> elapsed = end - start;
-  std::cout << "[GPU] Execution time: " 
-            << elapsed.count() << " seconds" 
-            << std::endl;
-  
 #if 0
-  args["use_chunking"] = true;
-  args["chunksize"] = 8196;
-  start = std::chrono::high_resolution_clock::now();
-  dnn = votess::tesellate<int, float>(xyzset, args, votess::device::cpu);
-  end = std::chrono::high_resolution_clock::now();
+  
+  {
+    auto start = std::chrono::high_resolution_clock::now();
+    auto dnn = votess::tesellate<int32_t, float>(xyzset, args, 
+                                                 votess::device::gpu);
+    auto end = std::chrono::high_resolution_clock::now();
 
-  elapsed = end - start;
-  std::cout << "[CPU] Execution time: " 
-            << elapsed.count() << " seconds" 
-            << std::endl;
+    std::chrono::duration<float> elapsed = end - start;
+    std::cout << "[GPU] Execution time: " 
+              << elapsed.count() << " seconds" 
+              << std::endl;
+  }
+
+#endif
+
+#if 1
+  
+  {
+    args["use_chunking"] = true;
+    args["chunksize"] = 8196;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto dnn = votess::tesellate<int, float>(xyzset, args,
+                                             votess::device::cpu);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<float> elapsed = end - start;
+    std::cout << "[CPU] Execution time: " 
+              << elapsed.count() << " seconds" 
+              << std::endl;
+  }
+
 #endif
 
   return 0;
