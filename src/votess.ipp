@@ -21,65 +21,6 @@
 #define FP_INFINITY 128.00f
 
 namespace votess {
-
-///////////////////////////////////////////////////////////////////////////////
-/// Tesellate internal functions                                            ///
-///////////////////////////////////////////////////////////////////////////////
-
-static inline void 
-print_device(const sycl::queue& queue) {
-
-  const auto d = queue.get_device();
-  
-  const size_t gibibyte = std::pow(2,30);
-  const size_t kibibyte = std::pow(2,10);
-
-  std::cout << " :: DEVICE INFO :: " << "\n";
-
-  std::cout << " :: Using Device: " 
-            << d.get_info<sycl::info::device::name>() << "\n";
-  
-  std::cout << " :: Device Info: \n";
-
-  std::cout << "    -- Vendor: "  
-            << d.get_info<sycl::info::device::vendor>() 
-            << "\n";
-
-  std::cout << "    -- Device Type: " 
-            << (d.is_cpu() ? "CPU" : (d.is_gpu() ? "GPU" : "Other")) 
-            << "\n";
-
-  std::cout << "    -- Maximum Work Group Size: " 
-            << d.get_info<sycl::info::device::max_work_group_size>() 
-            << "\n";
-
-  std::cout << "    -- Preferred Vector Width for Double: " 
-            << d.get_info<sycl::info::device::preferred_vector_width_double>() 
-            << "\n";
-
-  std::cout << "    -- Max Compute Units: " 
-            << d.get_info<sycl::info::device::max_compute_units>() 
-            << "\n";
-
-  std::cout << "    -- Max Memory Allocation Size: " 
-            << d.get_info<sycl::info::device::max_mem_alloc_size>() / gibibyte
-            << " GiB"
-            << "\n";
-
-  std::cout << "    -- Global Memory Size: " 
-            << d.get_info<sycl::info::device::global_mem_size>() / gibibyte
-            << " GiB"
-            << "\n";
- 
-  std::cout << "    -- Local Memory Size: " 
-            << d.get_info<sycl::info::device::local_mem_size>() / kibibyte
-            << " KiB"
-            << "\n";
-  
-  std::cout << " :: INFO END :: " << std::endl;
-
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate Internal Functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,7 +161,6 @@ __gpu__tesellate(
   sycl::buffer<uint8_t,1> bdR(sycl::range<1>(subsize * p_maxsize));
 
   sycl::queue queue;
-  print_device(queue);
 
   for (int run = 0; run < nruns; run++) {
     
@@ -307,7 +247,7 @@ __gpu__tesellate(
           aargs_knn
         );
 
-        #if 0
+        #if 1
         cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
@@ -334,7 +274,7 @@ __gpu__tesellate(
           aheap_id, aheap_pq,
           aargs_knn
         );
-        #if 0
+        #if 1
         cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
@@ -651,6 +591,69 @@ __cpu__recompute(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// Tesellate internal functions                                            ///
+///////////////////////////////////////////////////////////////////////////////
+
+static inline void 
+print_device(const sycl::queue& queue) {
+
+  const auto d = queue.get_device();
+  
+  const size_t gibibyte = std::pow(2,30);
+  const size_t kibibyte = std::pow(2,10);
+
+  std::cout << " :: DEVICE INFO :: " << "\n";
+
+  std::cout << " :: Using Device: " 
+            << d.get_info<sycl::info::device::name>() << "\n";
+  
+  std::cout << " :: Device Info: \n";
+
+  std::cout << "    -- Vendor: "  
+            << d.get_info<sycl::info::device::vendor>() 
+            << "\n";
+
+  std::cout << "    -- Device Type: " 
+            << (d.is_cpu() ? "CPU" : (d.is_gpu() ? "GPU" : "Other")) 
+            << "\n";
+
+  std::cout << "    -- Maximum Work Group Size: " 
+            << d.get_info<sycl::info::device::max_work_group_size>() 
+            << "\n";
+
+  std::cout << "    -- Preferred Vector Width for Double: " 
+            << d.get_info<sycl::info::device::preferred_vector_width_double>() 
+            << "\n";
+
+  std::cout << "    -- Max Compute Units: " 
+            << d.get_info<sycl::info::device::max_compute_units>() 
+            << "\n";
+
+  std::cout << "    -- Max Memory Allocation Size: " 
+            << d.get_info<sycl::info::device::max_mem_alloc_size>() / gibibyte
+            << " GiB"
+            << "\n";
+
+  std::cout << "    -- Global Memory Size: " 
+            << d.get_info<sycl::info::device::global_mem_size>() / gibibyte
+            << " GiB"
+            << "\n";
+ 
+  std::cout << "    -- Local Memory Size: " 
+            << d.get_info<sycl::info::device::local_mem_size>() / kibibyte
+            << " KiB"
+            << "\n";
+  
+  std::cout << " :: INFO END :: " << std::endl;
+
+}
+
+static bool device_found(void) {
+  return sycl::device::get_devices(sycl::info::device_type::gpu).empty() ? 
+         false : true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// Tesellate End Function                                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -692,12 +695,21 @@ tesellate(
   for (size_t i = 0; i < states.size(); i++) states[i].reset();
 
   switch (device) {
+
     case (device::gpu): 
-      __gpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      
+      if (device_found()) {
+        __gpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      } else {
+        __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      }
+
       break;
     case (device::cpu): 
+
       __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
       break;
+
   }
   
   if (args["use_recompute"].get<bool>()) {
