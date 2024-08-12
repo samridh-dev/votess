@@ -20,6 +20,21 @@
 
 #define FP_INFINITY 128.00f
 
+namespace suppress {
+  class stdout {
+    public:
+      stdout() : buf(std::cout.rdbuf()) {
+        std::cout.rdbuf(__tmp__buf.rdbuf());
+      }
+      ~stdout() {
+        std::cout.rdbuf(buf);
+      }
+    private:
+      std::streambuf* buf;
+      std::stringstream __tmp__buf;
+  };
+}
+
 namespace votess {
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate Internal Functions                                            ///
@@ -653,6 +668,7 @@ static bool device_found(void) {
          false : true;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate End Function                                                  ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -664,7 +680,13 @@ tesellate(
   class vtargs args,
   const enum device device
 ) {
-
+  
+  // DEVELOPER FUNCTIONALITY. Must remove in final build
+  std::unique_ptr<suppress::stdout> stdout_suppressor;
+  if (args["dev_suppress_stdout"].get<bool>()) {
+    stdout_suppressor = std::make_unique<suppress::stdout>();
+  }
+ 
   static_assert(std::is_integral<Ti>::value && std::is_signed<Ti>::value,
     "Template type Ti must be a signed integer type."
   );
