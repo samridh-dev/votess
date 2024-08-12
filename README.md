@@ -125,6 +125,7 @@ A list of all possible parameters is provided in the table below:
 | `knn_grid_resolution`  | Grid resolution for k-nearest-neighbors algorithm                                         |
 | `cc_p_maxsize`         | Maximum size of P parameter for convex cell algorithm                                     |
 | `cc_t_maxsize`         | Maximum size of T parameter for convex cell algorithm                                     |
+| `dev_suppress_stdout`  | Developer parameter to enable stdout. Defaults to `false`                                 |
 
 The return type `class dnn` is a jagged 2 dimensional array representing the
 nearest neighbors that directly contribute to the voronoi cell. It has been
