@@ -35,7 +35,63 @@ namespace suppress {
   };
 }
 
+static inline void 
+print_device(const sycl::queue& queue) {
+
+  const auto d = queue.get_device();
+  
+  const size_t gibibyte = std::pow(2,30);
+  const size_t kibibyte = std::pow(2,10);
+
+  std::cout << " :: DEVICE INFO :: " << "\n";
+
+  std::cout << " :: Using Device: " 
+            << d.get_info<sycl::info::device::name>() << "\n";
+  
+  std::cout << " :: Device Info: \n";
+
+  std::cout << "    -- Vendor: "  
+            << d.get_info<sycl::info::device::vendor>() 
+            << "\n";
+
+  std::cout << "    -- Device Type: " 
+            << (d.is_cpu() ? "CPU" : (d.is_gpu() ? "GPU" : "Other")) 
+            << "\n";
+
+  std::cout << "    -- Maximum Work Group Size: " 
+            << d.get_info<sycl::info::device::max_work_group_size>() 
+            << "\n";
+
+  std::cout << "    -- Preferred Vector Width for Double: " 
+            << d.get_info<sycl::info::device::preferred_vector_width_double>() 
+            << "\n";
+
+  std::cout << "    -- Max Compute Units: " 
+            << d.get_info<sycl::info::device::max_compute_units>() 
+            << "\n";
+
+  std::cout << "    -- Max Memory Allocation Size: " 
+            << d.get_info<sycl::info::device::max_mem_alloc_size>() / gibibyte
+            << " GiB"
+            << "\n";
+
+  std::cout << "    -- Global Memory Size: " 
+            << d.get_info<sycl::info::device::global_mem_size>() / gibibyte
+            << " GiB"
+            << "\n";
+ 
+  std::cout << "    -- Local Memory Size: " 
+            << d.get_info<sycl::info::device::local_mem_size>() / kibibyte
+            << " KiB"
+            << "\n";
+  
+  std::cout << " :: INFO END :: " << std::endl;
+
+}
+
+
 namespace votess {
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate Internal Functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,8 +186,16 @@ __gpu__tesellate(
 
 ) {
 
+  const int k = args["k"];
+  const int p_maxsize = args["cc_p_maxsize"];
+  const int t_maxsize = args["cc_t_maxsize"];
+
   const Ti xyzsize = _xyzset.size();
   const Ti refsize = _refset.size();
+
+  const int ndsize = args["gpu_ndsize"].get<int>() > 0 ?
+                     args["gpu_ndsize"] : 1;
+  (void)ndsize;
 
   const int chunksize = args["use_chunking"].get<bool>() ? 
                         args["chunksize"] : refsize;
@@ -140,14 +204,6 @@ __gpu__tesellate(
                     refsize / chunksize + 1: 1;
 
   Ti subsize = chunksize < refsize ? chunksize : refsize;
-
-  const int ndsize = args["gpu_ndsize"].get<int>() > 0 ?
-                     args["gpu_ndsize"] : 1;
-  (void)ndsize;
-
-  const int k = args["k"];
-  const int p_maxsize = args["cc_p_maxsize"];
-  const int t_maxsize = args["cc_t_maxsize"];
 
   std::vector<Tf> xyzset(3 * xyzsize);
   for (size_t i = 0; i < xyzsize; i++) {
@@ -159,6 +215,8 @@ __gpu__tesellate(
   // will help me when I need to separate xyzset and refset
   auto& refset = _refset;
 
+  sycl::queue queue;
+  print_device(queue);
 
   sycl::buffer<Ti, 1> bindices((sycl::range<1>(subsize)));
 
@@ -174,8 +232,6 @@ __gpu__tesellate(
   sycl::buffer<Tf,1>      bP(sycl::range<1>(subsize * p_maxsize * 4));
   sycl::buffer<uint8_t,1> bT(sycl::range<1>(subsize * t_maxsize * 3));
   sycl::buffer<uint8_t,1> bdR(sycl::range<1>(subsize * p_maxsize));
-
-  sycl::queue queue;
 
   for (int run = 0; run < nruns; run++) {
     
@@ -262,7 +318,7 @@ __gpu__tesellate(
           aargs_knn
         );
 
-        #if 1
+        #if 0
         cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
@@ -300,7 +356,6 @@ __gpu__tesellate(
           aargs_cc
         );
         #endif
-
 
 #endif
 
@@ -452,7 +507,7 @@ __cpu__tesellate(
 ///////////////////////////////////////////////////////////////////////////////
 
 // NOTE: I decided to reimplement tesellation to recompute, not because I
-//        could've done a DRY job, but because I needed to ensure memory
+//        couldnt've done a DRY job, but because I needed to ensure memory
 //        efficiency. I would not get that if I reused __cpu__tesellate.
 //        I also thought of embedding recompute to the tesellate functions as
 //        that could improve cache locality, but it would become an issue
@@ -608,61 +663,6 @@ __cpu__recompute(
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate internal functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
-
-static inline void 
-print_device(const sycl::queue& queue) {
-
-  const auto d = queue.get_device();
-  
-  const size_t gibibyte = std::pow(2,30);
-  const size_t kibibyte = std::pow(2,10);
-
-  std::cout << " :: DEVICE INFO :: " << "\n";
-
-  std::cout << " :: Using Device: " 
-            << d.get_info<sycl::info::device::name>() << "\n";
-  
-  std::cout << " :: Device Info: \n";
-
-  std::cout << "    -- Vendor: "  
-            << d.get_info<sycl::info::device::vendor>() 
-            << "\n";
-
-  std::cout << "    -- Device Type: " 
-            << (d.is_cpu() ? "CPU" : (d.is_gpu() ? "GPU" : "Other")) 
-            << "\n";
-
-  std::cout << "    -- Maximum Work Group Size: " 
-            << d.get_info<sycl::info::device::max_work_group_size>() 
-            << "\n";
-
-  std::cout << "    -- Preferred Vector Width for Double: " 
-            << d.get_info<sycl::info::device::preferred_vector_width_double>() 
-            << "\n";
-
-  std::cout << "    -- Max Compute Units: " 
-            << d.get_info<sycl::info::device::max_compute_units>() 
-            << "\n";
-
-  std::cout << "    -- Max Memory Allocation Size: " 
-            << d.get_info<sycl::info::device::max_mem_alloc_size>() / gibibyte
-            << " GiB"
-            << "\n";
-
-  std::cout << "    -- Global Memory Size: " 
-            << d.get_info<sycl::info::device::global_mem_size>() / gibibyte
-            << " GiB"
-            << "\n";
- 
-  std::cout << "    -- Local Memory Size: " 
-            << d.get_info<sycl::info::device::local_mem_size>() / kibibyte
-            << " KiB"
-            << "\n";
-  
-  std::cout << " :: INFO END :: " << std::endl;
-
-}
-
 static bool device_found(void) {
   return sycl::device::get_devices(sycl::info::device_type::gpu).empty() ? 
          false : true;
