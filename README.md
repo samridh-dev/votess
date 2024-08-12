@@ -1,17 +1,15 @@
 # Votess
 
-
-
-Votess is a library to perform 3D voronoi tesellation computations. It
+Votess is a library to perform 3D Voronoi tessellation computations. It
 leverages the SYCL framework, giving it the ability to run on heterogenous
 platforms, including GPUs and FPGAs. It was developed to be parallel,
 performant, but portable, and was also developed for applications only
 requiring the geometry of the voronoi diagram, for example in cosmological
 simulations, or K-means clustering.
 
-This libary is part of my bachelor project, which was only made possible
-through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson from the insitute
-of theoretical astrophyics at Heidelberg University, and for that I owe my
+This library is part of my bachelor project, which was only made possible
+through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson from the Institute
+of Theoretical Astrophysics at Heidelberg University, and for that I owe my
 gratitude to them.
 
 ## Dependencies
@@ -23,8 +21,8 @@ Currently, the following compilers have been tested and confirmed to work:
 - **AdaptiveCpp (formerly known as hipSYCL / Open SYCL) acpp Compiler** 
 
 The library and command line program does **not** require any additional
-dependencies. However, if you wish to compile pyvotess or the test cases,
-the following dependencies are required.
+dependencies. However, if you wish to compile the python bindings or the test
+cases, the following dependencies are required.
 
 #### Python Bindings
 - [**pybind11**:](https://github.com/pybind/pybind11)
@@ -55,11 +53,13 @@ variables. Instructions on how to do so are provided for:
  - [Linux](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-linux.html) 
  - [Windows](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-windows.html).
 
-To install AdaptiveCpp, refer to the installation page on github [here](https://github.com/AdaptiveCpp/AdaptiveCpp/blob/develop/doc/installing.md).
+To install AdaptiveCpp, refer to the installation page on Github 
+[here](https://github.com/AdaptiveCpp/AdaptiveCpp/blob/develop/doc/installing.md).
 
 ### Application Compilation
-To get the repository, first clone the repository and change to the cloned 
+To get the repository, first clone the repository and switch to the cloned 
 directory
+
 ```bash
 git clone https://github.com/samridh-dev/votess.git
 cd votess
@@ -68,17 +68,19 @@ you should then review the compilation options located in the file
 `${project-root}/cmake/options.cmake`
 
 After that, execute the command located at project root:
+
 ```bash
 ./make.sh
 ```
-The selected binaries will then be generated at `${project-root}/bin/`
 
-# Basic Usage
+All binaries will then be generated at `${project-root}/bin/`
 
-There exists three main APIs one could use: 
+# Usage
+
+There exists three APIs one could use: 
 `Python >=3.5, >=C++17, (Unix)*sh`
 
-If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing the environment
+If compiled with Intel® oneAPI DPC++/C++ Compiler, sourcing environment
 variables before running the application is required. 
 
 ### C++
@@ -86,49 +88,55 @@ variables before running the application is required.
 The C++ API comes with the following templated function:
 ```cpp
 namespace votess {
-  template <typename T1, typename T2>
-  struct dnn<T1>
-  tesellate(std::vector<std::array<T2,3>>& xyzset, const struct vtargs& args);
-} 
-```
-
-The input parameters is the 3 Dimensional dataset arranged in an Array of
-Structs (AoS) manner. vtargs is the parameter struct used to provide initial
-conditions. Its constructor is as follows:
-```cpp
-namespace votess {
-struct vtargs 
-vtargs(const int k_init, const int grid_resolution_init);
+  template <typename Ti, typename Tf>
+  class dnn<Ti> tesellate(
+    std::vector<std::array<Tf,3>>& xyzset,
+    class vtargs args,
+    const enum device device = device::cpu
+  );
 }
 ```
-Here k_init is the initial number of neighbors that will be used to compute 
-the voronoi cells, and grid_resolution_init is the initial fineness of the grid
-for the k-nearest neighbor search algorithm. For a more advanced usage, refer
-to the section located in resources.
 
-Do note that there is a requirement that `typename T1` must strictly be a signed
-integer type (preferably int32_t or int64_t for larger datasets), 
-and `typename T2` must strictly be a decimal type (float or double depending
-on nature of dataset). The program will throw an error otherwise. 
+The parameter `xyzset` represents the 3 dimensional array of floating points
+values set in a row major format. It is a strict requirement that the
+underlying type `xyzset` is floating point, and that each value lies between 0
+and 1 (exclusive).  The parameter `device` is used to set the device to run the
+tessellation on, and args is used to set parameters in the function.  The usage
+of `class vtargs` is similar to that of `std::unordered_map`. 
 
-### Changing Parameters
+For example:
 
-To change the parameters of `votess::tesellate`, the class `votess::vtargs` is
-provided. All possible parameters is listed in the table below. 
+```cpp
+class vtargs vtargs;
+vtargs["k"] = 64;              // arithmetic types are accepted
+vtargs["use_chunking"] = true; // booleans are accepted for certain parameters
+```
+
+A list of all possible parameters is provided in the table below:
 
 | Parameter Name         | Description                                                                               |
 |------------------------|-------------------------------------------------------------------------------------------|
 | `k`                    | Number of nearest neighbors                                                               |
 | `cpu_nthreads`         | Number of CPU threads to use. Set to 0 for highest thread count available in the machine  |
 | `gpu_ndsize`           | GPU work size. Recommended to set in multiples of 16                                      |
-| `use_recompute`        | Set to `true` to enable cpu fallback. This will ensure all points are valid voronoi cells |
+| `use_recompute`        | Set to `true` to enable CPU fallback. This will ensure all points are valid voronoi cells |
 | `use_chunking`         | Set to `true` to split processing in chunks.                                              |
 | `chunksize`            | Size of chunks for processing. Set a small value for the CPU, and a large one for the GPU |
 | `knn_grid_resolution`  | Grid resolution for k-nearest-neighbors algorithm                                         |
 | `cc_p_maxsize`         | Maximum size of P parameter for convex cell algorithm                                     |
 | `cc_t_maxsize`         | Maximum size of T parameter for convex cell algorithm                                     |
 
-### Example Usage
+The return type `class dnn` is a jagged 2 dimensional array representing the
+nearest neighbors that directly contribute to the voronoi cell. It has been
+written to have a contiguous memory layout, so that accesses would be more
+efficient. Do note that the ordering of xyzset is **not** preserved, as it will
+be sorted during the tessellation. **When the interface is properly implemented
+will it then be documented. for now use the examples below.**
+
+An example program to tessellate a point set is given below:
+
+### Examples 
+
 ```cpp
 #include <votess.hpp>
 
@@ -179,8 +187,8 @@ int main(int argc, char* argv[]) {
 ## Python
 
 Similarly to the C++ implementation, a python wrapper library named `pyvotess`
-also exists. the API is similar to that of votess, but leverages the numpy 
-library as well.
+exists. The API is similar to that of votess, but can also leverage the numpy
+library.
 
 ### Example Usage
 ```python
@@ -203,7 +211,7 @@ xyzset = np.array([
   [0.511958, 0.560537, 0.345479]
 ])
 
-vtargs = pyvotess.vtargs()
+vtargs = vt.vtargs()
 vtargs["k"] = k
 vtargs["knn_grid_resolution"] = grid_resolution 
 
@@ -220,6 +228,9 @@ print("size of direct neighbors for point 0", direct_neighbors[0].size())
 ### Command Line
 
 There exists the executable named `clvotess`. For basic usage, refer to
+**Currently the program is undeveloped as the project is still undergoing
+changes**
+
 ```bash
 clvotess -h
 ```
