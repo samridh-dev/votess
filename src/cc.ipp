@@ -1,16 +1,16 @@
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void cci::compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   std::vector<cc::state>& states,
-  T2* P,
-  T3* T,
-  T3* dR,
-  std::vector<T1>& knn,
-  std::vector<T1>& dknn,
-  const std::vector<std::array<T2,3>>& xyzset,
-  const size_t xyzsize,
-  const std::vector<std::array<T2,3>>& refset,
-  const size_t refsize,
+  Tf* P,
+  Tu* T,
+  Tu* dR,
+  std::vector<Ti>& knn,
+  std::vector<Ti>& dknn,
+  const std::vector<std::array<Tf,3>>& xyzset,
+  const Ti xyzsize,
+  const std::vector<std::array<Tf,3>>& refset,
+  const Ti refsize,
   const struct args::cc& args
 ) {
 
@@ -18,12 +18,12 @@ void cci::compute(
   (void) refsize;
   
   // TODO : make this swappable for future
-  static const T2 p_init[] = { 
+  static const Tf p_init[] = { 
     1,0,0,0, -1,0,0,1,
     0,1,0,0, 0,-1,0,1,
     0,0,1,0, 0,0,-1,1 
   };
-  static const T3 t_init[] = { 
+  static const Tu t_init[] = { 
     2,5,0, 5,3,0, 1,5,2, 5,1,3, 
     4,2,0, 4,0,3, 2,4,1, 4,3,1 
   };
@@ -41,83 +41,83 @@ void cci::compute(
 
   cc::state& state = states[index];
 
-  T2 vertex[4];
-  T2 bisector[4];
+  Tf vertex[4];
+  Tf bisector[4];
 
-  const T2 px = refset[index][0];
-  const T2 py = refset[index][1];
-  const T2 pz = refset[index][2];
+  const Tf px = refset[index][0];
+  const Tf py = refset[index][1];
+  const Tf pz = refset[index][2];
  
-  for (size_t j = 0; j < p_initsize; j++) {
+  for (Ti j = 0; j < p_initsize; j++) {
     P[4 * p_maxsize * i + 4 * j + 0] = p_init[4 * j + 0];
     P[4 * p_maxsize * i + 4 * j + 1] = p_init[4 * j + 1];
     P[4 * p_maxsize * i + 4 * j + 2] = p_init[4 * j + 2];
     P[4 * p_maxsize * i + 4 * j + 3] = p_init[4 * j + 3];
   }
 
-  for (size_t j = 0; j < t_initsize; j++) {
+  for (Ti j = 0; j < t_initsize; j++) {
     T[3 * t_maxsize * i + 3 * j + 0] = t_init[3 * j + 0];
     T[3 * t_maxsize * i + 3 * j + 1] = t_init[3 * j + 1];
     T[3 * t_maxsize * i + 3 * j + 2] = t_init[3 * j + 2];
   }
 
-  for (size_t neighbor = 0; neighbor < k; neighbor++) {
+  for (Ti neighbor = 0; neighbor < k; neighbor++) {
   
     auto& q = knn[k * i + neighbor];
-    const T2 qx = xyzset[q][0];
-    const T2 qy = xyzset[q][1];
-    const T2 qz = xyzset[q][2];
+    const Tf qx = xyzset[q][0];
+    const Tf qy = xyzset[q][1];
+    const Tf qz = xyzset[q][2];
 
     r_size = 0;
-    T2 sradius = 0.00f;
+    Tf sradius = 0.00f;
   
-    planes::bisect<T2>(
+    planes::bisect<Tf>(
       bisector[0], bisector[1], bisector[2], bisector[3],
       qx, qy, qz, px, py, pz
     );
     
     for (short int t_index = 0; t_index < t_size; t_index++) {
   
-      const T3& t0 = T[3 * t_maxsize * i + 3 * t_index + 0];
-      const T3& t1 = T[3 * t_maxsize * i + 3 * t_index + 1];
-      const T3& t2 = T[3 * t_maxsize * i + 3 * t_index + 2];
+      const Tu& t0 = T[3 * t_maxsize * i + 3 * t_index + 0];
+      const Tu& t1 = T[3 * t_maxsize * i + 3 * t_index + 1];
+      const Tu& t2 = T[3 * t_maxsize * i + 3 * t_index + 2];
   
-      const T2& plane_00 = P[4 * p_maxsize * i + 4 * t0 + 0];
-      const T2& plane_01 = P[4 * p_maxsize * i + 4 * t0 + 1];
-      const T2& plane_02 = P[4 * p_maxsize * i + 4 * t0 + 2];
-      const T2& plane_03 = P[4 * p_maxsize * i + 4 * t0 + 3];
+      const Tf& plane_00 = P[4 * p_maxsize * i + 4 * t0 + 0];
+      const Tf& plane_01 = P[4 * p_maxsize * i + 4 * t0 + 1];
+      const Tf& plane_02 = P[4 * p_maxsize * i + 4 * t0 + 2];
+      const Tf& plane_03 = P[4 * p_maxsize * i + 4 * t0 + 3];
 
-      const T2& plane_10 = P[4 * p_maxsize * i + 4 * t1 + 0];
-      const T2& plane_11 = P[4 * p_maxsize * i + 4 * t1 + 1];
-      const T2& plane_12 = P[4 * p_maxsize * i + 4 * t1 + 2];
-      const T2& plane_13 = P[4 * p_maxsize * i + 4 * t1 + 3];
+      const Tf& plane_10 = P[4 * p_maxsize * i + 4 * t1 + 0];
+      const Tf& plane_11 = P[4 * p_maxsize * i + 4 * t1 + 1];
+      const Tf& plane_12 = P[4 * p_maxsize * i + 4 * t1 + 2];
+      const Tf& plane_13 = P[4 * p_maxsize * i + 4 * t1 + 3];
 
-      const T2& plane_20 = P[4 * p_maxsize * i + 4 * t2 + 0];
-      const T2& plane_21 = P[4 * p_maxsize * i + 4 * t2 + 1];
-      const T2& plane_22 = P[4 * p_maxsize * i + 4 * t2 + 2];
-      const T2& plane_23 = P[4 * p_maxsize * i + 4 * t2 + 3];
+      const Tf& plane_20 = P[4 * p_maxsize * i + 4 * t2 + 0];
+      const Tf& plane_21 = P[4 * p_maxsize * i + 4 * t2 + 1];
+      const Tf& plane_22 = P[4 * p_maxsize * i + 4 * t2 + 2];
+      const Tf& plane_23 = P[4 * p_maxsize * i + 4 * t2 + 3];
 
       // TODO : implement exception handling
-      planes::intersect<T2>(
+      planes::intersect<Tf>(
         vertex[0], vertex[1], vertex[2], vertex[3], 
         plane_00, plane_01, plane_02, plane_03,
         plane_10, plane_11, plane_12, plane_13,
         plane_20, plane_21, plane_22, plane_23
       ); 
       
-      const T2& b0 = bisector[0];
-      const T2& b1 = bisector[1];
-      const T2& b2 = bisector[2];
-      const T2& b3 = bisector[3];
+      const Tf& b0 = bisector[0];
+      const Tf& b1 = bisector[1];
+      const Tf& b2 = bisector[2];
+      const Tf& b3 = bisector[3];
   
-      const T2& v0 = vertex[0];
-      const T2& v1 = vertex[1];
-      const T2& v2 = vertex[2];
-      const T2& v3 = vertex[3];
+      const Tf& v0 = vertex[0];
+      const Tf& v1 = vertex[1];
+      const Tf& v2 = vertex[2];
+      const Tf& v3 = vertex[3];
   
-      const T2 dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
+      const Tf dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
   
-      sradius = sr::update<T2>(px, py, pz, v0, v1, v2, sradius);
+      sradius = sr::update<Tf>(px, py, pz, v0, v1, v2, sradius);
   
       if (dot_product > 0.00f) {
         t_size -= 1;
@@ -147,8 +147,8 @@ void cci::compute(
       dknn[k * i + neighbor] = p_size;
       p_size += 1;
   
-      const size_t dr_offs = p_maxsize * i;
-      for (size_t j = 0; j < p_maxsize; j++) {
+      const Ti dr_offs = p_maxsize * i;
+      for (Ti j = 0; j < p_maxsize; j++) {
         dR[dr_offs + j] = boundary::bstatus::undefined;
       }
 
@@ -203,50 +203,50 @@ void cci::compute(
   
   }
   
-  for (size_t di = 0; di < k; di++) {
+  for (Ti di = 0; di < k; di++) {
     bool flag = true;
-    for (size_t ti = 0; ti < t_size; ti++) {
+    for (Ti ti = 0; ti < t_size; ti++) {
       if (T[3 * t_maxsize * i + 3 * ti + 0] == dknn[k * i + di]) flag = false;
       if (T[3 * t_maxsize * i + 3 * ti + 1] == dknn[k * i + di]) flag = false;
       if (T[3 * t_maxsize * i + 3 * ti + 2] == dknn[k * i + di]) flag = false;
     } if (flag) knn[k * i + di] = cc::k_undefined;
   }
 
-  size_t dnn_counter = 0;
-  for (size_t di = 0; di < k; di++) {
+  Ti dnn_counter = 0;
+  for (Ti di = 0; di < k; di++) {
     if (knn[k * i + di] == cc::k_undefined) continue;
     knn[k * i + dnn_counter] = knn[k * i + di];
     dnn_counter += 1;
   }
-  for (size_t di = dnn_counter; di < k; di++) {
+  for (Ti di = dnn_counter; di < k; di++) {
     knn[k * i + di] = cc::k_undefined;
   }
   
 }
 
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void cci::compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
-  const device_accessor_readwrite_t<T2>& P,
-  const device_accessor_readwrite_t<T3>& T,
-  const device_accessor_readwrite_t<T3>& dR,
-  const device_accessor_readwrite_t<T1>& knn,
-  const device_accessor_readwrite_t<T1>& dknn,
-  const device_accessor_read_t<T2>& xyzset,
-  const size_t xyzsize,
-  const device_accessor_read_t<T2>& refset,
-  const size_t refsize,
+  const device_accessor_readwrite_t<Tf>& P,
+  const device_accessor_readwrite_t<Tu>& T,
+  const device_accessor_readwrite_t<Tu>& dR,
+  const device_accessor_readwrite_t<Ti>& knn,
+  const device_accessor_readwrite_t<Ti>& dknn,
+  const device_accessor_read_t<Tf>& xyzset,
+  const Ti xyzsize,
+  const device_accessor_read_t<Tf>& refset,
+  const Ti refsize,
   const struct args::cc& args
 ) {
   
   // TODO : make this swappable for future
-  static const T2 p_init[] = { 
+  static const Tf p_init[] = { 
     1,0,0,0, -1,0,0,1,
     0,1,0,0, 0,-1,0,1,
     0,0,1,0, 0,0,-1,1 
   };
-  static const T3 t_init[] = { 
+  static const Tu t_init[] = { 
     2,5,0, 5,3,0, 1,5,2, 5,1,3, 
     4,2,0, 4,0,3, 2,4,1, 4,3,1 
   };
@@ -264,83 +264,83 @@ void cci::compute(
 
   cc::state& state = states[index];
 
-  T2 vertex[4];
-  T2 bisector[4];
+  Tf vertex[4];
+  Tf bisector[4];
 
-  const T2 px = refset[refsize * 0 + index];
-  const T2 py = refset[refsize * 1 + index];
-  const T2 pz = refset[refsize * 2 + index];
+  const Tf px = refset[refsize * 0 + index];
+  const Tf py = refset[refsize * 1 + index];
+  const Tf pz = refset[refsize * 2 + index];
   
-  for (size_t j = 0; j < p_initsize; j++) {
+  for (Ti j = 0; j < p_initsize; j++) {
     P[4 * refsize * j + refsize * 0 + i] = p_init[4 * j + 0];
     P[4 * refsize * j + refsize * 1 + i] = p_init[4 * j + 1];
     P[4 * refsize * j + refsize * 2 + i] = p_init[4 * j + 2];
     P[4 * refsize * j + refsize * 3 + i] = p_init[4 * j + 3];
   }
 
-  for (size_t j = 0; j < t_initsize; j++) {
+  for (Ti j = 0; j < t_initsize; j++) {
     T[3 * t_maxsize * i + 3 * j + 0] = t_init[3 * j + 0];
     T[3 * t_maxsize * i + 3 * j + 1] = t_init[3 * j + 1];
     T[3 * t_maxsize * i + 3 * j + 2] = t_init[3 * j + 2];
   }
   
-  for (size_t neighbor = 0; neighbor < k; neighbor++) {
+  for (Ti neighbor = 0; neighbor < k; neighbor++) {
   
     auto& q = knn[k * i + neighbor];
-    const T2 qx = xyzset[xyzsize * 0 + q];
-    const T2 qy = xyzset[xyzsize * 1 + q];
-    const T2 qz = xyzset[xyzsize * 2 + q];
+    const Tf qx = xyzset[xyzsize * 0 + q];
+    const Tf qy = xyzset[xyzsize * 1 + q];
+    const Tf qz = xyzset[xyzsize * 2 + q];
   
     r_size = 0;
-    T2 sradius = 0.00f;
+    Tf sradius = 0.00f;
   
-    planes::bisect<T2>(
+    planes::bisect<Tf>(
       bisector[0], bisector[1], bisector[2], bisector[3],
       qx, qy, qz, px, py, pz
     );
     
     for (short int t_index = 0; t_index < t_size; t_index++) {
   
-      const T3& t0 = T[3 * t_maxsize * i + t_index * 3 + 0];
-      const T3& t1 = T[3 * t_maxsize * i + t_index * 3 + 1];
-      const T3& t2 = T[3 * t_maxsize * i + t_index * 3 + 2];
+      const Tu& t0 = T[3 * t_maxsize * i + t_index * 3 + 0];
+      const Tu& t1 = T[3 * t_maxsize * i + t_index * 3 + 1];
+      const Tu& t2 = T[3 * t_maxsize * i + t_index * 3 + 2];
   
-      const T2& plane_00 = P[4 * refsize * t0 + refsize * 0 + i];
-      const T2& plane_01 = P[4 * refsize * t0 + refsize * 1 + i];
-      const T2& plane_02 = P[4 * refsize * t0 + refsize * 2 + i];
-      const T2& plane_03 = P[4 * refsize * t0 + refsize * 3 + i];
+      const Tf& plane_00 = P[4 * refsize * t0 + refsize * 0 + i];
+      const Tf& plane_01 = P[4 * refsize * t0 + refsize * 1 + i];
+      const Tf& plane_02 = P[4 * refsize * t0 + refsize * 2 + i];
+      const Tf& plane_03 = P[4 * refsize * t0 + refsize * 3 + i];
 
-      const T2& plane_10 = P[4 * refsize * t1 + refsize * 0 + i];
-      const T2& plane_11 = P[4 * refsize * t1 + refsize * 1 + i];
-      const T2& plane_12 = P[4 * refsize * t1 + refsize * 2 + i];
-      const T2& plane_13 = P[4 * refsize * t1 + refsize * 3 + i];
+      const Tf& plane_10 = P[4 * refsize * t1 + refsize * 0 + i];
+      const Tf& plane_11 = P[4 * refsize * t1 + refsize * 1 + i];
+      const Tf& plane_12 = P[4 * refsize * t1 + refsize * 2 + i];
+      const Tf& plane_13 = P[4 * refsize * t1 + refsize * 3 + i];
 
-      const T2& plane_20 = P[4 * refsize * t2 + refsize * 0 + i];
-      const T2& plane_21 = P[4 * refsize * t2 + refsize * 1 + i];
-      const T2& plane_22 = P[4 * refsize * t2 + refsize * 2 + i];
-      const T2& plane_23 = P[4 * refsize * t2 + refsize * 3 + i];
+      const Tf& plane_20 = P[4 * refsize * t2 + refsize * 0 + i];
+      const Tf& plane_21 = P[4 * refsize * t2 + refsize * 1 + i];
+      const Tf& plane_22 = P[4 * refsize * t2 + refsize * 2 + i];
+      const Tf& plane_23 = P[4 * refsize * t2 + refsize * 3 + i];
   
       // TODO : implement exception handling
-      planes::intersect<T2>(
+      planes::intersect<Tf>(
         vertex[0], vertex[1], vertex[2], vertex[3], 
         plane_00, plane_01, plane_02, plane_03,
         plane_10, plane_11, plane_12, plane_13,
         plane_20, plane_21, plane_22, plane_23
       ); 
       
-      const T2& b0 = bisector[0];
-      const T2& b1 = bisector[1];
-      const T2& b2 = bisector[2];
-      const T2& b3 = bisector[3];
+      const Tf& b0 = bisector[0];
+      const Tf& b1 = bisector[1];
+      const Tf& b2 = bisector[2];
+      const Tf& b3 = bisector[3];
   
-      const T2& v0 = vertex[0];
-      const T2& v1 = vertex[1];
-      const T2& v2 = vertex[2];
-      const T2& v3 = vertex[3];
+      const Tf& v0 = vertex[0];
+      const Tf& v1 = vertex[1];
+      const Tf& v2 = vertex[2];
+      const Tf& v3 = vertex[3];
   
-      const T2 dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
+      const Tf dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
   
-      sradius = sr::update<T2>(px, py, pz, v0, v1, v2, sradius);
+      sradius = sr::update<Tf>(px, py, pz, v0, v1, v2, sradius);
   
       if (dot_product > 0.00f) {
         t_size -= 1;
@@ -370,8 +370,8 @@ void cci::compute(
       dknn[k * i + neighbor] = p_size;
       p_size += 1;
   
-      const size_t dr_offs = p_maxsize * i;
-      for (size_t j = 0; j < p_maxsize; j++) {
+      const Ti dr_offs = p_maxsize * i;
+      for (Ti j = 0; j < p_maxsize; j++) {
         dR[dr_offs + j] = boundary::bstatus::undefined;
       }
 
@@ -426,22 +426,22 @@ void cci::compute(
   
   }
   
-  for (size_t di = 0; di < k; di++) {
+  for (Ti di = 0; di < k; di++) {
     bool flag = true;
-    for (size_t ti = 0; ti < t_size; ti++) {
+    for (Ti ti = 0; ti < t_size; ti++) {
       if (T[3 * t_maxsize * i + 3 * ti + 0] == dknn[k * i + di]) flag = false;
       if (T[3 * t_maxsize * i + 3 * ti + 1] == dknn[k * i + di]) flag = false;
       if (T[3 * t_maxsize * i + 3 * ti + 2] == dknn[k * i + di]) flag = false;
     } if (flag) knn[k * i + di] = cc::k_undefined;
   }
 
-  size_t dnn_counter = 0;
-  for (size_t di = 0; di < k; di++) {
+  Ti dnn_counter = 0;
+  for (Ti di = 0; di < k; di++) {
     if (knn[k * i + di] == cc::k_undefined) continue;
     knn[k * i + dnn_counter] = knn[k * i + di];
     dnn_counter += 1;
   }
-  for (size_t di = dnn_counter; di < k; di++) {
+  for (Ti di = dnn_counter; di < k; di++) {
     knn[k * i + di] = cc::k_undefined;
   }
   
@@ -451,29 +451,29 @@ void cci::compute(
 /// New                                                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void cci::compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
-  const device_accessor_readwrite_t<T2>& P,
-  const device_accessor_readwrite_t<T3>& T,
-  const device_accessor_readwrite_t<T3>& dR,
-  const device_accessor_readwrite_t<T1>& knn, const size_t koffs,
-  const device_accessor_readwrite_t<T1>& dknn,
-  const device_accessor_read_t<T2>& xyzset,
-  const size_t xyzsize,
-  const device_accessor_read_t<T2>& refset,
-  const size_t refsize,
+  const device_accessor_readwrite_t<Tf>& P,
+  const device_accessor_readwrite_t<Tu>& T,
+  const device_accessor_readwrite_t<Tu>& dR,
+  const device_accessor_readwrite_t<Ti>& knn, const Ti koffs,
+  const device_accessor_readwrite_t<Ti>& dknn,
+  const device_accessor_read_t<Tf>& xyzset,
+  const Ti xyzsize,
+  const device_accessor_read_t<Tf>& refset,
+  const Ti refsize,
   const struct args::cc& args
 ) {
   
   // TODO : make this swappable for future
-  static const T2 p_init[] = { 
+  static const Tf p_init[] = { 
     1,0,0,0, -1,0,0,1,
     0,1,0,0, 0,-1,0,1,
     0,0,1,0, 0,0,-1,1 
   };
-  static const T3 t_init[] = { 
+  static const Tu t_init[] = { 
     2,5,0, 5,3,0, 1,5,2, 5,1,3, 
     4,2,0, 4,0,3, 2,4,1, 4,3,1 
   };
@@ -491,83 +491,83 @@ void cci::compute(
 
   cc::state& state = states[index];
 
-  T2 vertex[4];
-  T2 bisector[4];
+  Tf vertex[4];
+  Tf bisector[4];
 
-  const T2 px = refset[refsize * 0 + index];
-  const T2 py = refset[refsize * 1 + index];
-  const T2 pz = refset[refsize * 2 + index];
+  const Tf px = refset[refsize * 0 + index];
+  const Tf py = refset[refsize * 1 + index];
+  const Tf pz = refset[refsize * 2 + index];
   
-  for (size_t j = 0; j < p_initsize; j++) {
+  for (Ti j = 0; j < p_initsize; j++) {
     P[4 * refsize * j + refsize * 0 + i] = p_init[4 * j + 0];
     P[4 * refsize * j + refsize * 1 + i] = p_init[4 * j + 1];
     P[4 * refsize * j + refsize * 2 + i] = p_init[4 * j + 2];
     P[4 * refsize * j + refsize * 3 + i] = p_init[4 * j + 3];
   }
 
-  for (size_t j = 0; j < t_initsize; j++) {
+  for (Ti j = 0; j < t_initsize; j++) {
     T[3 * t_maxsize * i + 3 * j + 0] = t_init[3 * j + 0];
     T[3 * t_maxsize * i + 3 * j + 1] = t_init[3 * j + 1];
     T[3 * t_maxsize * i + 3 * j + 2] = t_init[3 * j + 2];
   }
   
-  for (size_t neighbor = 0; neighbor < k; neighbor++) {
+  for (Ti neighbor = 0; neighbor < k; neighbor++) {
   
     auto& q = knn[koffs * neighbor + i];
-    const T2 qx = xyzset[xyzsize * 0 + q];
-    const T2 qy = xyzset[xyzsize * 1 + q];
-    const T2 qz = xyzset[xyzsize * 2 + q];
+    const Tf qx = xyzset[xyzsize * 0 + q];
+    const Tf qy = xyzset[xyzsize * 1 + q];
+    const Tf qz = xyzset[xyzsize * 2 + q];
   
     r_size = 0;
-    T2 sradius = 0.00f;
+    Tf sradius = 0.00f;
   
-    planes::bisect<T2>(
+    planes::bisect<Tf>(
       bisector[0], bisector[1], bisector[2], bisector[3],
       qx, qy, qz, px, py, pz
     );
     
     for (short int t_index = 0; t_index < t_size; t_index++) {
   
-      const T3& t0 = T[3 * t_maxsize * i + t_index * 3 + 0];
-      const T3& t1 = T[3 * t_maxsize * i + t_index * 3 + 1];
-      const T3& t2 = T[3 * t_maxsize * i + t_index * 3 + 2];
+      const Tu& t0 = T[3 * t_maxsize * i + t_index * 3 + 0];
+      const Tu& t1 = T[3 * t_maxsize * i + t_index * 3 + 1];
+      const Tu& t2 = T[3 * t_maxsize * i + t_index * 3 + 2];
   
-      const T2& plane_00 = P[4 * refsize * t0 + refsize * 0 + i];
-      const T2& plane_01 = P[4 * refsize * t0 + refsize * 1 + i];
-      const T2& plane_02 = P[4 * refsize * t0 + refsize * 2 + i];
-      const T2& plane_03 = P[4 * refsize * t0 + refsize * 3 + i];
+      const Tf& plane_00 = P[4 * refsize * t0 + refsize * 0 + i];
+      const Tf& plane_01 = P[4 * refsize * t0 + refsize * 1 + i];
+      const Tf& plane_02 = P[4 * refsize * t0 + refsize * 2 + i];
+      const Tf& plane_03 = P[4 * refsize * t0 + refsize * 3 + i];
 
-      const T2& plane_10 = P[4 * refsize * t1 + refsize * 0 + i];
-      const T2& plane_11 = P[4 * refsize * t1 + refsize * 1 + i];
-      const T2& plane_12 = P[4 * refsize * t1 + refsize * 2 + i];
-      const T2& plane_13 = P[4 * refsize * t1 + refsize * 3 + i];
+      const Tf& plane_10 = P[4 * refsize * t1 + refsize * 0 + i];
+      const Tf& plane_11 = P[4 * refsize * t1 + refsize * 1 + i];
+      const Tf& plane_12 = P[4 * refsize * t1 + refsize * 2 + i];
+      const Tf& plane_13 = P[4 * refsize * t1 + refsize * 3 + i];
 
-      const T2& plane_20 = P[4 * refsize * t2 + refsize * 0 + i];
-      const T2& plane_21 = P[4 * refsize * t2 + refsize * 1 + i];
-      const T2& plane_22 = P[4 * refsize * t2 + refsize * 2 + i];
-      const T2& plane_23 = P[4 * refsize * t2 + refsize * 3 + i];
+      const Tf& plane_20 = P[4 * refsize * t2 + refsize * 0 + i];
+      const Tf& plane_21 = P[4 * refsize * t2 + refsize * 1 + i];
+      const Tf& plane_22 = P[4 * refsize * t2 + refsize * 2 + i];
+      const Tf& plane_23 = P[4 * refsize * t2 + refsize * 3 + i];
   
       // TODO : implement exception handling
-      planes::intersect<T2>(
+      planes::intersect<Tf>(
         vertex[0], vertex[1], vertex[2], vertex[3], 
         plane_00, plane_01, plane_02, plane_03,
         plane_10, plane_11, plane_12, plane_13,
         plane_20, plane_21, plane_22, plane_23
       ); 
       
-      const T2& b0 = bisector[0];
-      const T2& b1 = bisector[1];
-      const T2& b2 = bisector[2];
-      const T2& b3 = bisector[3];
+      const Tf& b0 = bisector[0];
+      const Tf& b1 = bisector[1];
+      const Tf& b2 = bisector[2];
+      const Tf& b3 = bisector[3];
   
-      const T2& v0 = vertex[0];
-      const T2& v1 = vertex[1];
-      const T2& v2 = vertex[2];
-      const T2& v3 = vertex[3];
+      const Tf& v0 = vertex[0];
+      const Tf& v1 = vertex[1];
+      const Tf& v2 = vertex[2];
+      const Tf& v3 = vertex[3];
   
-      const T2 dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
+      const Tf dot_product = planes::dot(v0, v1, v2, v3, b0, b1, b2, b3);
   
-      sradius = sr::update<T2>(px, py, pz, v0, v1, v2, sradius);
+      sradius = sr::update<Tf>(px, py, pz, v0, v1, v2, sradius);
   
       if (dot_product > 0.00f) {
         t_size -= 1;
@@ -597,8 +597,8 @@ void cci::compute(
       dknn[koffs * neighbor + i] = p_size;
       p_size += 1;
   
-      const size_t dr_offs = p_maxsize * i;
-      for (size_t j = 0; j < p_maxsize; j++) {
+      const Ti dr_offs = p_maxsize * i;
+      for (Ti j = 0; j < p_maxsize; j++) {
         dR[dr_offs + j] = boundary::bstatus::undefined;
       }
 
@@ -656,7 +656,7 @@ void cci::compute(
 #if 0
   for (int di = 0; di < k; di++) {
     bool flag = true;
-    for (size_t ti = 0; ti < t_size; ti++) {
+    for (Ti ti = 0; ti < t_size; ti++) {
       flag = !(T[3 * t_maxsize * i + 3 * ti + 0] == dknn[koffs * di + i] ||
                T[3 * t_maxsize * i + 3 * ti + 1] == dknn[koffs * di + i] ||
                T[3 * t_maxsize * i + 3 * ti + 2] == dknn[koffs * di + i]);
@@ -664,9 +664,9 @@ void cci::compute(
     } if (flag) knn[koffs * di + i] = cc::k_undefined;
   }
 #else
-  for (size_t di = 0; di < k; di++) {
+  for (Ti di = 0; di < k; di++) {
     bool flag = true;
-    for (size_t ti = 0; ti < t_size; ti++) {
+    for (Ti ti = 0; ti < t_size; ti++) {
       if (T[3 * t_maxsize * i + 3 * ti + 0] == dknn[koffs * di + i]) {
         flag = false;
       }
@@ -681,13 +681,13 @@ void cci::compute(
   }
 #endif
 
-  size_t dnn_counter = 0;
-  for (size_t di = 0; di < k; di++) {
+  Ti dnn_counter = 0;
+  for (Ti di = 0; di < k; di++) {
     if (knn[koffs * di + i] == cc::k_undefined) continue;
     knn[koffs * dnn_counter + i] = knn[koffs * di + i];
     dnn_counter += 1;
   }
-  for (size_t di = dnn_counter; di < k; di++) {
+  for (Ti di = dnn_counter; di < k; di++) {
     knn[koffs * di + i] = cc::k_undefined;
   }
   

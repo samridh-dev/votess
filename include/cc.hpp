@@ -20,17 +20,17 @@ namespace cci {
 /* ------------------------------------------------------------------------- */
 /// CPU Implementation
 /* ------------------------------------------------------------------------- */
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   std::vector<cc::state>& states,
-  T2* P, T3* T, T3* dR,
-  std::vector<T1>& knn,
-  std::vector<T1>& dknn,
-  const std::vector<std::array<T2,3>>& xyzset,
-  const size_t xyzsize,
-  const std::vector<std::array<T2,3>>& refset,
-  const size_t refsize,
+  Tf* P, Tu* T, Tu* dR,
+  std::vector<Ti>& knn,
+  std::vector<Ti>& dknn,
+  const std::vector<std::array<Tf,3>>& xyzset,
+  const Ti xyzsize,
+  const std::vector<std::array<Tf,3>>& refset,
+  const Ti refsize,
   const struct args::cc& args
 );
 
@@ -38,38 +38,38 @@ void compute(
 /// SYCL Implementation
 /* ------------------------------------------------------------------------- */
 
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
-  const device_accessor_readwrite_t<T2>& P,
-  const device_accessor_readwrite_t<T3>& T,
-  const device_accessor_readwrite_t<T3>& dR,
-  const device_accessor_readwrite_t<T1>& knn,
-  const device_accessor_readwrite_t<T1>& dknn,
-  const device_accessor_read_t<T2>& xyzset,
-  const size_t xyzsize,
-  const device_accessor_read_t<T2>& refset,
-  const size_t refsize,
+  const device_accessor_readwrite_t<Tf>& P,
+  const device_accessor_readwrite_t<Tu>& T,
+  const device_accessor_readwrite_t<Tu>& dR,
+  const device_accessor_readwrite_t<Ti>& knn,
+  const device_accessor_readwrite_t<Ti>& dknn,
+  const device_accessor_read_t<Tf>& xyzset,
+  const Ti xyzsize,
+  const device_accessor_read_t<Tf>& refset,
+  const Ti refsize,
   const struct args::cc& args
 );
 
 /* ------------------------------------------------------------------------- */
 
 
-template <typename T1, typename T2, typename T3>
+template <typename Ti, typename Tf, typename Tu>
 void compute(
-  const T1 i, const T1 index,
+  const Ti i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
-  const device_accessor_readwrite_t<T2>& P,
-  const device_accessor_readwrite_t<T3>& T,
-  const device_accessor_readwrite_t<T3>& dR,
-  const device_accessor_readwrite_t<T1>& knn, const size_t koffs,
-  const device_accessor_readwrite_t<T1>& dknn,
-  const device_accessor_read_t<T2>& xyzset,
-  const size_t xyzsize,
-  const device_accessor_read_t<T2>& refset,
-  const size_t refsize,
+  const device_accessor_readwrite_t<Tf>& P,
+  const device_accessor_readwrite_t<Tu>& T,
+  const device_accessor_readwrite_t<Tu>& dR,
+  const device_accessor_readwrite_t<Ti>& knn, const Ti koffs,
+  const device_accessor_readwrite_t<Ti>& dknn,
+  const device_accessor_read_t<Tf>& xyzset,
+  const Ti xyzsize,
+  const device_accessor_read_t<Tf>& refset,
+  const Ti refsize,
   const struct args::cc& args
 );
 

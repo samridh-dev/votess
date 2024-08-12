@@ -127,6 +127,7 @@ inline boundary::bstatus boundary::compute(
     const T3 cycle_old_2  = cycle[dr_offs + triangle_edge_2];
     const T3 cycle_old_00 = cycle[dr_offs + cycle_old_0];
   
+    // change to switch or reorder if statments if that would work?
     if (nshared_edges == 0) {
   
       swap_j -= 1;
