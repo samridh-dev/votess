@@ -3,7 +3,7 @@
 #include <status.hpp>
 
 #include <knn.hpp>
-#include <dnn.hpp>
+#include <cc.hpp>
 
 #include <iostream>
 #include <chrono>
@@ -470,7 +470,7 @@ __gpu__tesellate(
         );
 
         #if 0
-        dnni::compute<Ti, Tf, uint8_t>(
+        cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
           aP, aT, adR,
@@ -497,7 +497,7 @@ __gpu__tesellate(
           aargs_knn
         );
         #if 0
-        dnni::compute<Ti, Tf, uint8_t>(
+        cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
           aP, aT, adR,
@@ -633,7 +633,7 @@ __cpu__tesellate(
             args_knn
           );
 
-          dnni::compute<Ti, Tf, uint8_t>( 
+          cci::compute<Ti, Tf, uint8_t>( 
             idx, indices[idx],
             states, 
             P.data(), T.data(), dR.data(),
@@ -787,7 +787,7 @@ __cpu__recompute(
             args_knn
           );
 
-          dnni::compute<Ti, Tf, uint8_t>( 
+          cci::compute<Ti, Tf, uint8_t>( 
             idx, indices[idx],
             states, 
             P.data(), T.data(), dR.data(),
