@@ -135,8 +135,8 @@ void knni::compute(
   const device_accessor_read_t<Ti>& offset,
   const device_accessor_read_t<Tf>& refset,
   const size_t refsize,
-  device_accessor_readwrite_t<Ti>& heap_id,
-  device_accessor_readwrite_t<Tf>& heap_pq,
+  const device_accessor_readwrite_t<Ti>& heap_id,
+  const device_accessor_readwrite_t<Tf>& heap_pq,
   const struct args::knn& args
 ) {
 
@@ -320,99 +320,3 @@ void knni::compute(
 ///////////////////////////////////////////////////////////////////////////////
 /// End
 ///////////////////////////////////////////////////////////////////////////////
-
-template <typename Ti, typename Tf>
-void knni::compute(
-  const Ti i, const Ti index, const Ti li,
-  const device_accessor_read_t<Tf>& xyzset,
-  const size_t xyzsize,
-  const device_accessor_read_t<Ti>& id,
-  const device_accessor_read_t<Ti>& offset,
-  const device_accessor_read_t<Tf>& refset,
-  const size_t refsize,
-  const sycl::local_accessor<Ti, 2>& heap_id,
-  const sycl::local_accessor<Tf, 2>& heap_pq, const size_t hoffs,
-  const struct args::knn& args
-) {
-
-  static_assert(std::is_integral<Ti>::value,
-                "Ti must be an integral type");
-
-  static_assert(std::is_floating_point<Tf>::value,
-                "Tf must be a floating point type");
-
-  const Tf q0 = refset[refsize * 0 + index];
-  const Tf q1 = refset[refsize * 1 + index];
-  const Tf q2 = refset[refsize * 2 + index];
-
-  const auto k = args.k;
-  const auto gr = args.grid_resolution;
-  const auto gl = 1.0f / args.grid_resolution;
-
-  const int px = (id[index]) % gr;
-  const int py = (id[index]  / gr) % gr;
-  const int pz = (id[index]) / (gr * gr);
-  
-  const Tf gl2 = gl / 2;
-  const Tf dx = sycl::fmod(q0, gl);
-  const Tf dy = sycl::fmod(q1, gl);
-  const Tf dz = sycl::fmod(q2, gl);
-  const Tf min_dx = dx * (dx <= gl2) + (gl - dx) * (dx > gl2);
-  const Tf min_dy = dy * (dy <= gl2) + (gl - dy) * (dy > gl2);
-  const Tf min_dz = dz * (dz <= gl2) + (gl - dz) * (dz > gl2);
-  const Tf min = utils::bmin(min_dx, min_dy, min_dz);
-
-  for (auto r = 0; r < gr; r++) {
-
-    const int beg_z = utils::bmax(pz - r, 0);
-    const int beg_y = utils::bmax(py - r, 0);
-    const int beg_x = utils::bmax(px - r, 0);
-
-    const int end_z = utils::bmin(pz + r, gr - 1);
-    const int end_y = utils::bmin(py + r, gr - 1);
-    const int end_x = utils::bmin(px + r, gr - 1);
-    
-    for (auto z = beg_z; z <= end_z; z++) {
-    for (auto y = beg_y; y <= end_y; y++) {
-    for (auto x = beg_x; x <= end_x; x++) {
-
-      if (is_inshell(x, y, z, px, py, pz, r)) {
-        continue; 
-      }
-
-      const int cid = gr * gr * z + gr * y + x;
-      const int offs0 = offset[cid];
-      const int offs1 = offset[cid + 1];
-
-      for (Ti p = offs0; p < offs1; p++) {
-
-        if (p == index) {
-          continue;
-        }
-
-        const Tf p0 = xyzset[xyzsize * 0 + p];
-        const Tf p1 = xyzset[xyzsize * 1 + p];
-        const Tf p2 = xyzset[xyzsize * 2 + p];
-
-        const Tf pq = xyzset::get_distance(p0, p1, p2, q0, q1, q2);
-
-        const bool cond = (pq < heap_pq[li][0]);
-        heap_id[li][0] = !cond * heap_id[li][0] + cond * p;
-        heap_pq[li][0] = !cond * heap_pq[li][0] + cond * pq;
-        heap::maxheapify<Ti, Tf>(heap_id, heap_pq, hoffs, li, cond * k, 0);
-
-      }
-
-    }}}
-
-    if (heap_pq[li][0] < utils::square(gl * r + min)) {
-      break; 
-    }
-
-  }
-
-  heap::sort<Ti,Tf>(heap_id, heap_pq, hoffs, li, k);
-  return;
-
-}
-
