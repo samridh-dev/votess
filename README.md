@@ -228,17 +228,6 @@ print("size of direct neighbors for point 0", direct_neighbors[0].size())
 ```
 ### Command Line
 
-There exists the executable named `clvotess`. For basic usage, refer to
+There exists the executable named `clvotess`. 
 **Currently the program is undeveloped as the project is still undergoing
-changes**
-
-```bash
-clvotess -h
-```
-For an extended usage, and a description of all command line arguments, refer
-instead to:
-```bash
-clvotess --help-all
-```
-
-Currently, only space separated text files are supported. 
+changes. Usage will remain undocumented at the time being.**
