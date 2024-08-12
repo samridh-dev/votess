@@ -182,6 +182,7 @@ int main(int argc, char* argv[]) {
   args["knn_grid_resolution"] = gr;
   args["gpu_ndsize"] = 24;
   args["use_recompute"] = false;
+  args["dev_suppress_stdout"] = false;
 
   args["use_chunking"] = false;
   args["chunksize"] = 102400;
