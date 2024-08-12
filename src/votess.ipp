@@ -700,11 +700,16 @@ tesellate(
       
       if (device_found()) {
         __gpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
-      } else {
-        __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
-      }
+        break;
+      } 
 
+      std::cerr << "\033[1m\033[93mWarning: "
+                << "No GPU device found. Running CPU as fallback"
+                << "\033[0m\n";
+      
+      __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
       break;
+
     case (device::cpu): 
 
       __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
