@@ -58,44 +58,44 @@ boundary::vstatus::get_shared_position() const {
 /* ------------------------------------------------------------------------- */
 
 #include <utils.hpp>
-template<typename T3>
+template<typename Ti, typename Tu>
 inline boundary::bstatus boundary::compute(
-  T3* cycle, 
-  const size_t dr_offs,
-  const size_t dr_size,
+  Tu* cycle, 
+  const Ti dr_offs,
+  const Ti dr_size,
   short int& head,
-  T3* R,
-  const size_t r_offs,
-  const size_t r_size
+  Tu* R,
+  const Ti r_offs,
+  const Ti r_size
 ) {
 
   const uint8_t triangle_size = 3;
   for (uint8_t tri = 0; tri < triangle_size; tri++) {
-    const T3& triangle_edge_0 = R[r_offs + (tri + 0) % triangle_size];
-    const T3& triangle_edge_1 = R[r_offs + (tri + 1) % triangle_size];
+    const Tu& triangle_edge_0 = R[r_offs + (tri + 0) % triangle_size];
+    const Tu& triangle_edge_1 = R[r_offs + (tri + 1) % triangle_size];
     head = triangle_edge_0;
     cycle[dr_offs + head] = triangle_edge_1;
   }
   
-  size_t swap_j = r_size;
-  for (unsigned int j = 1; j < r_size; j++) {
+  Ti swap_j = r_size;
+  for (Ti j = 1; j < r_size; j++) {
   
     struct vstatus stat;
   
-    const T3 first = head;
+    const Tu first = head;
     for (uint8_t k = 0; k < triangle_size; k++) {
       
-      const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
-      const T3& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
+      const Tu& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
+      const Tu& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
   
       uint8_t edge = cycle[dr_offs + first];
   
-      size_t counter = 0;
+      Ti counter = 0;
       while (true) {
         head = edge;
   
-        const T3 cycle_edge_0 = head;
-        const T3 cycle_edge_1 = cycle[dr_offs + head];
+        const Tu cycle_edge_0 = head;
+        const Tu cycle_edge_1 = cycle[dr_offs + head];
   
         const bool cond_01 = cycle_edge_0 == triangle_edge_1;
         const bool cond_10 = cycle_edge_1 == triangle_edge_0;
@@ -127,15 +127,15 @@ inline boundary::bstatus boundary::compute(
     } 
 
     const uint8_t k = stat.get_shared_position();
-    const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
-    const T3& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
-    const T3& triangle_edge_2 = R[r_offs + j * 3 + (k + 2) % triangle_size];
-    const T3& triangle_edge_3 = R[r_offs + j * 3 + (k + 3) % triangle_size];
+    const Tu& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
+    const Tu& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
+    const Tu& triangle_edge_2 = R[r_offs + j * 3 + (k + 2) % triangle_size];
+    const Tu& triangle_edge_3 = R[r_offs + j * 3 + (k + 3) % triangle_size];
   
-    const T3 cycle_old_0  = cycle[dr_offs + triangle_edge_0];
-    const T3 cycle_old_1  = cycle[dr_offs + triangle_edge_1];
-    const T3 cycle_old_2  = cycle[dr_offs + triangle_edge_2];
-    const T3 cycle_old_00 = cycle[dr_offs + cycle_old_0];
+    const Tu cycle_old_0  = cycle[dr_offs + triangle_edge_0];
+    const Tu cycle_old_1  = cycle[dr_offs + triangle_edge_1];
+    const Tu cycle_old_2  = cycle[dr_offs + triangle_edge_2];
+    const Tu cycle_old_00 = cycle[dr_offs + cycle_old_0];
 
     if (nshared_edges == 1) {
   
@@ -196,44 +196,44 @@ inline boundary::bstatus boundary::compute(
 
 /* ------------------------------------------------------------------------- */
 
-template<typename T3>
+template<typename Ti, typename Tu>
 inline boundary::bstatus boundary::compute(
-  const device_accessor_readwrite_t<T3>& cycle, 
-  const size_t dr_offs,
-  const size_t dr_size,
+  const device_accessor_readwrite_t<Tu>& cycle, 
+  const Ti dr_offs,
+  const Ti dr_size,
   short int& head,
-  const device_accessor_readwrite_t<T3>& R, 
-  const size_t  r_offs,
-  const size_t  r_size
+  const device_accessor_readwrite_t<Tu>& R, 
+  const Ti  r_offs,
+  const Ti  r_size
 ) {
 
   const uint8_t triangle_size = 3;
   for (uint8_t tri = 0; tri < triangle_size; tri++) {
-    const T3& triangle_edge_0 = R[r_offs + (tri + 0) % triangle_size];
-    const T3& triangle_edge_1 = R[r_offs + (tri + 1) % triangle_size];
+    const Tu& triangle_edge_0 = R[r_offs + (tri + 0) % triangle_size];
+    const Tu& triangle_edge_1 = R[r_offs + (tri + 1) % triangle_size];
     head = triangle_edge_0;
     cycle[dr_offs + head] = triangle_edge_1;
   }
   
-  T3 swap_j = r_size;
-  for (unsigned int j = 1; j < r_size; j++) {
+  Tu swap_j = r_size;
+  for (Ti j = 1; j < r_size; j++) {
   
     struct vstatus stat;
   
-    const T3 first = head;
+    const Tu first = head;
     for (uint8_t k = 0; k < triangle_size; k++) {
       
-      const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
-      const T3& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
+      const Tu& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
+      const Tu& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
   
       uint8_t edge = cycle[dr_offs + first];
   
-      T3 counter = 0;
+      Tu counter = 0;
       while (true) {
         head = edge;
   
-        const T3 cycle_edge_0 = head;
-        const T3 cycle_edge_1 = cycle[dr_offs + head];
+        const Tu cycle_edge_0 = head;
+        const Tu cycle_edge_1 = cycle[dr_offs + head];
   
         const bool cond_01 = cycle_edge_0 == triangle_edge_1;
         const bool cond_10 = cycle_edge_1 == triangle_edge_0;
@@ -264,15 +264,15 @@ inline boundary::bstatus boundary::compute(
     } 
   
     const uint8_t k = stat.get_shared_position();
-    const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
-    const T3& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
-    const T3& triangle_edge_2 = R[r_offs + j * 3 + (k + 2) % triangle_size];
-    const T3& triangle_edge_3 = R[r_offs + j * 3 + (k + 3) % triangle_size];
+    const Tu& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
+    const Tu& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
+    const Tu& triangle_edge_2 = R[r_offs + j * 3 + (k + 2) % triangle_size];
+    const Tu& triangle_edge_3 = R[r_offs + j * 3 + (k + 3) % triangle_size];
   
-    const T3 cycle_old_0  = cycle[dr_offs + triangle_edge_0];
-    const T3 cycle_old_1  = cycle[dr_offs + triangle_edge_1];
-    const T3 cycle_old_2  = cycle[dr_offs + triangle_edge_2];
-    const T3 cycle_old_00 = cycle[dr_offs + cycle_old_0];
+    const Tu cycle_old_0  = cycle[dr_offs + triangle_edge_0];
+    const Tu cycle_old_1  = cycle[dr_offs + triangle_edge_1];
+    const Tu cycle_old_2  = cycle[dr_offs + triangle_edge_2];
+    const Tu cycle_old_00 = cycle[dr_offs + cycle_old_0];
   
     if (nshared_edges == 1) {
   

@@ -41,30 +41,30 @@ enum bstatus : unsigned char {
 /// CPU Implementation
 /* ------------------------------------------------------------------------- */
 
-template<typename T1>
+template<typename Ti, typename Tu>
 inline bstatus compute(
-  T1* cycle, 
-  const size_t dr_offs,
-  const size_t dr_size,
+  Tu* cycle, 
+  const Ti dr_offs,
+  const Ti dr_size,
   short int& head,
-  T1* R,
-  const size_t r_offs,
-  const size_t r_size
+  Tu* R,
+  const Ti r_offs,
+  const Ti r_size
 );
 
 /* ------------------------------------------------------------------------- */
 /// SYCL implementation
 /* ------------------------------------------------------------------------- */
 
-template<typename T3>
+template<typename Ti, typename Tu>
 inline bstatus compute(
-  const device_accessor_readwrite_t<T3>& cycle, 
-  const size_t dr_offs,
-  const size_t dr_size,
+  const device_accessor_readwrite_t<Tu>& cycle, 
+  const Ti dr_offs,
+  const Ti dr_size,
   short int& head,
-  const device_accessor_readwrite_t<T3>& R, 
-  const size_t r_offs,
-  const size_t r_size
+  const device_accessor_readwrite_t<Tu>& R, 
+  const Ti r_offs,
+  const Ti r_size
 );
 
 ///////////////////////////////////////////////////////////////////////////////
