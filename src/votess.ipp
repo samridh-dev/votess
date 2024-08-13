@@ -240,7 +240,6 @@ __gpu__tesellate(
     const size_t _cstart = run * chunksize;
     const size_t _cend = (run == nruns - 1) ? refsize : _cstart + chunksize;
     subsize = _cend - _cstart;
-    
 
     queue.submit([&](sycl::handler& cgh) {
       auto a = sycl::accessor(bheap_id, cgh, sycl::write_only, sycl::no_init);
@@ -434,11 +433,10 @@ __cpu__tesellate(
 
   std::vector<Ti> indices(subsize);
 
-  std::vector<Ti> heap_id(subsize * k, 0);
-  std::vector<Tf> heap_pq(subsize * k, FP_INFINITY);
+  std::vector<Ti> heap_id(subsize * k);
+  std::vector<Tf> heap_pq(subsize * k);
+  std::vector<Ti> dknn(subsize * k);
   std::vector<Ti>& knn = heap_id;
-
-  std::vector<Ti> dknn(subsize * k, __INTERNAL__K_UNDEFINED);
 
   std::vector<Tf>       P(subsize * p_maxsize * 4);
   std::vector<uint8_t>  T(subsize * t_maxsize * 3);
@@ -663,11 +661,11 @@ __cpu__recompute(
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate internal functions                                            ///
 ///////////////////////////////////////////////////////////////////////////////
+
 static bool device_found(void) {
   return sycl::device::get_devices(sycl::info::device_type::gpu).empty() ? 
          false : true;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Tesellate End Function                                                  ///
