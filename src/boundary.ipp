@@ -114,8 +114,18 @@ inline boundary::bstatus boundary::compute(
     }
   
     const uint8_t nshared_edges = stat.get_nshared_edges();
+    
+    if (nshared_edges == 0) {
   
+      swap_j -= 1;
+      utils::swap(R[r_offs + j * 3 + 0], R[r_offs + swap_j * 3 + 0]);
+      utils::swap(R[r_offs + j * 3 + 1], R[r_offs + swap_j * 3 + 1]);
+      utils::swap(R[r_offs + j * 3 + 2], R[r_offs + swap_j * 3 + 2]);
+      j -= 1;
+      continue;
   
+    } 
+
     const uint8_t k = stat.get_shared_position();
     const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
     const T3& triangle_edge_1 = R[r_offs + j * 3 + (k + 1) % triangle_size];
@@ -126,18 +136,8 @@ inline boundary::bstatus boundary::compute(
     const T3 cycle_old_1  = cycle[dr_offs + triangle_edge_1];
     const T3 cycle_old_2  = cycle[dr_offs + triangle_edge_2];
     const T3 cycle_old_00 = cycle[dr_offs + cycle_old_0];
-  
-    // change to switch or reorder if statments if that would work?
-    if (nshared_edges == 0) {
-  
-      swap_j -= 1;
-      utils::swap(R[r_offs + j * 3 + 0], R[r_offs + swap_j * 3 + 0]);
-      utils::swap(R[r_offs + j * 3 + 1], R[r_offs + swap_j * 3 + 1]);
-      utils::swap(R[r_offs + j * 3 + 2], R[r_offs + swap_j * 3 + 2]);
-      j -= 1;
-      continue;
-  
-    } else if (nshared_edges == 1) {
+
+    if (nshared_edges == 1) {
   
       cycle[dr_offs + triangle_edge_1] = triangle_edge_2;
       cycle[dr_offs + triangle_edge_2] = triangle_edge_3;
@@ -156,11 +156,9 @@ inline boundary::bstatus boundary::compute(
       return boundary::bstatus::unreachable;
     }
   
-  
     bool flag = false;
     for (uint8_t edge_i = 0; edge_i < dr_size; edge_i++) {
       if (cycle[dr_offs + edge_i] == boundary::bstatus::undefined) continue;
-
 
       for (uint8_t edge_j = edge_i + 1; edge_j < dr_size; edge_j++) {
         if (cycle[dr_offs + edge_j] == boundary::bstatus::undefined) continue;
@@ -254,7 +252,16 @@ inline boundary::bstatus boundary::compute(
     }
   
     const uint8_t nshared_edges = stat.get_nshared_edges();
+    if (nshared_edges == 0) {
   
+      swap_j -= 1;
+      utils::swap(R[r_offs + j * 3 + 0], R[r_offs + swap_j * 3 + 0]);
+      utils::swap(R[r_offs + j * 3 + 1], R[r_offs + swap_j * 3 + 1]);
+      utils::swap(R[r_offs + j * 3 + 2], R[r_offs + swap_j * 3 + 2]);
+      j -= 1;
+      continue;
+  
+    } 
   
     const uint8_t k = stat.get_shared_position();
     const T3& triangle_edge_0 = R[r_offs + j * 3 + (k + 0) % triangle_size];
@@ -267,16 +274,7 @@ inline boundary::bstatus boundary::compute(
     const T3 cycle_old_2  = cycle[dr_offs + triangle_edge_2];
     const T3 cycle_old_00 = cycle[dr_offs + cycle_old_0];
   
-    if (nshared_edges == 0) {
-  
-      swap_j -= 1;
-      utils::swap(R[r_offs + j * 3 + 0], R[r_offs + swap_j * 3 + 0]);
-      utils::swap(R[r_offs + j * 3 + 1], R[r_offs + swap_j * 3 + 1]);
-      utils::swap(R[r_offs + j * 3 + 2], R[r_offs + swap_j * 3 + 2]);
-      j -= 1;
-      continue;
-  
-    } else if (nshared_edges == 1) {
+    if (nshared_edges == 1) {
   
       cycle[dr_offs + triangle_edge_1] = triangle_edge_2;
       cycle[dr_offs + triangle_edge_2] = triangle_edge_3;
@@ -325,7 +323,7 @@ inline boundary::bstatus boundary::compute(
     }
     if (!flag) swap_j = r_size;
   }
-
+  
   return bstatus::success;
 }
 
