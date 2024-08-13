@@ -153,7 +153,7 @@ void cci::compute(
       }
 
       short int head = -1;
-      boundary::bstatus bstat = boundary::compute(
+      boundary::bstatus bstat = boundary::compute<Ti, Tu>(
         dR, dr_offs, p_maxsize, head,
         T, 3 * t_maxsize * i + t_size * 3, r_size
       );
@@ -376,7 +376,7 @@ void cci::compute(
       }
 
       short int head = -1;
-      boundary::bstatus bstat = boundary::compute(
+      boundary::bstatus bstat = boundary::compute<Ti, Tu>(
         dR, dr_offs, p_maxsize, head,
         T, 3 * t_maxsize * i + t_size * 3, r_size
       );
@@ -603,7 +603,7 @@ void cci::compute(
       }
 
       short int head = -1;
-      boundary::bstatus bstat = boundary::compute(
+      boundary::bstatus bstat = boundary::compute<Ti, Tu>(
         dR, dr_offs, p_maxsize, head,
         T, 3 * t_maxsize * i + t_size * 3, r_size
       );
