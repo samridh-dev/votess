@@ -135,7 +135,7 @@ void cci::compute(
     
     if (r_size > 0) {
 
-      if (p_size > p_maxsize) {
+      if (p_size >= p_maxsize) {
         state.set_true(cc::error_p_overflow);
         return;
       }
@@ -168,7 +168,7 @@ void cci::compute(
       auto first = head;
       while (true) {
 
-        if (t_size > t_maxsize) {
+        if (t_size >= t_maxsize) {
           state.set_true(cc::error_t_overflow);
           return;
         }
@@ -358,7 +358,7 @@ void cci::compute(
     
     if (r_size > 0) {
 
-      if (p_size > p_maxsize) {
+      if (p_size >= p_maxsize) {
         state.set_true(cc::error_p_overflow);
         return;
       }
@@ -391,7 +391,7 @@ void cci::compute(
       auto first = head;
       while (true) {
 
-        if (t_size > t_maxsize) {
+        if (t_size >= t_maxsize) {
           state.set_true(cc::error_t_overflow);
           return;
         }
@@ -585,7 +585,7 @@ void cci::compute(
     
     if (r_size > 0) {
 
-      if (p_size > p_maxsize) {
+      if (p_size >= p_maxsize) {
         state.set_true(cc::error_p_overflow);
         return;
       }
@@ -618,7 +618,7 @@ void cci::compute(
       auto first = head;
       while (true) {
 
-        if (t_size > t_maxsize) {
+        if (t_size >= t_maxsize) {
           state.set_true(cc::error_t_overflow);
           return;
         }
