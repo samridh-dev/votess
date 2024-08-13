@@ -198,12 +198,15 @@ __gpu__tesellate(
   (void)ndsize;
 
   const int chunksize = args["use_chunking"].get<bool>() ? 
-                        args["chunksize"] : refsize;
+                        args["chunksize"] : refsize + 1;
 
-  const int nruns = chunksize < refsize ? 
+  const int nruns = (chunksize > 0) && 
+                    (chunksize < refsize) ? 
                     refsize / chunksize + 1: 1;
 
-  Ti subsize = chunksize < refsize ? chunksize : refsize;
+  Ti subsize = (chunksize > 0) && 
+               (chunksize < refsize) ? 
+               chunksize : refsize;
 
   std::vector<Tf> xyzset(3 * xyzsize);
   for (size_t i = 0; i < xyzsize; i++) {
@@ -282,7 +285,7 @@ __gpu__tesellate(
 
       using namespace sycl;
 
-      const size_t sgsize = 32; // subgroup size;
+      const size_t sgsize = 1; // subgroup size;
     
       auto aindices = sycl::accessor(bindices, cgh, read_only);
       auto axyzset = sycl::accessor(bxyzset, cgh, read_only);
@@ -416,12 +419,15 @@ __cpu__tesellate(
                           std::thread::hardware_concurrency(); 
 
   const int chunksize = args["use_chunking"].get<bool>() ? 
-                        args["chunksize"] : refsize;
+                        args["chunksize"] : refsize + 1;
 
-  const int nruns = chunksize < refsize ? 
+  const int nruns = (chunksize > 0) && 
+                    (chunksize < refsize) ? 
                     refsize / chunksize + 1: 1;
 
-  Ti subsize = chunksize < refsize ? chunksize : refsize;
+  Ti subsize = (chunksize > 0) && 
+               (chunksize < refsize) ?
+               chunksize : refsize;
 
   std::cout << "nthread = " << nthreads << std::endl; 
   std::cout << "chunksize = " << chunksize << std::endl; 
