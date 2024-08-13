@@ -208,6 +208,10 @@ int main(int argc, char* argv[]) {
   {
     args["use_chunking"] = true;
     args["chunksize"] = 8196;
+
+    args["cc_p_maxsize"] = 64;
+    args["cc_t_maxsize"] = 64;
+
     auto start = std::chrono::high_resolution_clock::now();
     auto dnn = votess::tesellate<int, float>(xyzset, args,
                                              votess::device::cpu);
