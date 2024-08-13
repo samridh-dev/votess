@@ -210,7 +210,7 @@ def main():
 
     create_test(index, np.array([[2,5,0], [5,3,0], [1,5,2], [5,1,3]]))
     index += 1
-
+    
     create_test(index, np.array([[4,2,0], [4,0,3], [2,4,1], [4,3,1]]))
     index += 1
 
