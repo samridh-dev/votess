@@ -26,32 +26,87 @@ def create_test_case(tag, i, points, gr_arr):
     print('}')
     print()
 
+def create_initial_condition_tests():
+    print('TEST_CASE("votess regression: inital conditions", ')
+    print('          "[votess]") {')
+    print('')
+    print('  const size_t N = 128;')
+    print('  const int k = 64;')
+    print('  const int p_maxsize = 128;')
+    print('  const int t_maxsize = 128;')
+    print('')
+    print('  auto xyzset = xyzset_generate_random<float>(N);')
+    print('')
+    print('  std::vector<bool> vec_use_recompute{true};')
+    print('  std::vector<bool> vec_use_chunking{false, true};')
+    print('  std::vector<int>  vec_chunksize{0, 64, 127, 1023, 1048576};')
+    print('  std::vector<int>  vec_cpu_nthreads{0, 1, 3};')
+    print('  std::vector<int>  vec_gpu_ndsize{1, 2, 8, 16};')
+    print('  std::vector<int>  vec_knn_grid_res{1, 2, 16, 24, 32};')
+    print('  ')
+    print('  int counter = 0;')
+    print('  for (const auto knn_grid_res  : vec_knn_grid_res)  { ')
+    print('  for (const auto use_recompute : vec_use_recompute) { ')
+    print('  for (const auto use_chunking  : vec_use_chunking)  { ')
+    print('  for (const auto chunksize     : vec_chunksize)     { ')
+    print('  for (const auto cpu_nthreads  : vec_cpu_nthreads)  { ')
+    print('  for (const auto gpu_ndsize    : vec_gpu_ndsize)    { ')
+    print('')
+    print('    class votess::vtargs vtargs;')
+    print('    vtargs["k"] = k;')
+    print('    vtargs["knn_grid_resolution"] = knn_grid_res;')
+    print('    vtargs["use_recompute"] = use_recompute;')
+    print('    vtargs["use_chunking"] = use_chunking;')
+    print('    vtargs["chunksize"] = chunksize;')
+    print('    vtargs["cpu_nthreads"] = cpu_nthreads;')
+    print('    vtargs["gpu_ndsize"] = gpu_ndsize;')
+    print('    vtargs["cc_p_maxsize"] = p_maxsize;')
+    print('    vtargs["cc_t_maxsize"] = t_maxsize;')
+    print('')
+    print('    CAPTURE(k);')
+    print('    CAPTURE(knn_grid_res);')
+    print('    CAPTURE(use_recompute);')
+    print('    CAPTURE(chunksize);')
+    print('    CAPTURE(cpu_nthreads);')
+    print('    CAPTURE(gpu_ndsize);')
+    print('    CAPTURE(p_maxsize);')
+    print('    CAPTURE(t_maxsize);')
+    print('')
+    print('    if (gpu_ndsize == vec_gpu_ndsize[0]) {')
+    print('      SECTION(')
+    print('        "[CPU] case : " + std::to_string(counter++) + ')
+    print('        " args : { k : " + std::to_string(k) +')
+    print('        ", grid resolution : " + std::to_string(knn_grid_res) +')
+    print('        ", use_recompute : " + std::to_string(use_recompute) +')
+    print('        ", use_chunking : " + std::to_string(use_chunking) +')
+    print('        ", chunksize : " + std::to_string(chunksize) +')
+    print('        ", cpu_nthreads : " + std::to_string(cpu_nthreads) +')
+    print('        " }"')
+    print('      ) { run_test(xyzset, vtargs, votess::device::cpu); }')
+    print('    }')
+    print('    ')
+    print('    if (cpu_nthreads == vec_cpu_nthreads[0]) {')
+    print('      SECTION(')
+    print('        "[GPU] case : " + std::to_string(counter++) + ')
+    print('        " args : { k : " + std::to_string(k) +')
+    print('        ", grid resolution : " + std::to_string(knn_grid_res) +')
+    print('        ", use_recompute : " + std::to_string(use_recompute) +')
+    print('        ", use_chunking : " + std::to_string(use_chunking) +')
+    print('        ", chunksize : " + std::to_string(chunksize) +')
+    print('        ", gpu_ndsize : " + std::to_string(gpu_ndsize) +')
+    print('        " }"')
+    print('      ) { run_test(xyzset, vtargs, votess::device::gpu); }')
+    print('    }')
+    print('')
+    print('  }}}}}}')
+    print('')
+    print('}')
+
 def create_prefix():
     print('#include <catch2/catch_test_macros.hpp>')
     print('#include <catch2/matchers/catch_matchers_floating_point.hpp>')
     print('')
     print('#include <votess.hpp>')
-    print('')
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('/// Forward Declarations                                                    ///')
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('')
-    print('template <typename T>')
-    print('static void test_votess(')
-    print('  std::vector<std::array<T,3>>& xyzset,')
-    print('  const int k,')
-    print('  const int gr')
-    print(');')
-    print('')
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('/// Test Cases                                                              ///')
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('')
-
-def create_suffix():
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('/// Internal Functions                                                      ///')
-    print('///////////////////////////////////////////////////////////////////////////////')
     print('')
     print('#include <iostream>')
     print('class __internal__suppress_stdout {')
@@ -69,7 +124,8 @@ def create_suffix():
     print('')
     print('#include <voro++.hh>')
     print('template <typename T>')
-    print('static std::pair<std::vector<std::array<T, 3>>, std::vector<std::vector<int>>>')
+    print('static std::pair<std::vector<std::array<T, 3>>, ')
+    print('                 std::vector<std::vector<int>>>')
     print('run_voro(')
     print('  const std::vector<std::array<T,3>>& xyzset,')
     print('  const struct votess::vtargs vtargs')
@@ -128,7 +184,7 @@ def create_suffix():
     print('  struct votess::vtargs vtargs,')
     print('  const enum votess::device device')
     print(') {')
-    print('    __internal__suppress_stdout s; // to preventstdout ')
+    print('    __internal__suppress_stdout s;')
     print('')
     print('    (void)xyzset::sort<int,T>(xyzset, vtargs.get_xyzset());')
     print('')
@@ -190,26 +246,40 @@ def create_suffix():
     print('  const int k,')
     print('  const int gr')
     print(') {')
-
-    print('  SECTION("[CPU] case : grid_resolution = " + std::to_string(gr)) {')
+    print('  SECTION("[CPU] case : grid_resolution = " ')
+    print('          + std::to_string(gr)) {')
     print('    struct votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
     print('    vtargs["knn_grid_resolution"] = gr;')
     print('    run_test(xyzset, vtargs, votess::device::cpu);')
     print('  }')
-
-    print('  SECTION("[GPU] case : grid_resolution = " + std::to_string(gr)) {')
+    print('  SECTION("[GPU] case : grid_resolution = " ')
+    print('          + std::to_string(gr)) {')
     print('    struct votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
     print('    vtargs["knn_grid_resolution"] = gr;')
     print('    run_test(xyzset, vtargs, votess::device::gpu);')
     print('  }')
-
     print('}')
     print('')
-    print('///////////////////////////////////////////////////////////////////////////////')
-    print('/// End                                                                     ///')
-    print('///////////////////////////////////////////////////////////////////////////////', end='')
+    print('#include <random>')
+    print('template <typename T>')
+    print('static std::vector<std::array<T, 3>> ')
+    print('xyzset_generate_random(size_t N) {')
+    print('  std::vector<std::array<T, 3>> xyzset;')
+    print('  xyzset.reserve(N);')
+    print('')
+    print('  std::random_device rd;')
+    print('  std::mt19937 gen(rd());')
+    print('  std::uniform_real_distribution<T> dis(0.0 + 0.001, 1.0 - 0.001);')
+    print('')
+    print('  for (size_t i = 0; i < N; ++i) {')
+    print('    std::array<float, 3> point = { dis(gen), dis(gen), dis(gen) };')
+    print('    xyzset.push_back(point);')
+    print('  }')
+    print('')
+    print('  return xyzset;')
+    print('}')
 
 ###############################################################################
 ### Test Cases                                                              ###
@@ -326,7 +396,8 @@ def main():
     index = 0
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
-    gr_arr = np.array([1])
+
+    create_initial_condition_tests()
 
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
@@ -340,9 +411,9 @@ def main():
     index += 1
     
     # Test case 1: Standard set
-#   xyzset = create_standard_xyzset()
-#   create_test_case("standard", index, xyzset, gr_arr)
-#   index += 1
+    xyzset = create_standard_xyzset()
+    create_test_case("standard", index, xyzset, gr_arr)
+    index += 1
 
     # random tests
     for i in range(8):
@@ -387,14 +458,10 @@ def main():
 
     # problematic tests due to voro++
     if 0:
+
         # Sparse data
         xyzset = create_sparse_xyzset(num_points=100, sparsity_level=0.95)
         create_test_case("sparse_data", index, xyzset, gr_arr)
-        index += 1
-
-        # Two points separated by epsilon
-        xyzset = create_two_points_epsilon_xyzset()
-        create_test_case("two_points_epsilon", index, xyzset, gr_arr)
         index += 1
 
         # Degenerate cases
@@ -402,18 +469,23 @@ def main():
         create_test_case("degenerate_cases", index, xyzset, gr_arr)
         index += 1
 
+        # Two points separated by epsilon
+        xyzset = create_two_points_epsilon_xyzset()
+        create_test_case("two_points_epsilon", index, xyzset, gr_arr)
+        index += 1
+
         # Outliers
         base_set = create_standard_xyzset()
         xyzset = create_outliers_xyzset(base_set, outlier_factor=10)
         create_test_case("outliers", index, xyzset, gr_arr)
         index += 1
+    
 
     return
 
 if __name__ == "__main__": 
     create_prefix()
     main()
-    create_suffix()
 
 ###############################################################################
 ### End                                                                     ###
