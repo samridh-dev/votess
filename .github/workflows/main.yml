@@ -1,0 +1,30 @@
+name: CI
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  prereq_intel_oneapi:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set up apt repo for Intel OneAPI
+      run: |
+        wget -qO - https://apt.repos.intel.com/oneapi/inteleg-public.gpg | \
+          sudo apt-key add -
+        echo "deb https://apt.repos.intel.com/oneapi all main" | \ 
+          sudo tee /etc/apt/sources.list.d/oneAPI.list
+        sudo apt-get update
+    - name: Install Intel OneAPI BaseKit
+      run: |
+        sudo apt-get install -y intel-basekit
+
+  build:
+    needs: prereq_intel_oneapi
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Intel environment variables
+      run: |
+        source /opt/intel/oneapi/setvars.sh
