@@ -169,8 +169,7 @@ tmpnn_getdnn(std::vector<std::vector<Ti>>& tmpnn) {
 /// GPU Tesellate                                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#define USE_NEW_IMPL 1
-template <typename Ti, typename Tf>
+template <typename Ti, typename Tf, typename Tu>
 static void
 __gpu__tesellate(
 
@@ -233,8 +232,8 @@ __gpu__tesellate(
   sycl::buffer<cc::state,1> bstates((sycl::range<1>(xyzsize)));
   sycl::buffer<Ti,1>      bdknn(sycl::range<1>(subsize * k));
   sycl::buffer<Tf,1>      bP(sycl::range<1>(subsize * p_maxsize * 4));
-  sycl::buffer<uint8_t,1> bT(sycl::range<1>(subsize * t_maxsize * 3));
-  sycl::buffer<uint8_t,1> bdR(sycl::range<1>(subsize * p_maxsize));
+  sycl::buffer<Tu,1> bT(sycl::range<1>(subsize * t_maxsize * 3));
+  sycl::buffer<Tu,1> bdR(sycl::range<1>(subsize * p_maxsize));
 
   for (int run = 0; run < nruns; run++) {
     
@@ -305,7 +304,6 @@ __gpu__tesellate(
       auto aargs_knn = args_knn;
       auto aargs_cc = args_cc;
 
-#if USE_NEW_IMPL 
       cgh.parallel_for<class __sycl__tessellate>
       (sycl::nd_range<1>(sycl::range<1>(subsize), sycl::range<1>(sgsize)),
       [=](sycl::nd_item<1> it) {
@@ -321,7 +319,7 @@ __gpu__tesellate(
         );
 
         #if 1
-        cci::compute<Ti, Tf, uint8_t>(
+        cci::compute<Ti, Tf, Tu>(
           index, aindices[index],
           astates,
           aP, aT, adR,
@@ -332,35 +330,6 @@ __gpu__tesellate(
           aargs_cc
         );
         #endif
-
-#else
-
-      cgh.parallel_for<class __sycl__tessellate>
-      (sycl::range<1>(subsize), 
-      [=](sycl::id<1> idx) {
-
-       const size_t index = idx[0];
-        knni::compute<Ti, Tf>(
-          index, aindices[index],
-          axyzset, xyzsize, aid, aoffset,
-          axyzset, subsize,
-          aheap_id, aheap_pq,
-          aargs_knn
-        );
-        #if 1
-        cci::compute<Ti, Tf, uint8_t>(
-          index, aindices[index],
-          astates,
-          aP, aT, adR,
-          aheap_id, adknn,
-          axyzset, xyzsize,
-          axyzset, subsize,
-          aargs_cc
-        );
-        #endif
-
-#endif
-
       });
     });
     queue.wait();
@@ -372,7 +341,6 @@ __gpu__tesellate(
     std::vector<Ti> indices(hindices.begin(), hindices.end());
     states = std::vector<cc::state>(hstates.begin(), hstates.end());
 
-#if USE_NEW_IMPL
     std::vector<Ti> _knn(hknn.begin(), hknn.end());
     std::vector<Ti> knn(_knn.size());
     for (size_t si = 0; si < subsize; si++) {
@@ -380,9 +348,6 @@ __gpu__tesellate(
         knn[k * si + ki] = _knn[subsize * ki + si];
       }
     }
-#else
-    std::vector<Ti> knn(hknn.begin(), hknn.end());
-#endif
 
     tmpnn_fill(tmpnn, indices, subsize, knn, args);
 
@@ -395,7 +360,7 @@ __gpu__tesellate(
 /// CPU Tesellate                                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename Ti, typename Tf>
+template <typename Ti, typename Tf, typename Tu>
 static void
 __cpu__tesellate(
 
@@ -445,8 +410,8 @@ __cpu__tesellate(
   std::vector<Ti>& knn = heap_id;
 
   std::vector<Tf>       P(subsize * p_maxsize * 4);
-  std::vector<uint8_t>  T(subsize * t_maxsize * 3);
-  std::vector<uint8_t> dR(subsize * p_maxsize);
+  std::vector<Tu>  T(subsize * t_maxsize * 3);
+  std::vector<Tu> dR(subsize * p_maxsize);
 
   for (int run = 0; run < nruns; run++) {
 
@@ -485,7 +450,7 @@ __cpu__tesellate(
             args_knn
           );
 
-          cci::compute<Ti, Tf, uint8_t>( 
+          cci::compute<Ti, Tf, Tu>( 
             idx, indices[idx],
             states, 
             P.data(), T.data(), dR.data(),
@@ -519,7 +484,7 @@ __cpu__tesellate(
 //        this program as in a single run, I have observed worsening
 //        performance over time.
 
-template <typename Ti, typename Tf>
+template <typename Ti, typename Tf, typename Tu>
 static void
 __cpu__recompute(
 
@@ -566,8 +531,8 @@ __cpu__recompute(
   std::vector<Ti>& knn = heap_id;
 
   std::vector<Tf>       P(subsize * p_maxsize * 4);
-  std::vector<uint8_t>  T(subsize * t_maxsize * 3);
-  std::vector<uint8_t> dR(subsize * p_maxsize);
+  std::vector<Tu>  T(subsize * t_maxsize * 3);
+  std::vector<Tu> dR(subsize * p_maxsize);
 
   while (1) {
 
@@ -639,7 +604,7 @@ __cpu__recompute(
             args_knn
           );
 
-          cci::compute<Ti, Tf, uint8_t>( 
+          cci::compute<Ti, Tf, Tu>( 
             idx, indices[idx],
             states, 
             P.data(), T.data(), dR.data(),
@@ -725,27 +690,37 @@ tesellate(
     case (device::gpu): 
       
       if (device_found()) {
-        __gpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+
+        __gpu__tesellate<Ti, Tf, uint8_t>(xyzset, id, offset, refset, 
+                                          tmpnn, states, args);
+
         break;
+
       } 
 
       std::cerr << "\033[1m\033[93mWarning: "
                 << "No GPU device found. Running CPU as fallback"
                 << "\033[0m\n";
       
-      __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      __cpu__tesellate<Ti, Tf, uint8_t>(xyzset, id, offset, refset, 
+                                        tmpnn, states, args);
+
       break;
 
     case (device::cpu): 
 
-      __cpu__tesellate(xyzset, id, offset, refset, tmpnn, states, args);
+      __cpu__tesellate<Ti, Tf, uint8_t>(xyzset, id, offset, refset, 
+                                        tmpnn, states, args);
+
       break;
 
   }
   
   if (args["use_recompute"].get<bool>()) {
-    std::cout << "recomputing" << std::endl;
-    __cpu__recompute(xyzset, id, offset, refset, tmpnn, states, args);
+
+    __cpu__recompute<Ti, Tf, uint8_t>(xyzset, id, offset, refset, 
+                                      tmpnn, states, args);
+
   }
 
   int n_sr_nreached = 0;
