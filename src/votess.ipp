@@ -320,7 +320,7 @@ __gpu__tesellate(
           aargs_knn
         );
 
-        #if 0
+        #if 1
         cci::compute<Ti, Tf, uint8_t>(
           index, aindices[index],
           astates,
