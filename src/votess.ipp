@@ -247,7 +247,7 @@ __gpu__tesellate(
     queue.submit([&](sycl::handler& cgh) {
       auto a = sycl::accessor(bheap_id, cgh, sycl::write_only, sycl::no_init);
       cgh.parallel_for<class fill_heap_id>
-      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) { 
+      (sycl::range<1>(bheap_id.size()), [=](sycl::id<1> idx) { 
         a[idx] = 0; 
       });
     });
@@ -255,7 +255,7 @@ __gpu__tesellate(
     queue.submit([&](sycl::handler& cgh) {
       auto a = sycl::accessor(bheap_pq, cgh, sycl::write_only, sycl::no_init);
       cgh.parallel_for<class fill_heap_pq>
-      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) {
+      (sycl::range<1>(bheap_pq.size()), [=](sycl::id<1> idx) {
         a[idx] = FP_INFINITY;
       });
     });
@@ -263,7 +263,7 @@ __gpu__tesellate(
     queue.submit([&](sycl::handler& cgh) {
       auto a = sycl::accessor(bdknn, cgh, sycl::write_only, sycl::no_init);
       cgh.parallel_for<class fill_dknn>
-      (sycl::range<1>(chunksize * k), [=](sycl::id<1> idx) {
+      (sycl::range<1>(bdknn.size()), [=](sycl::id<1> idx) {
         a[idx] = __INTERNAL__K_UNDEFINED;
       });
     });
@@ -271,7 +271,7 @@ __gpu__tesellate(
     queue.submit([&](sycl::handler& cgh) {
       auto a = sycl::accessor(bindices, cgh, sycl::write_only, sycl::no_init);
       cgh.parallel_for<class indices_init>
-      (sycl::range<1>(subsize), [=](sycl::id<1> idx) {
+      (sycl::range<1>(bindices.size()), [=](sycl::id<1> idx) {
         a[idx] = _cstart + idx[0];
       });
     });
