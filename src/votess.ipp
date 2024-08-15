@@ -195,7 +195,6 @@ __gpu__tesellate(
 
   const int ndsize = args["gpu_ndsize"].get<int>() > 0 ?
                      args["gpu_ndsize"] : 1;
-  (void)ndsize;
 
   const int chunksize = args["use_chunking"].get<bool>() ? 
                         args["chunksize"] : refsize + 1;
@@ -285,8 +284,6 @@ __gpu__tesellate(
 
       using namespace sycl;
 
-      const size_t sgsize = 1; // subgroup size;
-    
       auto aindices = sycl::accessor(bindices, cgh, read_only);
       auto axyzset = sycl::accessor(bxyzset, cgh, read_only);
       auto aoffset = sycl::accessor(boffset, cgh, read_only);
@@ -307,7 +304,7 @@ __gpu__tesellate(
 
 #if USE_NEW_IMPL 
       cgh.parallel_for<class __sycl__tessellate>
-      (sycl::nd_range<1>(sycl::range<1>(subsize), sycl::range<1>(sgsize)),
+      (sycl::nd_range<1>(sycl::range<1>(subsize), sycl::range<1>(ndsize)),
       [=](sycl::nd_item<1> it) {
 
         const size_t index = it.get_global_linear_id();
