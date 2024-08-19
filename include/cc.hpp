@@ -59,11 +59,11 @@ void compute(
 
 template <typename Ti, typename Tf, typename Tu>
 void compute(
-  const Ti i, const Ti index,
+  const Ti i, const Ti l_i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
   const device_accessor_readwrite_t<Tf>& P,
   const device_accessor_readwrite_t<Tu>& T,
-  const device_accessor_readwrite_t<Tu>& dR,
+  const sycl::local_accessor<Tu, 1>& dR,
   const device_accessor_readwrite_t<Ti>& knn, const Ti koffs,
   const device_accessor_readwrite_t<Ti>& dknn,
   const device_accessor_read_t<Tf>& xyzset,

@@ -453,11 +453,11 @@ void cci::compute(
 
 template <typename Ti, typename Tf, typename Tu>
 void cci::compute(
-  const Ti i, const Ti index,
+  const Ti i, const Ti l_i, const Ti index,
   const device_accessor_readwrite_t<cc::state>& states, 
   const device_accessor_readwrite_t<Tf>& P,
   const device_accessor_readwrite_t<Tu>& T,
-  const device_accessor_readwrite_t<Tu>& dR,
+  const sycl::local_accessor<Tu, 1>& dR,
   const device_accessor_readwrite_t<Ti>& knn, const Ti koffs,
   const device_accessor_readwrite_t<Ti>& dknn,
   const device_accessor_read_t<Tf>& xyzset,
@@ -597,7 +597,7 @@ void cci::compute(
       dknn[koffs * neighbor + i] = p_size;
       p_size += 1;
   
-      const Ti dr_offs = p_maxsize * i;
+      const Ti dr_offs = p_maxsize * l_i;
       for (Ti j = 0; j < p_maxsize; j++) {
         dR[dr_offs + j] = boundary::bstatus::undefined;
       }
@@ -653,17 +653,6 @@ void cci::compute(
   
   }
  
-#if 0
-  for (int di = 0; di < k; di++) {
-    bool flag = true;
-    for (Ti ti = 0; ti < t_size; ti++) {
-      flag = !(T[3 * t_maxsize * i + 3 * ti + 0] == dknn[koffs * di + i] ||
-               T[3 * t_maxsize * i + 3 * ti + 1] == dknn[koffs * di + i] ||
-               T[3 * t_maxsize * i + 3 * ti + 2] == dknn[koffs * di + i]);
-      if (!flag) break;
-    } if (flag) knn[koffs * di + i] = cc::k_undefined;
-  }
-#else
   for (Ti di = 0; di < k; di++) {
     bool flag = true;
     for (Ti ti = 0; ti < t_size; ti++) {
@@ -679,7 +668,6 @@ void cci::compute(
       if (!flag) break;
     } if (flag) knn[koffs * di + i] = cc::k_undefined;
   }
-#endif
 
   Ti dnn_counter = 0;
   for (Ti di = 0; di < k; di++) {

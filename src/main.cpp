@@ -184,15 +184,14 @@ int main(int argc, char* argv[]) {
   args["use_recompute"] = false;
   args["dev_suppress_stdout"] = false;
 
-  args["cc_p_maxsize"] = 64;
-  args["cc_t_maxsize"] = 64;
-
   args["use_chunking"] = false;
   args["chunksize"] = 102400;
 
 #if 1
   
   {
+    args["cc_p_maxsize"] = 32;
+    args["cc_t_maxsize"] = 64;
     auto start = std::chrono::high_resolution_clock::now();
     auto dnn = votess::tesellate<int32_t, float>(xyzset, args, 
                                                  votess::device::gpu);
@@ -206,12 +205,13 @@ int main(int argc, char* argv[]) {
 
 #endif
 
-#if 0
+#if 1
   
   {
     args["use_chunking"] = true;
     args["chunksize"] = 8196;
-
+    args["cc_p_maxsize"] = 32;
+    args["cc_t_maxsize"] = 64;
 
     auto start = std::chrono::high_resolution_clock::now();
     auto dnn = votess::tesellate<int, float>(xyzset, args,

@@ -58,7 +58,7 @@ inline bstatus compute(
 
 template<typename Ti, typename Tu>
 inline bstatus compute(
-  const device_accessor_readwrite_t<Tu>& cycle, 
+  const sycl::local_accessor<Tu, 1>& cycle,
   const Ti dr_offs,
   const Ti dr_size,
   short int& head,
