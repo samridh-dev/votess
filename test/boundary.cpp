@@ -21,21 +21,34 @@ static void compute_gpu(
   const size_t r_size) {
   
   sycl::queue q;
-  sycl::buffer<T>
-  bcycle(cycle.data(), sycl::range<1>(cycle.size()));
+  sycl::buffer<T> bcycle(cycle.data(), sycl::range<1>(cycle.size()));
   sycl::buffer<T> bR(R.data(), sycl::range<1>(R.size()));
   sycl::buffer<short int> bhead(&head, sycl::range<1>(1));
 
   q.submit([&](sycl::handler& h) {
-    auto cycle = bcycle.template
+    auto cycle = bcycle.template 
     get_access<sycl::access::mode::read_write>(h);
-    auto R = bR.template
+    auto R = bR.template 
     get_access<sycl::access::mode::read_write>(h);
-    auto ahead = bhead.template
+    auto ahead = bhead.template 
     get_access<sycl::access::mode::read_write>(h);
-    h.single_task([=]() {
-      boundary::compute(cycle, dr_offs, dr_size,
+    sycl::local_accessor<T> 
+    lcycle(sycl::range<1>(cycle.size()), h);
+    
+    sycl::nd_range<1> ndRange(1, 1);
+    h.parallel_for(ndRange, [=](sycl::nd_item<1> item) {
+
+      for (size_t i = 0; i < cycle.size(); i++) {
+        lcycle[i] = cycle[i];
+      }
+
+      boundary::compute(lcycle, dr_offs, dr_size, 
                         ahead[0], R, r_offs, r_size);
+
+      for (size_t i = 0; i < cycle.size(); i++) {
+        cycle[i] = lcycle[i];
+      }
+
     });
   }).wait();
 
