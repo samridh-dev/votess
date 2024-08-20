@@ -67,6 +67,7 @@ static void compute_gpu(
 
 } // namespace boundary
 
+
 static std::string 
 vector_to_string(const std::vector<int>& vec) {
   std::stringstream ss;

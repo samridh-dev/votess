@@ -55,6 +55,7 @@ def create_initial_condition_tests():
     print('    class votess::vtargs vtargs;')
     print('    vtargs["k"] = k;')
     print('    vtargs["knn_grid_resolution"] = knn_grid_res;')
+    print('    vtargs["gpu_ndsize"] = 1;')
     print('    vtargs["use_recompute"] = use_recompute;')
     print('    vtargs["use_chunking"] = use_chunking;')
     print('    vtargs["chunksize"] = chunksize;')
@@ -397,7 +398,7 @@ def main():
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
 
-    create_initial_condition_tests()
+#    create_initial_condition_tests()
 
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
