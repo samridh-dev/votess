@@ -194,7 +194,6 @@ __gpu__tesellate(
 
   const int ndsize = args["gpu_ndsize"].get<int>() > 0 ?
                      args["gpu_ndsize"] : 1;
-  (void)ndsize;
 
   const int chunksize = args["use_chunking"].get<bool>() ? 
                         args["chunksize"] : refsize + 1;
@@ -233,7 +232,6 @@ __gpu__tesellate(
   sycl::buffer<Ti,1>      bdknn(sycl::range<1>(subsize * k));
   sycl::buffer<Tf,1>      bP(sycl::range<1>(subsize * p_maxsize * 4));
   sycl::buffer<Tu,1> bT(sycl::range<1>(subsize * t_maxsize * 3));
-  sycl::buffer<Tu,1> bdR(sycl::range<1>(subsize * p_maxsize));
 
   for (int run = 0; run < nruns; run++) {
     
@@ -284,8 +282,6 @@ __gpu__tesellate(
 
       using namespace sycl;
 
-      const size_t sgsize = 1; // subgroup size;
-    
       auto aindices = sycl::accessor(bindices, cgh, read_only);
       auto axyzset = sycl::accessor(bxyzset, cgh, read_only);
       auto aoffset = sycl::accessor(boffset, cgh, read_only);
@@ -298,20 +294,23 @@ __gpu__tesellate(
 
       auto aP  = sycl::accessor(bP,  cgh, read_write, property::no_init());
       auto aT  = sycl::accessor(bT,  cgh, read_write, property::no_init());
-      auto adR = sycl::accessor(bdR, cgh, read_write, property::no_init());
       auto astates = accessor(bstates, cgh, read_write, property::no_init());
+
+      sycl::local_accessor<Tu, 1> 
+      ldR(sycl::range<1>(ndsize * p_maxsize), cgh);
 
       auto aargs_knn = args_knn;
       auto aargs_cc = args_cc;
 
       cgh.parallel_for<class __sycl__tessellate>
-      (sycl::nd_range<1>(sycl::range<1>(subsize), sycl::range<1>(sgsize)),
+      (sycl::nd_range<1>(sycl::range<1>(subsize), sycl::range<1>(ndsize)),
       [=](sycl::nd_item<1> it) {
 
-        const size_t index = it.get_global_linear_id();
+        const size_t g_index = it.get_global_linear_id();
+        const size_t l_index = it.get_local_linear_id();
 
         knni::compute<Ti, Tf>(
-          index, aindices[index],
+          g_index, aindices[g_index],
           axyzset, xyzsize, aid, aoffset,
           axyzset, subsize,
           aheap_id, aheap_pq, subsize,
@@ -320,9 +319,9 @@ __gpu__tesellate(
 
         #if 1
         cci::compute<Ti, Tf, Tu>(
-          index, aindices[index],
+          g_index, l_index, aindices[g_index],
           astates,
-          aP, aT, adR,
+          aP, aT, ldR,
           aheap_id, subsize,
           adknn,
           axyzset, xyzsize,
@@ -330,6 +329,7 @@ __gpu__tesellate(
           aargs_cc
         );
         #endif
+
       });
     });
     queue.wait();
