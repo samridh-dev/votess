@@ -17,12 +17,12 @@ jobs:
       - name: Download OneAPI HPCkit installer if not cached
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
         run: |
-          wget -O l_HPCKit_p_2024.2.1.79.sh https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d461a695-6481-426f-a22f-b5644cd1fa8b/l_HPCKit_p_2024.2.1.79.sh
+          wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/e6ff8e9c-ee28-47fb-abd7-5c524c983e1c/l_BaseKit_p_2024.2.1.100_offline.sh
 
       - name: Install OneAPI HPCkit
         run: |
-          sudo sh ./l_HPCKit_p_2024.2.1.79.sh -a \
-          --silent --eula accept --install-dir /opt/intel/oneapi/
+          sudo sh ./l_BaseKit_p_2024.2.1.100_offline.sh -a \
+          --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
   build:
     needs: prereq_intel_oneapi
