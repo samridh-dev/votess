@@ -7,19 +7,19 @@ jobs:
   prereq_intel_oneapi:
     runs-on: ubuntu-20.04
     steps:
-      - name: Cache OneAPI basekit installer
+      - name: Cache OneAPI Compiler installer
         id: cache-oneapi
         uses: actions/cache@v3
         with:
           path: l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
           key: ${{ runner.os }}-oneapi-${{ hashFiles('l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh') }}
 
-      - name: Download icpx installer
+      - name: Download Compiler installer
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
         run: |
           wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
 
-      - name: Install icpx
+      - name: Install Compiler
         run: |
           sudo sh ./l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
@@ -33,5 +33,6 @@ jobs:
 
       - name: Set up Intel environment variables
         run: |
+          ls -R /opt/intel/oneapi/ >&2
           source /opt/intel/oneapi/compiler/latest/env/vars.sh
           sh make.sh
