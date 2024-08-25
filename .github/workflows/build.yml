@@ -7,19 +7,19 @@ jobs:
   prereq_intel_oneapi:
     runs-on: ubuntu-20.04
     steps:  # Added 'steps:' here
-      - name: Cache OneAPI HPCkit installer
+      - name: Cache OneAPI basekit installer
         id: cache-oneapi
         uses: actions/cache@v3
         with:
-          path: l_HPCKit_p_2024.2.1.79.sh
-          key: ${{ runner.os }}-oneapi-${{ hashFiles('l_HPCKit_p_2024.2.1.79.sh') }}
+          path: l_BaseKit_p_2024.2.1.100_offline.sh
+          key: ${{ runner.os }}-oneapi-${{ hashFiles('l_BaseKit_p_2024.2.1.100_offline.sh') }}
 
-      - name: Download OneAPI HPCkit installer if not cached
+      - name: Download OneAPI Basekit installer if not cached
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
         run: |
           wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/e6ff8e9c-ee28-47fb-abd7-5c524c983e1c/l_BaseKit_p_2024.2.1.100_offline.sh
 
-      - name: Install OneAPI HPCkit
+      - name: Install OneAPI Basekit
         run: |
           sudo sh ./l_BaseKit_p_2024.2.1.100_offline.sh -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
