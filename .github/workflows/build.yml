@@ -4,13 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  
- prereq_intel_oneapi:
-
+  prereq_intel_oneapi:
     runs-on: ubuntu-20.04
-
     steps:
-
       - name: Update APT and install prerequisites
         run: |
           sudo apt update
@@ -42,15 +38,13 @@ jobs:
         run: sudo apt install -y intel-basekit
 
   build:
-
     needs: prereq_intel_oneapi
     runs-on: ubuntu-20.04
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Intel environment variables
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        sh make.sh
+      - name: Set up Intel environment variables
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          sh make.sh
