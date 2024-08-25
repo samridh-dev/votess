@@ -1,0 +1,59 @@
+name: CI
+
+on: 
+  workflow_dispatch:
+
+jobs:
+
+  # Steps to install oneapi basekit:
+  # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-2/install-with-command-line.html#GUID-56B16998-1363-40F5-A6D5-6A3D5B877F37
+  
+ prereq_intel_oneapi:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+
+      - name: Update APT and install prerequisites
+        run: |
+          sudo apt update
+          sudo apt install -y gpg-agent wget
+
+      - name: Set up Intel OneAPI repository key
+        run: |
+          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
+          gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+
+      - name: Add Intel OneAPI repository
+        run: |
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] \
+          https://apt.repos.intel.com/oneapi all main" | \
+          sudo tee /etc/apt/sources.list.d/oneAPI.list
+
+      - name: Update APT package list
+        run: sudo apt update
+
+      - name: Cache Intel OneAPI BaseKit
+        id: cache-oneapi
+        uses: actions/cache@v3
+        with:
+          path: /opt/intel/oneapi
+          key: ${{ runner.os }}-oneapi-basekit
+
+      - name: Install Intel OneAPI BaseKit
+        if: steps.cache-oneapi.outputs.cache-hit != 'true'
+        run: sudo apt install -y intel-basekit
+
+  build:
+
+    needs: prereq_intel_oneapi
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Intel environment variables
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        sh make.sh
