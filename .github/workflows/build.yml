@@ -11,17 +11,16 @@ jobs:
         id: cache-oneapi
         uses: actions/cache@v3
         with:
-          path: l_BaseKit_p_2024.2.1.100_offline.sh
-          key: ${{ runner.os }}-oneapi-${{ hashFiles('l_BaseKit_p_2024.2.1.100_offline.sh') }}
+          path: l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+          key: ${{ runner.os }}-oneapi-${{ hashFiles('l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh') }}
 
-      - name: Download OneAPI Basekit installer if not cached
+      - name: Download icpx installer
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
         run: |
-          wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/e6ff8e9c-ee28-47fb-abd7-5c524c983e1c/l_BaseKit_p_2024.2.1.100_offline.sh
-
-      - name: Install OneAPI Basekit
+          wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+      - name: Install icpx
         run: |
-          sudo sh ./l_BaseKit_p_2024.2.1.100_offline.sh -a \
+          sudo sh ./l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
   build:
