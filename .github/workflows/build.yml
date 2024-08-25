@@ -6,36 +6,23 @@ on:
 jobs:
   prereq_intel_oneapi:
     runs-on: ubuntu-20.04
-    steps:
-      - name: Update APT and install prerequisites
-        run: |
-          sudo apt update
-          sudo apt install -y gpg-agent wget
 
-      - name: Set up Intel OneAPI repository key
-        run: |
-          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
-          gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-
-      - name: Add Intel OneAPI repository
-        run: |
-          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] \
-          https://apt.repos.intel.com/oneapi all main" | \
-          sudo tee /etc/apt/sources.list.d/oneAPI.list
-
-      - name: Update APT package list
-        run: sudo apt update
-
-      - name: Cache Intel OneAPI BaseKit
+     - name: Cache OneAPI HPCkit installer
         id: cache-oneapi
         uses: actions/cache@v3
         with:
-          path: /opt/intel/oneapi
-          key: ${{ runner.os }}-oneapi-basekit
+          path: l_HPCKit_p_2024.2.1.79.sh
+          key: ${{ runner.os }}-oneapi-${{ hashFiles('l_HPCKit_p_2024.2.1.79.sh') }}
 
-      - name: Install Intel OneAPI BaseKit
+      - name: Download OneAPI HPCkit installer if not cached
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
-        run: sudo apt install -y intel-basekit
+        run: |
+          wget -O l_HPCKit_p_2024.2.1.79.sh https://registrationcenter-download.intel.com/akdlm/IRC_NAS/d461a695-6481-426f-a22f-b5644cd1fa8b/l_HPCKit_p_2024.2.1.79.sh
+
+      - name: Install OneAPI HPCkit
+        run: |
+          sudo sh ./l_HPCKit_p_2024.2.1.79.sh -a \
+          --silent --eula accept --install-dir /opt/intel/oneapi/
 
   build:
     needs: prereq_intel_oneapi
@@ -46,6 +33,5 @@ jobs:
 
       - name: Set up Intel environment variables
         run: |
-          sudo find / -name setvars.sh
           source /opt/intel/oneapi/setvars.sh
           sh make.sh
