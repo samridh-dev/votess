@@ -46,5 +46,6 @@ jobs:
 
       - name: Set up Intel environment variables
         run: |
+          ls -R /opt/intel/
           source /opt/intel/oneapi/setvars.sh
           sh make.sh
