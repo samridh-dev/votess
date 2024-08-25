@@ -6,8 +6,8 @@ on:
 jobs:
   prereq_intel_oneapi:
     runs-on: ubuntu-20.04
-
-     - name: Cache OneAPI HPCkit installer
+    steps:  # Added 'steps:' here
+      - name: Cache OneAPI HPCkit installer
         id: cache-oneapi
         uses: actions/cache@v3
         with:
@@ -27,7 +27,7 @@ jobs:
   build:
     needs: prereq_intel_oneapi
     runs-on: ubuntu-20.04
-    steps:
+    steps:  # Added 'steps:' here
       - name: Checkout repository
         uses: actions/checkout@v2
 
