@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  # Steps to install oneapi basekit:
-  # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2024-2/install-with-command-line.html#GUID-56B16998-1363-40F5-A6D5-6A3D5B877F37
   
  prereq_intel_oneapi:
 
