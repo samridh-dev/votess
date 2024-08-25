@@ -19,6 +19,6 @@ echo "building Makefile"
 mkdir -p "${BUILD_DIR}"
 
 cd "${BUILD_DIR}"
-cmake ../.. -Wdev -D CMAKE_CXX_COMPILER=icpx
+cmake ../.. -Wdev -D CMAKE_CXX_COMPILER=$(which icpx)
 echo "building Project"
 make -j $(nproc)
