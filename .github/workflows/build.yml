@@ -24,10 +24,6 @@ jobs:
           sudo sh ./l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
-  build:
-    needs: prereq_intel_oneapi
-    runs-on: ubuntu-20.04
-    steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
