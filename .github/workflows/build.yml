@@ -38,5 +38,5 @@ jobs:
           echo "Using compiler: "
           which icpx 1>&2
           sh make.sh
-          ./bin/test ~[ignore] --abort --duration yes --warn NoAssertions
+          ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
 
