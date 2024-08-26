@@ -52,7 +52,7 @@ jobs:
 
       - name: Build votess
         run: |
-          sh make.sh
+          sh make.sh --compiler acpp
 
       - name: Test votess
         run: |
@@ -84,7 +84,7 @@ jobs:
       - name: Build votess
         run: |
           source /opt/intel/oneapi/setvars.sh
-          sh make.sh
+          sh make.sh --compiler icpx
 
       - name: Test votess
         run: |
