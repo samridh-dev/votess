@@ -4,39 +4,57 @@ on:
   workflow_dispatch:
 
 env:
+
   ONEAPI_COMPILER_URL: |
     https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
   ONEAPI_COMPILER_INSTALL: |
     l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
 
+  ACPP_COMPILER_URL: |
+    https://github.com/AdaptiveCpp/AdaptiveCpp.git
+
+
 jobs:
-  Intel_OneAPI_ICPX:
+
+  AdaptiveCpp_ACPP:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Install AdaptiveCpp dependencies
+        run: |
+          bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+
+      - name: Install AdaptiveCpp Compiler
+        run: |
+          git clone https://github.com/AdaptiveCpp/AdaptiveCpp
+          cd AdaptiveCpp
+          mkdir build && cd build
+          cmake -DCMAKE_INSTALL_PREFIX=/your/desired/install/location ..
+          make install
+        
+      - name: Checkout votess repository
+        uses: actions/checkout@v2
+
+      - name: Build votess
+        run: |
+          sh make.sh
+          ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
+
+  OneAPI_ICPX:
     runs-on: ubuntu-20.04
     steps:
-      - name: Check if cache exists
-        id: cache-intel
-        uses: actions/cache@v3
-        with:
-          path: /opt/intel/oneapi/
-          key: ${{ runner.os }}-intel-oneapi-${{ hashFiles(env.ONEAPI_COMPILER_INSTALL) }}
-          restore-keys: |
-            ${{ runner.os }}-intel-oneapi-
 
-      - name: Install Compiler
-        if: steps.cache-intel.outputs.cache-hit != 'true'
+      - name: Install OneAPI Compiler
         run: |
           wget $ONEAPI_COMPILER_URL
           sudo sh $ONEAPI_COMPILER_INSTALL -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
       
-      - name: Checkout votess
+      - name: Checkout votess repository
         uses: actions/checkout@v2
 
       - name: Build votess
         run: |
           source /opt/intel/oneapi/setvars.sh
-          echo "Using compiler: "
-          which icpx 1>&2
           sh make.sh
           ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
-
