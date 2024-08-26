@@ -7,28 +7,24 @@ else()
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-# Initialize variable for additional debug flags
 set(ADDITIONAL_DEBUG_FLAGS "")
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   set(ADDITIONAL_DEBUG_FLAGS 
-    "${ADDITIONAL_DEBUG_FLAGS} -Wduplicated-cond \
+    "${ADDITIONAL_DEBUG_FLAGS} -Wduplicated-cond                              \
     -Wduplicated-branches -Wlogical-op -Wuseless-cast"
   )
 endif()
-
-# Global
 
 set(CMAKE_CXX_FLAGS_ALL 
   ""
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}                           \
    -Wall -Wextra -Wshadow -Wpedantic -Wformat=2 -fno-omit-frame-pointer -O0"
 )
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
-  -g3 -O3 -funroll-loops -gline-tables-only  \
-  -fdebug-info-for-profiling -debug inline-debug-info"
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}                       \
+  -O3 -funroll-loops"
 )
 
 set(CMAKE_CXX_LINK_FLAGS_ALL 
@@ -38,14 +34,18 @@ set(CMAKE_CXX_LINK_FLAGS_ALL
 # compiler specifics
 if (CMAKE_CXX_COMPILER MATCHES "icpx$")
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}      \
-                             ${CMAKE_CXX_FLAGS_DEBUG}    \
-                             ${CMAKE_CXX_LINK_FLAGS_ALL} \
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}                           \
+                             ${CMAKE_CXX_FLAGS_DEBUG}                         \
+                             ${CMAKE_CXX_LINK_FLAGS_ALL}                      \
                              -fsycl")
 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}      \
-                               ${CMAKE_CXX_FLAGS_RELEASE}  \
-                               ${CMAKE_CXX_LINK_FLAGS_ALL} \
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}                         \
+                               ${CMAKE_CXX_FLAGS_RELEASE}                     \
+                               ${CMAKE_CXX_LINK_FLAGS_ALL}                    \
+                               -g3                                            \
+                               -gline-tables-only                             \
+                               -fdebug-info-for-profiling                     \
+                               -debug inline-debug-info                       \
                                -fsycl")
 
 endif()
@@ -54,12 +54,12 @@ if (CMAKE_CXX_COMPILER MATCHES "acpp$")
 
   find_package(AdaptiveCpp REQUIRED)
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}      \
-                             ${CMAKE_CXX_FLAGS_DEBUG}    \
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}                           \
+                             ${CMAKE_CXX_FLAGS_DEBUG}                         \
                              ${CMAKE_CXX_LINK_FLAGS_ALL}")
 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}      \
-                               ${CMAKE_CXX_FLAGS_RELEASE}  \
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}                         \
+                               ${CMAKE_CXX_FLAGS_RELEASE}                     \
                                ${CMAKE_CXX_LINK_FLAGS_ALL}")
 
 endif()
