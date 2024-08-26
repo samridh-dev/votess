@@ -48,6 +48,8 @@ jobs:
           cd AdaptiveCpp
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=$ACPP_INSTALL_PREFIX \
+                -DLLVM_DIR=$LLVM_INSTALL_PREFIX/cmake/
+                -DCLANG_EXECUTABLE_PATH=$LLVM_INSTALL_PREFIX/bin/clang++ \
                 -DCLANG_INCLUDE_PATH=$CLANG_INSTALL_PREFIX \
                 ..
           sudo make install
