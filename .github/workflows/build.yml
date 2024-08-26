@@ -5,15 +5,13 @@ on:
 
 env:
 
+  ONEAPI_COMPILER_URL: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+  ONEAPI_COMPILER_SH: l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+
   ACPP_COMPILER_URL: https://github.com/AdaptiveCpp/AdaptiveCpp.git
   ACPP_INSTALL_PREFIX: /opt/adaptivecpp
-  LLVM_VERSION: 16
-  LLVM_INSTALL_PREFIX: /usr/lib/llvm-16
-
-  ONEAPI_COMPILER_URL: |
-    https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
-  ONEAPI_COMPILER_SH: |
-    l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+  ACPP_LLVM_VERSION: 16
+  ACPP_LLVM_INSTALL_PREFIX: /usr/lib/llvm-16
 
 jobs:
 
@@ -28,12 +26,12 @@ jobs:
           sudo apt-get install libboost-all-dev
           sudo wget https://apt.llvm.org/llvm.sh
           sudo chmod +x llvm.sh
-          sudo ./llvm.sh $LLVM_VERSION
-          sudo apt-get install -y libclang-$LLVM_VERSION-dev                  \
-                                  clang-tools-$LLVM_VERSION                   \
-                                  libomp-$LLVM_VERSION-dev                    \
-                                  llvm-$LLVM_VERSION-dev                      \
-                                  lld-$LLVM_VERSION
+          sudo ./llvm.sh $ACPP_LLVM_VERSION
+          sudo apt-get install -y libclang-$ACPP_LLVM_VERSION-dev             \
+                                  clang-tools-$ACPP_LLVM_VERSION              \
+                                  libomp-$ACPP_LLVM_VERSION-dev               \
+                                  llvm-$ACPP_LLVM_VERSION-dev                 \
+                                  lld-$ACPP_LLVM_VERSION
 
       - name: Install AdaptiveCpp Compiler
         run: |
@@ -41,10 +39,10 @@ jobs:
           git clone https://github.com/AdaptiveCpp/AdaptiveCpp
           cd AdaptiveCpp
           mkdir build && cd build
-          cmake -DCMAKE_INSTALL_PREFIX=$ACPP_INSTALL_PREFIX/ \
-                -DLLVM_DIR=$LLVM_INSTALL_PREFIX/cmake/ \
-                -DCLANG_INCLUDE_PATH=$LLVM_INSTALL_PREFIX/include/clang/ \
-                -DCLANG_EXECUTABLE_PATH=$LLVM_INSTALL_PREFIX/bin/clang++  \
+          cmake -DCMAKE_INSTALL_PREFIX=$ACPP_INSTALL_PREFIX/                  \
+                -DLLVM_DIR=$ACPP_LLVM_INSTALL_PREFIX/cmake/                   \
+                -DCLANG_INCLUDE_PATH=$ACPP_LLVM_INSTALL_PREFIX/include/clang/ \
+                -DCLANG_EXECUTABLE_PATH=$ACPP_LLVM_INSTALL_PREFIX/bin/clang++ \
                 ..
           
           sudo make install
