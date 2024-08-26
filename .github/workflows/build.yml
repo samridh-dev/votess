@@ -10,7 +10,6 @@ env:
   ACPP_INSTALL_PREFIX: |
     /opt/adaptivecpp
 
-env:
   LLVM_VERSION: 16
   LLVM_INSTALL_PREFIX: |
     /usr/lib/llvm-16
