@@ -5,14 +5,10 @@ on:
 
 env:
 
-  ACPP_COMPILER_URL: |
-    https://github.com/AdaptiveCpp/AdaptiveCpp.git
-  ACPP_INSTALL_PREFIX: |
-    /opt/adaptivecpp
-
+  ACPP_COMPILER_URL: https://github.com/AdaptiveCpp/AdaptiveCpp.git
+  ACPP_INSTALL_PREFIX: /opt/adaptivecpp
   LLVM_VERSION: 16
-  LLVM_INSTALL_PREFIX: |
-    /usr/lib/llvm-16
+  LLVM_INSTALL_PREFIX: /usr/lib/llvm-16
 
   ONEAPI_COMPILER_URL: |
     https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
