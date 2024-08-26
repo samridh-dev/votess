@@ -38,6 +38,7 @@ jobs:
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=/opt/adaptivecpp/ \
                 -DCLANG_EXECUTABLE_PATH=$(which clang++) \
+                -DCLANG_INCLUDE_PATH=/usr/lib/llvm-16/include/clang \
                 ..
           sudo make install
         
