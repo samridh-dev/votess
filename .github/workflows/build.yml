@@ -75,7 +75,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           wget $ONEAPI_COMPILER_URL
-          sudo sh $ONEAPI_COMPILER_SH-a \
+          sudo sh $ONEAPI_COMPILER_SH -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
       
       - name: Checkout votess repository
