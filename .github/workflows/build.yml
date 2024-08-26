@@ -23,15 +23,13 @@ jobs:
           sudo sh ./$ONEAPI_COMPILER_INSTALL -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
-      - name: Set up Intel environment variables
-        run: |
-          ls -R /opt/intel/oneapi/ 1>&2
-          source /opt/intel/oneapi/setvars.sh
-
       - name: Checkout votess
         uses: actions/checkout@v2
 
       - name: Build votess
         run: |
+          source /opt/intel/oneapi/setvars.sh
+          echo "Using compiler: " 
+          which acpp 1<&2
           sh make.sh
           ./bin/test ~[ignore] --abort --duration yes --warn NoAssertions
