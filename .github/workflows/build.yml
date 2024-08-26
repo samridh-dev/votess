@@ -21,10 +21,6 @@ jobs:
 
     steps:
 
-      - name: Install AdaptiveCpp dependencies
-        run: |
-          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-
       - name: Install AdaptiveCpp Compiler
         run: |
           git clone https://github.com/AdaptiveCpp/AdaptiveCpp
@@ -39,6 +35,9 @@ jobs:
       - name: Build votess
         run: |
           sh make.sh
+
+      - name: Test votess
+        run: |
           ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
 
   OneAPI_ICPX:
@@ -67,4 +66,7 @@ jobs:
         run: |
           source /opt/intel/oneapi/setvars.sh
           sh make.sh
+
+      - name: Test votess
+          source /opt/intel/oneapi/setvars.sh
           ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
