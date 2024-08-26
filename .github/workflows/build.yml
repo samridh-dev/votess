@@ -7,7 +7,7 @@ env:
 
   ONEAPI_COMPILER_URL: |
     https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
-  ONEAPI_COMPILER_INSTALL: |
+  ONEAPI_COMPILER_SH: |
     l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
 
   ACPP_COMPILER_URL: |
@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+
       - name: Install AdaptiveCpp dependencies
         run: |
-          bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+          sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
       - name: Install AdaptiveCpp Compiler
         run: |
@@ -30,7 +31,7 @@ jobs:
           cd AdaptiveCpp
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=/your/desired/install/location ..
-          make install
+          sudo make install
         
       - name: Checkout votess repository
         uses: actions/checkout@v2
@@ -44,10 +45,19 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
 
+      - name: Cache Oneapi Compiler
+        uses: actions/cache@v3
+        with:
+          path: /opt/intel/oneapi/
+          key: ${{ runner.os }}-oneapi-${{ hashFiles('$ONEAPI_COMPILER_SH') }}
+          restore-keys: 
+            ${{ runner.os }}-oneapi-
+
       - name: Install OneAPI Compiler
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           wget $ONEAPI_COMPILER_URL
-          sudo sh $ONEAPI_COMPILER_INSTALL -a \
+          sudo sh $ONEAPI_COMPILER_SH-a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
       
       - name: Checkout votess repository
