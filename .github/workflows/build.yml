@@ -20,6 +20,14 @@ jobs:
 
     steps:
 
+      - name: Install AdaptiveCpp Compiler Dependencies
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          ./llvm.sh 16
+          apt install -y libclang-16-dev clang-tools-16 libomp-16-dev \
+                         llvm-16-dev lld-16
+
       - name: Install AdaptiveCpp Compiler
         run: |
           git clone https://github.com/AdaptiveCpp/AdaptiveCpp
