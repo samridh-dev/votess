@@ -14,16 +14,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
 
-      - name: Download Compiler installer
-        if: steps.oneapi-cache.outputs.cache-hit != 'true'
-        run: |
-          wget $ONEAPI_COMPILER_URL -O compiler_installer.sh
-
       - name: Install Compiler
-        if: steps.oneapi-cache.outputs.cache-hit != 'true'
         run: |
-          sudo sh ./compiler_installer.sh -a \
-          --silent --cli --eula accept --install-dir ./oneapi_cache
+          wget $ONEAPI_COMPILER_URL
+          sudo sh $ONEAPI_COMPILER_INSTALL \
+          --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
       - name: Checkout votess
         uses: actions/checkout@v2
