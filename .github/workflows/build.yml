@@ -3,24 +3,28 @@ name: CI
 on: 
   workflow_dispatch:
 
+env:
 
+  ACPP_COMPILER_URL: |
+    https://github.com/AdaptiveCpp/AdaptiveCpp.git
+  ACPP_INSTALL_PREFIX: |
+    /opt/adaptivecpp
+
+  LLVM_VERSION: 16
+  LLVM_INSTALL_PREFIX: |
+    /usr/lib/llvm-${{ env.LLVM_VERSION }}
+  CLANG_INSTALL_PREFIX: |
+    /usr/lib/llvm-${{ env.LLVM_VERSION }}/include/clang
+
+  ONEAPI_COMPILER_URL: |
+    https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
+  ONEAPI_COMPILER_SH: |
+    l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
 
 jobs:
 
   AdaptiveCpp_ACPP:
     runs-on: ubuntu-20.04
-
-    env:
-      ACPP_COMPILER_URL: |
-        https://github.com/AdaptiveCpp/AdaptiveCpp.git
-      ACPP_INSTALL_PREFIX: |
-        /opt/adaptivecpp
-
-      LLVM_VERSION: 16
-      LLVM_INSTALL_PREFIX: |
-        /usr/lib/llvm-${{ env.LLVM_VERSION }}
-      CLANG_INSTALL_PREFIX: |
-        /usr/lib/llvm-${{ env.LLVM_VERSION }}/include/clang
 
     steps:
 
@@ -63,13 +67,6 @@ jobs:
 
   OneAPI_ICPX:
     runs-on: ubuntu-20.04
-
-    env:
-
-      ONEAPI_COMPILER_URL: |
-        https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
-      ONEAPI_COMPILER_SH: |
-        l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
 
     steps:
 
