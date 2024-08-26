@@ -13,18 +13,6 @@ jobs:
   Intel_OneAPI_ICPX:
     runs-on: ubuntu-20.04
     steps:
-      - name: Set up cache for installed compiler
-        id: oneapi-cache
-        uses: actions/cache@v2
-        with:
-          path: ./oneapi_cache
-          key: ${{ runner.os }}-oneapi-installed-${{ hashFiles('**/path_to_compiler_installer') }}
-
-      - name: Restore Compiler to /opt/intel/oneapi
-        if: steps.oneapi-cache.outputs.cache-hit == 'true'
-        run: |
-          sudo mkdir -p /opt/intel
-          sudo mv ./oneapi_cache /opt/intel/oneapi
 
       - name: Download Compiler installer
         if: steps.oneapi-cache.outputs.cache-hit != 'true'
@@ -36,11 +24,6 @@ jobs:
         run: |
           sudo sh ./compiler_installer.sh -a \
           --silent --cli --eula accept --install-dir ./oneapi_cache
-
-      - name: Move Installed Compiler to Cache Directory
-        if: steps.oneapi-cache.outputs.cache-hit != 'true'
-        run: |
-          sudo mv /opt/intel/oneapi ./oneapi_cache
 
       - name: Checkout votess
         uses: actions/checkout@v2
