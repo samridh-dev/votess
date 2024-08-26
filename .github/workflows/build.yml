@@ -43,13 +43,11 @@ jobs:
 
       - name: Install AdaptiveCpp Compiler
         run: |
-          ls -R /usr/lib/llvm-16/include/ 1>&2
-          $(which clang-$LLVM_VERSION)
+          ls -R /usr/lib/llvm-16/ 1>&2
           git clone https://github.com/AdaptiveCpp/AdaptiveCpp
           cd AdaptiveCpp
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=$ACPP_INSTALL_PREFIX \
-                -DCLANG_EXECUTABLE_PATH=$(which clang++$LLVM_VERSION) \
                 -DCLANG_INCLUDE_PATH=$CLANG_INSTALL_PREFIX \
                 ..
           sudo make install
