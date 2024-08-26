@@ -8,8 +8,6 @@ env:
     https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
   ONEAPI_COMPILER_INSTALL: |
     l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
-  ONEAPI_COMPILER_DIRECTORY: |
-    /opt/intel/oneapi
 
 jobs:
   Intel_OneAPI_ICPX:
@@ -17,7 +15,6 @@ jobs:
     steps:
 
       - name: Download Compiler installer
-        if: steps.cache-oneapi-installer.outputs.cache-hit != 'true'
         run: |
           wget $ONEAPI_COMPILER_URL
 
@@ -28,7 +25,7 @@ jobs:
 
       - name: Set up Intel environment variables
         run: |
-          source $ONEAPI_COMPILER_DIRECTORY/compiler/latest/env/vars.sh
+          source /opt/intel/oneapi/compiler/latest/env/vars.sh
 
       - name: Checkout votess
         uses: actions/checkout@v2
