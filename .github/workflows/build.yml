@@ -17,8 +17,14 @@ jobs:
         id: oneapi-cache
         uses: actions/cache@v2
         with:
-          path: /opt/intel/oneapi
-          key: {{ runner.os }}-oneapi-installed-${{ hashFiles('**/path_to_compiler_installer') }}
+          path: ./oneapi_cache
+          key: ${{ runner.os }}-oneapi-installed-${{ hashFiles('**/path_to_compiler_installer') }}
+
+      - name: Restore Compiler to /opt/intel/oneapi
+        if: steps.oneapi-cache.outputs.cache-hit == 'true'
+        run: |
+          sudo mkdir -p /opt/intel
+          sudo mv ./oneapi_cache /opt/intel/oneapi
 
       - name: Download Compiler installer
         if: steps.oneapi-cache.outputs.cache-hit != 'true'
@@ -29,7 +35,12 @@ jobs:
         if: steps.oneapi-cache.outputs.cache-hit != 'true'
         run: |
           sudo sh ./compiler_installer.sh -a \
-          --silent --cli --eula accept --install-dir /opt/intel/oneapi/
+          --silent --cli --eula accept --install-dir ./oneapi_cache
+
+      - name: Move Installed Compiler to Cache Directory
+        if: steps.oneapi-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo mv /opt/intel/oneapi ./oneapi_cache
 
       - name: Checkout votess
         uses: actions/checkout@v2
@@ -40,4 +51,4 @@ jobs:
           echo "Using compiler: "
           which icpx 1>&2
           sh make.sh
-          ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
+          ./bin/test ~[ignore] --abort --duration yes --warn NoAssertions
