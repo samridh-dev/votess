@@ -34,9 +34,12 @@ jobs:
           sudo apt-get install libboost-all-dev
           sudo wget https://apt.llvm.org/llvm.sh
           sudo chmod +x llvm.sh
-          sudo ./llvm.sh 16
-          sudo apt-get install -y libclang-16-dev clang-tools-16 \
-                                  libomp-16-dev llvm-16-dev lld-16
+          sudo ./llvm.sh $LLVM_VERSION
+          sudo apt-get install -y libclang-$LLVM_VERSION-dev \
+                                  clang-tools-$LLVM_VERSION \
+                                  libomp-$LLVM_VERSION-dev \
+                                  llvm-$LLVM_VERSION-dev \
+                                  lld-$LLVM_VERSION
 
       - name: Install AdaptiveCpp Compiler
         run: |
