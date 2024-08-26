@@ -26,7 +26,7 @@ jobs:
       - name: Set up Intel environment variables
         run: |
           ls -R /opt/intel/oneapi/ 1>&2
-          source /opt/intel/oneapi/compiler/latest/env/vars.sh
+          source /opt/intel/oneapi/setvars.sh
 
       - name: Checkout votess
         uses: actions/checkout@v2
