@@ -13,14 +13,22 @@ jobs:
   Intel_OneAPI_ICPX:
     runs-on: ubuntu-20.04
     steps:
+      - name: Set up cache for installed compiler
+        id: oneapi-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/intel/oneapi
+          key: {{ runner.os }}-oneapi-installed-${{ hashFiles('**/path_to_compiler_installer') }}
 
       - name: Download Compiler installer
+        if: steps.oneapi-cache.outputs.cache-hit != 'true'
         run: |
-          wget $ONEAPI_COMPILER_URL
+          wget $ONEAPI_COMPILER_URL -O compiler_installer.sh
 
       - name: Install Compiler
+        if: steps.oneapi-cache.outputs.cache-hit != 'true'
         run: |
-          sudo sh ./$ONEAPI_COMPILER_INSTALL -a \
+          sudo sh ./compiler_installer.sh -a \
           --silent --cli --eula accept --install-dir /opt/intel/oneapi/
 
       - name: Checkout votess
@@ -29,7 +37,7 @@ jobs:
       - name: Build votess
         run: |
           source /opt/intel/oneapi/setvars.sh
-          echo "Using compiler: " 
-          which icpx 1<&2
+          echo "Using compiler: "
+          which icpx 1>&2
           sh make.sh
-          ./bin/test ~[ignore] --abort --duration yes --warn NoAssertions
+          ./bin/test ~[ignore] --abort --durations yes --warn NoAssertions
