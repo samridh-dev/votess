@@ -44,7 +44,7 @@ jobs:
       - name: Install AdaptiveCpp Compiler
         run: |
           ls -R /usr/lib/llvm-16/include/ 1>&2
-          $(which clang-LLVM_VERSION)
+          $(which clang-$LLVM_VERSION)
           git clone https://github.com/AdaptiveCpp/AdaptiveCpp
           cd AdaptiveCpp
           mkdir build && cd build
