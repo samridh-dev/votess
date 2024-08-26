@@ -45,7 +45,7 @@ jobs:
                 -DCLANG_EXECUTABLE_PATH=$ACPP_LLVM_INSTALL_PREFIX/bin/clang++ \
                 ..
           
-          sudo make install
+          sudo make install -j $(nproc)
         
       - name: Checkout votess repository
         uses: actions/checkout@v2
