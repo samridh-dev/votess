@@ -10,11 +10,12 @@ env:
   ACPP_INSTALL_PREFIX: |
     /opt/adaptivecpp
 
+env:
   LLVM_VERSION: 16
   LLVM_INSTALL_PREFIX: |
-    /usr/lib/llvm-${{ env.LLVM_VERSION }}
+    /usr/lib/llvm-16
   CLANG_INSTALL_PREFIX: |
-    /usr/lib/llvm-${{ env.LLVM_VERSION }}/include/clang
+    /usr/lib/llvm-16/include/clang
 
   ONEAPI_COMPILER_URL: |
     https://registrationcenter-download.intel.com/akdlm/IRC_NAS/74587994-3c83-48fd-b963-b707521a63f4/l_dpcpp-cpp-compiler_p_2024.2.1.79_offline.sh
