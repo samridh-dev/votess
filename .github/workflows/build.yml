@@ -17,9 +17,9 @@ env:
 
   LLVM_VERSION: 16
   LLVM_INSTALL_PREFIX: |
-    /usr/lib/llvm-$LLVM_VERSION
+    /usr/lib/llvm-${{ env.LLVM_VERSION }}
   CLANG_INSTALL_PREFIX: |
-    /usr/lib/llvm-$LLVM_VERSION/include/clang
+    /usr/lib/llvm-${{ env.LLVM_VERSION }}/include/clang
 
 jobs:
 
