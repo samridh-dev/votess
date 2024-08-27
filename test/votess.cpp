@@ -23,7 +23,7 @@ static std::pair<std::vector<std::array<T, 3>>,
                  std::vector<std::vector<int>>>
 run_voro(
   const std::vector<std::array<T,3>>& xyzset,
-  const struct votess::vtargs vtargs
+  const class votess::vtargs vtargs
 ) {
   std::vector<std::array<T, 3>> coords;
   std::vector<std::vector<int>> neighbor_list;
@@ -76,7 +76,7 @@ run_voro(
 template <typename T>
 static void run_test(
   std::vector<std::array<T,3>>& xyzset,
-  struct votess::vtargs vtargs,
+  class votess::vtargs vtargs,
   const enum votess::device device
 ) {
     __internal__suppress_stdout s;
@@ -143,14 +143,14 @@ static void test_votess(
 ) {
   SECTION("[CPU] case : grid_resolution = " 
           + std::to_string(gr)) {
-    struct votess::vtargs vtargs;
+    class votess::vtargs vtargs;
     vtargs["k"] = k;
     vtargs["knn_grid_resolution"] = gr;
     run_test(xyzset, vtargs, votess::device::cpu);
   }
   SECTION("[GPU] case : grid_resolution = " 
           + std::to_string(gr)) {
-    struct votess::vtargs vtargs;
+    class votess::vtargs vtargs;
     vtargs["k"] = k;
     vtargs["knn_grid_resolution"] = gr;
     run_test(xyzset, vtargs, votess::device::gpu);

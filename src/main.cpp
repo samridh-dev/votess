@@ -10,10 +10,12 @@
 #include <array>
 #include <functional>
 
+#include <getopt.h>
+
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Functions
 ///////////////////////////////////////////////////////////////////////////////
-
+#if 0
 static void
 print_usage(const char* const executable) {
   std::cout <<
@@ -56,8 +58,6 @@ static int grid_resolution = 24;
 /// Main
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <getopt.h>
-#if 0
 int main(int argc, char* argv[]) {
 
   int opt = 0;
@@ -148,7 +148,7 @@ static std::vector<std::array<float, 3>> generate_set(int count) {
   std::mt19937 gen(rd());
   std::uniform_real_distribution<float> dis(0.001f, 0.999);
 
-  for (size_t i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
    xyzset.push_back({dis(gen), dis(gen), dis(gen)});
   }
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
   class votess::vtargs args;
   args["k"] = k;
   args["knn_grid_resolution"] = gr;
-  args["gpu_ndsize"] = 24;
+  args["gpu_ndsize"] = 32;
   args["use_recompute"] = false;
   args["dev_suppress_stdout"] = false;
 

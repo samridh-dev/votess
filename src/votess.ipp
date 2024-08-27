@@ -181,7 +181,7 @@ __gpu__tesellate(
   std::vector<std::vector<Ti>>& tmpnn,
   std::vector<cc::state>& states, 
 
-  const struct vtargs& args
+  const class vtargs& args
 
 ) {
 
@@ -207,7 +207,7 @@ __gpu__tesellate(
                chunksize : refsize;
 
   std::vector<Tf> xyzset(3 * xyzsize);
-  for (size_t i = 0; i < xyzsize; i++) {
+  for (int i = 0; i < xyzsize; i++) {
     xyzset[xyzsize * 0 + i] = _xyzset[i][0];
     xyzset[xyzsize * 1 + i] = _xyzset[i][1];
     xyzset[xyzsize * 2 + i] = _xyzset[i][2];
@@ -215,6 +215,7 @@ __gpu__tesellate(
 
   // will help me when I need to separate xyzset and refset
   auto& refset = _refset;
+  (void) refset;
 
   sycl::queue queue;
   print_device(queue);
@@ -343,8 +344,8 @@ __gpu__tesellate(
 
     std::vector<Ti> _knn(hknn.begin(), hknn.end());
     std::vector<Ti> knn(_knn.size());
-    for (size_t si = 0; si < subsize; si++) {
-      for (size_t ki = 0; ki < k; ki++) {
+    for (int si = 0; si < subsize; si++) {
+      for (int ki = 0; ki < k; ki++) {
         knn[k * si + ki] = _knn[subsize * ki + si];
       }
     }
