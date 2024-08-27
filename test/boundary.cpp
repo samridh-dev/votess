@@ -28,7 +28,7 @@ static void compute_gpu(
   q.submit([&](sycl::handler& h) {
     auto cycle = bcycle.template 
     get_access<sycl::access::mode::read_write>(h);
-    auto R = bR.template 
+    auto aR = bR.template 
     get_access<sycl::access::mode::read_write>(h);
     auto ahead = bhead.template 
     get_access<sycl::access::mode::read_write>(h);
@@ -43,7 +43,7 @@ static void compute_gpu(
       }
 
       boundary::compute(lcycle, dr_offs, dr_size, 
-                        ahead[0], R, r_offs, r_size);
+                        ahead[0], aR, r_offs, r_size);
 
       for (size_t i = 0; i < cycle.size(); i++) {
         cycle[i] = lcycle[i];
