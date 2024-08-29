@@ -70,8 +70,9 @@ jobs:
             /usr/local/lib/llvm
             /usr/local/lib/boost
             ${{ github.workspace }}/AdaptiveCpp/build
-          key: ${{ runner.os }}-acpp-${{ hashFiles('**/llvm.sh') }}-${{ hashFiles('**/CMakeLists.txt') }}
+          key: ${{ runner.os }}-acpp-${{ hashFiles('llvm.sh') }}-${{ hashFiles('AdaptiveCpp/**/CMakeLists.txt') }}
           restore-keys: |
+            ${{ runner.os }}-acpp-${{ hashFiles('llvm.sh') }}-
             ${{ runner.os }}-acpp-
 
       - name: Install AdaptiveCpp Compiler Dependencies
