@@ -296,7 +296,7 @@ static void test_xyzset(
   
   std::vector<std::array<Tf, 3>> refset = xyzset;
 
-  for (size_t gr = 0; gr <= gr_max; gr++) {
+  for (int gr = 0; gr <= gr_max; gr++) {
 
     SECTION("case: gr = " + std::to_string(gr)) {
       votess::vtargs args;

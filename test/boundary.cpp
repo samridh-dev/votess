@@ -26,14 +26,18 @@ static void compute_gpu(
   sycl::buffer<short int> bhead(&head, sycl::range<1>(1));
 
   q.submit([&](sycl::handler& h) {
+
     auto cycle = bcycle.template 
     get_access<sycl::access::mode::read_write>(h);
-    auto aR = bR.template 
-    get_access<sycl::access::mode::read_write>(h);
-    auto ahead = bhead.template 
-    get_access<sycl::access::mode::read_write>(h);
+
     sycl::local_accessor<T> 
     lcycle(sycl::range<1>(cycle.size()), h);
+
+    auto aR = bR.template 
+    get_access<sycl::access::mode::read_write>(h);
+    
+    auto ahead = bhead.template 
+    get_access<sycl::access::mode::read_write>(h);
     
     sycl::nd_range<1> ndRange(1, 1);
     h.parallel_for(ndRange, [=](sycl::nd_item<1> item) {
@@ -42,8 +46,8 @@ static void compute_gpu(
         lcycle[i] = cycle[i];
       }
 
-      boundary::compute(lcycle, dr_offs, dr_size, 
-                        ahead[0], aR, r_offs, r_size);
+      boundary::compute<size_t, T>(lcycle, dr_offs, dr_size,
+                                   ahead[0], aR, r_offs, r_size);
 
       for (size_t i = 0; i < cycle.size(); i++) {
         cycle[i] = lcycle[i];
