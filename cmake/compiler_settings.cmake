@@ -56,11 +56,15 @@ if (CMAKE_CXX_COMPILER MATCHES "acpp$")
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ALL}                           \
                              ${CMAKE_CXX_FLAGS_DEBUG}                         \
-                             ${CMAKE_CXX_LINK_FLAGS_ALL}")
+                             ${CMAKE_CXX_LINK_FLAGS_ALL}                      \
+                             -fPIC                                            \
+                             ")
 
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ALL}                         \
                                ${CMAKE_CXX_FLAGS_RELEASE}                     \
-                               ${CMAKE_CXX_LINK_FLAGS_ALL}")
+                               ${CMAKE_CXX_LINK_FLAGS_ALL}                    \
+                               -fPIC                                          \
+                               ")
 
 endif()
 
