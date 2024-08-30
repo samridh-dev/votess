@@ -18,11 +18,11 @@ namespace boundary {
 
 struct vstatus {
   uint8_t byte;
-  inline vstatus();
+  inline vstatus(void);
   inline uint8_t get(int b);
   inline void set_true(int b);
-  inline uint8_t get_nshared_edges() const;
-  inline uint8_t get_shared_position() const;
+  inline uint8_t get_nshared_edges(void) const;
+  inline uint8_t get_shared_position(void) const;
 };
 
 enum bstatus : unsigned char {
