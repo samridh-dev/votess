@@ -27,6 +27,7 @@ def create_test_case(tag, i, points, gr_arr):
     print()
 
 def create_initial_condition_tests():
+    print('#if 0')
     print('TEST_CASE("votess regression: inital conditions", ')
     print('          "[votess]") {')
     print('')
@@ -102,6 +103,7 @@ def create_initial_condition_tests():
     print('  }}}}}}')
     print('')
     print('}')
+    print('#endif')
 
 def create_prefix():
     print('#include <catch2/catch_test_macros.hpp>')
@@ -398,7 +400,7 @@ def main():
 
     gr_arr = np.array([1,2,3,4,6,8,16,24,32])
 
-#    create_initial_condition_tests()
+    create_initial_condition_tests()
 
     # lattice (between 0,1 exclusive)
     xyzset = create_lattice_xyzset()
