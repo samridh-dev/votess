@@ -48,7 +48,7 @@ int main(int argc, char *args[]) {
     auto device = q.get_device();
     if (!device.has(sycl::aspect::fp64)) {
 
-      std::cerr << "\e[93mWarning: \e[00m" 
+      std::cerr << "\0x1b[93mWarning: \0x1b[00m" 
                 << "Device does not support double precision (fp64). "
                 << "Skipping all device fp64 tests.\n";
 
