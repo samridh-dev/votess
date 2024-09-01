@@ -17,7 +17,7 @@ gratitude to them.
 The following plot demonstrates the performance of Votess compared to other
 applications.
 
-![Performance Benchmark](benchmark1-bar.png)
+![Performance Benchmark](assets/benchmark1-bar.png)
 
 ## Dependencies
 
