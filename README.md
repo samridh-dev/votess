@@ -17,7 +17,7 @@ gratitude to them.
 The project requires a SYCL-compatible compiler supporting C++17 or later.
 Currently, the following compilers have been tested and confirmed to work:
 
-- **Intel® oneAPI DPC++/C++ Compiler** (Recommended)
+- **Intel® oneAPI DPC++/C++ Compiler**
 - **AdaptiveCpp (formerly known as hipSYCL / Open SYCL) acpp Compiler** 
 
 The library and command line program does **not** require any additional
