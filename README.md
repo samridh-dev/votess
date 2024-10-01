@@ -12,6 +12,13 @@ through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson from the Institute
 of Theoretical Astrophysics at Heidelberg University, and for that I owe my
 gratitude to them.
 
+## Performance
+
+The following plot demonstrates the performance of Votess compared to other
+applications.
+
+![Performance Benchmark](assets/benchmark1-bar.png)
+
 ## Dependencies
 
 The project requires a SYCL-compatible compiler supporting C++17 or later.
