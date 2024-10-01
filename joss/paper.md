@@ -42,7 +42,11 @@ With a working implementation of `votess`, it can be seen that it outperforms se
 
 ![](./bar.png)
 
-It can be seen that for both devices, `votess` has a speedup of around a factor of 10, not counting for optimizations that had been performed during the benchmark run. 
+The GPU implementation of `votess` is designed to be high throughput, and it is
+apparent as it is highest performing at datasets beyond a million points. The
+CPU implementation outperforms other applications of atleast tenfold, almost
+reaching a hundred fold at larger datasets. It must also be noted, that the
+benchmark was taken before `votess` had recieved optimizations.
 
 # Features
 
