@@ -1,5 +1,5 @@
 ---
-title: 'votess: TODO'
+title: 'votess'
 tags:
   - C++
 authors:
@@ -13,15 +13,13 @@ authors:
     orcid: 0000-0001-8421-5890
     affiliation: 2
 affiliations:
- - name: TODO
- - index: 1
- - name: Heidelberg University, Institute for Theoretical Astronomy, Albert-Ueberle-Str. 2, 69120 Heideberg, Germany 
- - index: 2 
- - date: 15 Sep 2024 
- - bibliography: paper.bib
+  - index: 1
+    name: TODO
+  - index: 2
+    name: Heidelberg University, Institute for Theoretical Astronomy, Albert-Ueberle-Str. 2, 69120 Heidelberg, Germany
+date: 15 Sep 2024
+bibliography: paper.bib
 ---
-
-
 # Statement of need
 
 With the rise of parallel architectures, it has now become possible to solve problems that would have been computationally too expensive in the past. One example would be a Voronoi tesellation on large datasets. Many projects utilize such an algorithm, be it from Cosmology, Earth Science, Material Science, Biochemistry, etc.
