@@ -30,7 +30,7 @@ There isn't however, a tesellation program that can run on the variety of platfo
 
 `votess` is a library for performing 3D Voronoi tessellations on heterogeneous platforms via SYCL framework. `votess` was designed to be portable, but performant, with an easy to use interface.
 
-The underlying algorithm is based on the work of Ray et al. (2018), which describes how to compute a Voronoi diagram without the need for a combinatorial mesh data structure, as required by classical approaches like the Bowyer-Watson algorithm. The core algorithm employed by `votess` consists of two main steps. First, given an input set of points, a k-nearest neighbors search is performed after sorting the points into a grid. With the nearest neighbors identified for each point, the Voronoi cell is computed by iteratively clipping a bounding box using the perpendicular bisectors of the point and its neighbors. To avoid iterating through all neighbors, a security radius condition is applied. If a Voronoi cell cannot be validated, a CPU fallback mechanism ensures robustness.
+The underlying algorithm is based on the work of Ray et al. (2018) [@Ray2018], which describes how to compute a Voronoi diagram without the need for a combinatorial mesh data structure, as required by classical approaches like the Bowyer-Watson algorithm. The core algorithm employed by `votess` consists of two main steps. First, given an input set of points, a k-nearest neighbors search is performed after sorting the points into a grid. With the nearest neighbors identified for each point, the Voronoi cell is computed by iteratively clipping a bounding box using the perpendicular bisectors of the point and its neighbors. To avoid iterating through all neighbors, a security radius condition is applied. If a Voronoi cell cannot be validated, a CPU fallback mechanism ensures robustness.
 
 This simple, efficient algorithm allows for independent thread execution, making it well-suited for GPU parallelism.
 
@@ -56,7 +56,3 @@ There also exists a python wrapper to `tesellate`, named `pyvotess`, with the sa
 # Acknowledgements
 
 CB and DN acknowledge funding from the Deutsche Forschungsgemeinschaft (DFG) through an Emmy Noether Research Group (grant number NE 2441/1-1).
-
-# References
-
-Nicolas Ray, Dmitry Sokolov, Sylvain Lefebvre, Bruno Lévy. Meshless Voronoi on the GPU. ACM Transactions on Graphics, 2018, 37 (6), pp.1-12. 10.1145/3272127.3275092. hal-01927559
