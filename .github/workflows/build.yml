@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore: 
       - 'joss/**'
+      - .github/workflows/joss.yml
 
 env:
 
