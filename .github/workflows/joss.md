@@ -12,7 +12,7 @@ jobs:
     name: Paper Draft
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Build draft PDF
         uses: openjournals/openjournals-draft-action@master
         with:
@@ -22,7 +22,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paper
-          # This is the output path where Pandoc will write the compiled
-          # PDF. Note, this should be the same directory as the input
-          # paper.md
           path: joss/paper.pdf
