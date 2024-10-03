@@ -9,13 +9,16 @@
 #include <vector>
 #include <array>
 #include <functional>
+#include <cstdlib>
 
 #include <getopt.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Helper Functions
 ///////////////////////////////////////////////////////////////////////////////
-#if 0
+
+#if 1
+
 static void
 print_usage(const char* const executable) {
   std::cout <<
@@ -58,48 +61,119 @@ static int grid_resolution = 24;
 /// Main
 ///////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char* argv[]) {
+static std::tuple <std::string, struct votess::vtargs, enum votess::device>
+parse_args(int argc, char* argv[]) {
 
   int opt = 0;
   int option_index = 0;
+
+  std::string infile = "";
+  struct votess::vtargs vtargs;
+  votess::device device = votess::device::gpu;
+
+  int k_init = ARGS_DEFAULT_K;
+  int chunksize = ARGS_DEFAULT_CHUNKSIZE;
+  int cc_p_maxsize = ARGS_DEFAULT_P_MAXSIZE;
+  int cc_t_maxsize = ARGS_DEFAULT_T_MAXSIZE;
+  int cpu_nthreads = ARGS_DEFAULT_CPU_NTHREADS;
+  int gpu_ndsize = ARGS_DEFAULT_GPU_NDWORKSIZE;
+  bool use_chunking = ARGS_DEFAULT_USE_CHUNKING;
+  bool use_recompute = ARGS_DEFAULT_USE_RECOMPUTE;
+  int grid_resolution = ARGS_DEFAULT_GRID_RESOLUTION;
 
   struct option long_options[] = {
     {"version",           no_argument,        0,  'v'},
     {"help",              no_argument,        0,  'h'},
     {"infile",            required_argument,  0,  'i'},
+    {"use-device",        required_argument,  0,  'x'},
     {"k-init",            required_argument,  0,  'k'},
     {"grid-resolution",   required_argument,  0,  'g'},
+    {"cpu-nthreads",      required_argument,  0,  't'},
+    {"gpu-ndsize",        required_argument,  0,  'd'},
+    {"chunksize",         required_argument,  0,  'c'},
+    {"use-chunking",      no_argument,        0,  'u'},
+    {"use-recompute",     no_argument,        0,  'r'},
+    {"p-maxsize",         required_argument,  0,  'p'},
+    {"t-maxsize",         required_argument,  0,  'm'},
     {0, 0, 0, 0}
   };
 
-  while (1) {
 
-    opt = getopt_long(argc, argv, "vhi:k:g:", long_options, &option_index);
-    if (opt == -1) break;
+  while ((opt = getopt_long(argc, (char* const*)argv, 
+          "vhi:x:k:g:t:d:c:urp:m:", long_options, &option_index)) != -1) {
 
     switch (opt) {
       case 'v':
-        print_version(argv[0]);
-        return 0;
+        std::cout << "Version: 1.0" << std::endl;
+        break;
       case 'h':
-        print_help(argv[0]);
-        return 0;
+        std::cout << "Help message." << std::endl;
+        break;
       case 'i':
         infile = optarg;
         break;
+      case 'x':
+        if (strcmp(optarg, "cpu") == 0)      device = votess::device::cpu;
+        else if (strcmp(optarg, "gpu") == 0) device = votess::device::gpu;
+        else {
+          std::cerr << "Error: " 
+                    << "Unknown device type. Use 'cpu' or 'gpu'." 
+                    << std::endl;
+        }
+        break;
       case 'k':
         k_init = std::atoi(optarg);
+        vtargs["k"] = k_init;
         break;
       case 'g':
         grid_resolution = std::atoi(optarg);
+        vtargs["knn_grid_resolution"] = grid_resolution;
         break;
-      case '?': 
-        return 1;
+      case 't':
+        cpu_nthreads = std::atoi(optarg);
+        vtargs["cpu_nthreads"] = cpu_nthreads;
+        break;
+      case 'd':
+        gpu_ndsize = std::atoi(optarg);
+        vtargs["gpu_ndsize"] = gpu_ndsize;
+        break;
+      case 'c':
+        chunksize = std::atoi(optarg);
+        vtargs["chunksize"] = chunksize;
+        break;
+      case 'u':
+        use_chunking = true;
+        vtargs["use_chunking"] = use_chunking;
+        break;
+      case 'r':
+        use_recompute = true;
+        vtargs["use_recompute"] = use_recompute;
+        break;
+      case 'p':
+        cc_p_maxsize = std::atoi(optarg);
+        vtargs["cc_p_maxsize"] = cc_p_maxsize;
+        break;
+      case 'm':
+        cc_t_maxsize = std::atoi(optarg);
+        vtargs["cc_t_maxsize"] = cc_t_maxsize;
+        break;
+      case '?':
+        std::cerr << "Unknown option" << std::endl;
+        break;
       default:
-        print_usage(argv[0]);
-        return 1;
+        std::cerr << "Usage error" << std::endl;
+        break;
     }
   }
+
+  return std::make_tuple(infile, vtargs, device);
+
+}
+
+int 
+main(int argc, char* argv[]) {
+
+  auto [infile, vtargs, device] = parse_args(argc, argv); 
 
   if (infile == "") {
     std::cerr << "Error: Input file must be specified." << std::endl;
@@ -118,27 +192,33 @@ int main(int argc, char* argv[]) {
   }
 
   while (std::getline(file, line)) {
+
     std::istringstream iss(line);
     std::array<float, 3> point;
+
     if (!(iss >> point[0] >> point[1] >> point[2])) {
       std::cerr << "Error: Incorrect data format in file" << std::endl;
       return 1;
     }
+
     xyzset.push_back(point);
+
   }
   
-  if (k_init == 0) {
-    k_init = xyzset.size() < default_k_init ? 
-             xyzset.size() : default_k_init;
+  if (vtargs["k"].get<int>() == 0) {
+
+    vtargs["k"] = xyzset.size() < default_k_init ? 
+                  xyzset.size() : default_k_init;
+
   }
 
-  class votess::vtargs vtargs;
-  vtargs["k"] = k_init;
-  vtargs["knn_grid_resolution"] = grid_resolution;
   auto dnn = votess::tesellate<int, float>(xyzset, vtargs);
+
+  dnn.print();
 
   return 0;
 }
+
 #else
 
 #include <random>
