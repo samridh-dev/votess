@@ -235,6 +235,10 @@ print("size of direct neighbors for point 0", direct_neighbors[0].size())
 ```
 ### Command Line
 
-There exists the executable named `clvotess`. 
-**Currently the program is undeveloped as the project is still undergoing
-changes. Usage will remain undocumented at the time being.**
+In addition to the implementations above, there also exists a command line
+interface `clvotess`. This executable can be used to perform k-nearest neighbor
+and Voronoi tessellation operations directly from the terminal, with full
+support for CPU and GPU processing. For usage, refer to:
+```bash
+./clvotess --help
+```
