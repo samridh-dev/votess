@@ -36,14 +36,20 @@ static void
 print_help(const char* const executable) {
   (void)executable;
   std::cout <<
-
 "\nOptions:\n"
-" -h, --help               Show help\n"
-" -v, --version            Show version\n"
-" -i, --infile   <infile>  Specify input file. Required argument.\n"
-" -k, --k-init   <k_init>  Specify initial k for k-nearest neighbor search.\n"
-" -g, --gridres  <k_init>  Specify grid resolution.\n"
-
+" -h, --help                   Show help\n"
+" -v, --version                Show version\n"
+" -i, --infile   <infile>      Specify input file. Required argument.\n"
+" -k, --k-init   <k_init>      Specify initial k for k-nearest neighbor search.\n"
+" -g, --gridres  <gridres>     Specify grid resolution for k-nearest neighbors.\n"
+" -t, --cpu-nthreads <n>       Specify the number of CPU threads to use.\n"
+" -d, --gpu-ndsize <n>         Specify GPU work size (recommended in multiples of 16).\n"
+" -c, --chunksize  <n>         Specify chunk size for processing.\n"
+" -u, --use-chunking           Enable chunking for processing.\n"
+" -r, --use-recompute          Enable CPU fallback to ensure valid Voronoi cells.\n"
+" -p, --p-maxsize <n>          Specify maximum P parameter size for convex cell algorithm.\n"
+" -m, --t-maxsize <n>          Specify maximum T parameter size for convex cell algorithm.\n"
+" -x, --use-device <cpu|gpu>   Specify the device to use (cpu or gpu).\n"
   << std::endl;
 }
 
@@ -104,10 +110,10 @@ parse_args(int argc, char* argv[]) {
 
     switch (opt) {
       case 'v':
-        std::cout << "Version: 1.0" << std::endl;
+        print_version(argv[0]);
         break;
       case 'h':
-        std::cout << "Help message." << std::endl;
+        print_help(argv[0]);
         break;
       case 'i':
         infile = optarg;
@@ -172,6 +178,10 @@ parse_args(int argc, char* argv[]) {
 
 int 
 main(int argc, char* argv[]) {
+
+  if (argc == 0) {
+    print_usage(argv[0]);
+  }
 
   auto [infile, vtargs, device] = parse_args(argc, argv); 
 
