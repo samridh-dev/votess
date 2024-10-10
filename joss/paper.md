@@ -7,7 +7,7 @@ tags:
   - Voronoi Tesellation
 authors:
   - name: Samridh Dev Singh
-#    orcid: TODO
+    orcid: 0009-0008-8620-3648
     affiliation: 1
   - name: Chris Byrohl
     orcid: 0000-0002-0885-8090
