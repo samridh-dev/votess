@@ -27,15 +27,15 @@ bibliography: paper.bib
 # Statement of need
 
 Voronoi tessellation is a fundamental spatial decomposition technique widely
-used in scientific domains such as astrophyics [], earth sciences [], materials
-science [], and biochemistry []. It enables the partitioning of space into
-regions based on proximity to given points, which is essential for analyzing
-large datasets. Although performing Voronoi tessellations on large datasets has
-been feasible for some time, the increasing complexity and size of modern data
-have underscored the need for faster, more efficient computation. With the rise
-of accelerator architectures like GPUs and FPGAs, the computational power
-available today has greatly improved the ability to handle these large datasets
-more effectively.
+used in scientific domains such as astrophyics [@Springel2010], earth sciences
+[], materials science [], and biochemistry []. It enables the partitioning of
+space into regions based on proximity to given points, which is essential for
+analyzing large datasets. Although performing Voronoi tessellations on large
+datasets has been feasible for some time, the increasing complexity and size of
+modern data have underscored the need for faster, more efficient computation.
+With the rise of accelerator architectures like GPUs and FPGAs, the
+computational power available today has greatly improved the ability to handle
+these large datasets more effectively.
 
 However, despite these advancements, most existing implementations of Voronoi
 tessellations are tailored to specific platforms and architectures, limiting
@@ -46,9 +46,6 @@ To address this problem, `votess` provides a portable solution that can
 operate across various accelerator architectures, without modification to the
 source code, enabling developers within various scientific fields to be able to
 make use of the new computing architectures.
- 
-!! be explicit that `votess` provides such portable solution compared to the
-ray18 reference implementation (focusing on cpu+cuda?)
  
 # Summary
  
@@ -84,12 +81,12 @@ With a working implementation of `votess`, it can be seen that it outperforms
 several single-threaded applications:
 
 In Figure 1, we show the performance of `votess` compared to two other
-single-threaded Voronoi tessellation libraries: Qhull and Voro++. Qhull is a
+single-threaded Voronoi tessellation libraries: `QHULL` and `VORO++`. `QHULL` is a
 well-known computational geometry library that constructs convex hulls and
 Voronoi diagrams using an indirect projection method [@10.1145/235815.235821],
-while Voro++ is a C++ library specifically designed for three-dimensional
+while `Voro++` is a C++ library specifically designed for three-dimensional
 Voronoi tessellations, utilizing a cell-based computation approach that is
-well-suited for physical applications [@rycroft2009voro++].
+well-suited for physical applications [@rycroft2009voro].
 
 ![](./bar.png)
  
