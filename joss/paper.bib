@@ -9,3 +9,58 @@
   doi = {10.1145/3272127.3275092},
   hal_id = {hal-01927559}
 }
+
+@article{10.1145/235815.235821,
+  author = {Barber, C. Bradford and Dobkin, David P. and Huhdanpaa, Hannu},
+  title = {The Quickhull Algorithm for Convex Hulls},
+  year = {1996},
+  issue_date = {Dec. 1996},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {22},
+  number = {4},
+  issn = {0098-3500},
+  url = {https://doi.org/10.1145/235815.235821},
+  doi = {10.1145/235815.235821},
+  journal = {ACM Trans. Math. Softw.},
+  month = dec,
+  pages = {469--483},
+  numpages = {15},
+  keywords = {Delaunay triangulation, Voronoi diagram, convex hull, halfspace intersection}
+}
+
+@article{rycroft2009voro++,
+  title={VORO++: A three-dimensional Voronoi cell library in C++},
+  author={Rycroft, Chris},
+  year={2009}
+}
+
+@article{WU2023102995,
+title = {ParVoro++: A scalable parallel algorithm for constructing 3D Voronoi tessellations based on kd-tree decomposition},
+journal = {Parallel Computing},
+volume = {115},
+pages = {102995},
+year = {2023},
+issn = {0167-8191},
+doi = {https://doi.org/10.1016/j.parco.2023.102995},
+url = {https://www.sciencedirect.com/science/article/pii/S0167819123000017},
+author = {Guoqing Wu and Hongyun Tian and Guo Lu and Wei Wang},
+keywords = {Computational geometry, Voronoi tessellation, Parallel algorithm, Distributed-memory},
+abstract = {The Voronoi tessellation is a fundamental geometric data structure which has numerous applications in various scientific and technological fields. For large particle datasets, computing Voronoi tessellations must be conducted in parallel on a distributed-memory supercomputer in order to satisfy time and memory-size constraints. However, due to load balance and communication, the parallelization of the Voronoi tessellation renders a challenge. In this paper, we present a scalable parallel algorithm for constructing 3D Voronoi tessellations, which evenly distributes the input particles between blocks through kd-tree decomposition. In order to construct the correct global Voronoi topology, we investigate both parametric and non-parametric methods for particle communication among the blocks of a spatial decomposition. The algorithm is implemented exploiting process-level and thread-level parallelization and can be used in a diverse architectural landscape. Using datasets containing up to 330 million particles, we show that our algorithm achieves parallel efficiency up to 57% using 4096 cores on a distributed-memory computer. Moreover, we compare our algorithm with previous attempts to parallelize Voronoi tessellations showing encouraging improvements in terms of computation time.}
+}
+
+@manual{cgal2018,
+  title = {{CGAL} User and Reference Manual},
+  author = {{The {CGAL} Project}},
+  organization = {{CGAL Editorial Board}},
+  edition = {4.12.1},
+  year = {2018},
+  url = {https://doc.cgal.org/4.12.1/Manual/packages.html#PkgSpatialSortingSummary}
+}
+
+@misc{geogram2018,
+  author = {Project ALICE-GRAPHYS Inria},
+  title = {Geogram: a programming library of geometric algorithms},
+  year = {2018},
+  url = {http://alice.loria.fr/software/geogram/doc/html/index.html}
+}
