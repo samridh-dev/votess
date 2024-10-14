@@ -82,6 +82,7 @@ highly suitable for GPU parallelism. Unlike previous algorithms that relied on
 sequential execution due to their mesh insertion methods [], `votess` leverages
 the independence of cell computations to achieve significant speedups in
 parallel environments.
+
 ## Performance
  
 With a working implementation of `votess`, it can be seen that it outperforms
