@@ -1,9 +1,11 @@
 ---
 title: |
-  'votess: A fast, multi-target voronoi tessellator using the SYCL framework'
+  'votess: A multi-target, GPU-capable, parallel Voronoi tessellator'
 tags:
   - C++
+  - GPU
   - SYCL
+  - parallel algorithms
   - Voronoi Tesellation
 authors:
   - name: Samridh Dev Singh
@@ -26,112 +28,90 @@ bibliography: paper.bib
  
 # Statement of need
  
-Voronoi tessellation is a fundamental spatial decomposition technique enabling
-the partitioning of space into regions based on proximity to a discrete set of
-points, and is widely used in scientific domains such as astrophysics
-[@Springel2010], earth sciences [], materials science [], and biochemistry [].
-Although performing Voronoi tessellations on large datasets has been feasible
-for some time, the increasing complexity and size of modern data have
-underscored the need for faster, more efficient computation. With the rise
-of powerful many-core CPU and GPU architectures, the computational power
-available today has greatly improved the ability to handle these large datasets
-more effectively.
+The Voronoi tessellation is a spatial decomposition that uniquely partitions
+space into convex sub-regions based on proximity to a discrete set of
+generating points. It is widely used across scientific domains. In
+astrophysics, Voronoi meshes are used in observational data analysis as well as
+numerical simulations of cosmic structure formation [@Springel2010]. The
+increasing size of modern datasets has underscored the need for faster, more
+efficient algorithms and numerical methods. The rise of powerful many-core CPU
+and GPU architectures has greatly increased the available computational power.
  
-However, despite these advancements, most existing implementations of Voronoi
-tessellations are tailored to specific processor architectures and platforms,
-limiting their portability. This results in the need for bespoke solutions for
-different hardware setups, creating inefficiencies and increasing development
-time.  Additionally, many classic insertion algorithms do not fully leverage
-the performance potential of multi-core systems, further highlighting
-the need of a modern solution. 
- 
-To address this problem, `votess` provides a portable solution that can
-operate across various accelerator architectures, without modification to the
-source code, enabling developers within various scientific fields to be able to
-make use of the new computing architectures.
-
-To address this problem, votess leverages a SYCL single-source framework
-abstraction to provide a portable solution that runs efficiently across
-multiple accelerator architectures, including CPUs and GPUs, without requiring
-modifications to the source code. 
+However, most existing implementations of Voronoi tessellations are tailored to
+specific architectures, limiting their portability. Additionally, classic
+sequential insertion algorithms have difficulty using multi-core systems in a
+fully parallel manner. No general purpose, publicly available code capable of
+GPU-accelerated parallel Voronoi mesh generation in 3D space is available.
 
 # Summary
 
-`votess` is a library for performing parallel 3D Voronoi tessellations on
-heterogeneous platforms via the SYCL framework. `votess` was designed to be
-portable yet performant, with an easy-to-use interface.
+`votess` is a library for computing parallel 3D Voronoi tessellations on
+heterogeneous platforms, from CPUs to GPUs to future accelerator architectures.
+To do so, it uses the SYCL single-source framework abstraction. `votess` was
+designed to be portable yet performant, accessible to both developers and users
+with several easy-to-use interfaces.
  
-The underlying algorithm is based on a paper [@ray2018], which highlights that
-many applications, such as in astrophysics [] or fluid simulations [], only
-require the geometry of the Voronoi cells and their neighboring information,
-rather than a full combinatorial mesh data structure. This observation allows
-for a simplified algorithm, as presented here, which avoids the need for
-classical mesh-based approaches like the Bowyer-Watson algorithm.
+The underlying algorithm computes the Voronoi mesh cell-by-cell [@ray2018]. It
+produces the geometry of the Voronoi cells and their neighbor connectivity
+information, rather than a full combinatorial mesh data structure. This
+simplifies the method and makes it more ammenable to data parallel
+architectures than alternatives such as sequential insertion or the
+Bowyer-Watson algorithm.
  
-The core algorithm employed by `votess` consists of two main steps. First, the
-input set of points is sorted into a grid, and a k-nearest neighbors search is
-performed. Once the nearest neighbors are identified for each point, the
-Voronoi cell is computed by iteratively clipping a bounding box using the
-perpendicular bisectors between the point and its neighbors. To optimize the
-process and avoid iterating through all neighbors, a security radius condition
-is applied. If a Voronoi cell cannot be validated, a CPU fallback mechanism is
-used to ensures robustness.
+The core method of `votess` consists of two main steps. First, the input set of
+points is sorted into a grid, and a k-nearest neighbors search is performed.
+Once the k nearest neighbors are identified for each point, the Voronoi cell is
+computed by iteratively clipping a bounding box using the perpendicular
+bisectors between the point and its nearby neighbors. A "security radius"
+condition ensures that the resulting Voronoi cell is valid. If a cell cannot be
+validated, an automatic CPU fallback mechanism ensures robustness.
  
 This efficient algorithm allows for independent thread execution, making it
-highly suitable for GPU parallelism. Unlike previous algorithms that relied on
-sequential execution due to their mesh insertion methods [], `votess` leverages
-the independence of cell computations to achieve significant speedups in
-parallel environments.
+highly suitable for multi-core CPUs as well as GPU parallelism. This
+independence of cell computations achieves significant speedups in parallel
+environments.
 
 ## Performance
- 
-With a working implementation of `votess`, it can be seen that it outperforms
-several single-threaded applications:
- 
-In Figure 1, we show the performance of `votess` compared to two other
-single-threaded Voronoi tessellation libraries: `QHULL` and `VORO++`. `QHULL` is a
-well-known computational geometry library that constructs convex hulls and
-Voronoi diagrams using an indirect projection method [@10.1145/235815.235821],
-while `Voro++` is a C++ library specifically designed for three-dimensional
-Voronoi tessellations, utilizing a cell-based computation approach that is
-well-suited for physical applications [@rycroft2009voro].
- 
+
 ![](./bar.png)
-Here, it is clear `votess` performs best on large datasets. The CPU
-implementation outperforms other applications of atleast tenfold, and at most a
-hundred fold on large datasets. It must be noted, that the benchmarks were
-taken before either the CPU and GPU implementations have recieved
-optimizations.
+
+As expected, `votess` can significantly outperform single-threaded lternatives.
  
-There also exists other multithreaded Voronoi tesellelation codes, such as
-`ParVoro++` [@WU2023102995], `CGAL` [@cgal2018], and `GEOGRAM` [@geogram2018],
-and although they do not natively support GPU architectures, they are also
-widely used in large-scale computational geometry applications.
+In Figure 1, we show its performance compared to two other single-threaded
+Voronoi tessellation libraries: `Qhull` and `Voro++`. Both are well-tested and
+widely used. `Qhull` is a computational geometry library that constructs convex
+hulls and Voronoi diagrams using an indirect projection method
+[@10.1145/235815.235821], while `Voro++` is a C++ library specifically designed
+for three-dimensional Voronoi tessellations, utilizing a cell-based computation
+approach that is well-suited for physical applications [@rycroft2009voro].
+ 
+We find that `votess` performs best on large datasets. The CPU implementation
+can outperform other implementations by a factor of 10 to 100.
+ 
+Multithreaded Voronoi tesellelation codes do exist, and these include
+`ParVoro++` [@WU2023102995], `CGAL` [@cgal2018], and `GEOGRAM` [@geogram2018].
+However, they do not natively support GPU architectures.
  
 # Features
 
-`votess` provides a versatile and efficient tool for computing Voronoi
-tessellations, supporting multiple output formats including neighbor
-information for each Voronoi cell. It has been tested on various CPU and GPU
-architectures, delivering high performance on both platforms.
+`votess` is designed to be versatile. It supports various outputs, including
+the natural neighbor information for each Voronoi cell. This is a 2D jagged
+array of neighbor indices of the sorted input dataset.
  
-Users can leverage `votess` in three ways: through the C++ library, a
-command-line interface `clvotess`, and a Python interface `pyvotess`. The C++
-library offers a simple interface with a primary function, `tessellate`, that
-computes the tessellation. Additionally, users can select the target device
-to run said tessellation. The Python wrapper, pyvotess, mirrors the
-functionality of the C++ version, providing the same ease of use for
+Users can invoke `votess` in three ways: through the C++ library, a
+command-line interface `clvotess`, and a Python wrapper interface `pyvotess`.
+The C++ library offers a simple interface with a `tessellate` function that
+computes the mesh. The Python wrapper, pyvotess, mirrors the functionality of
+the C++ version, with native numpy array support, providing ease of use for
 Python-based workflows.
  
-To fine-tune the behavior of `votess`, the class `vtargs` is provided, allowing
-users to adjust parameters much like `std::unordered_map` from the STL. These
-parameters can be used to optimize runtime performance if needed. The
-tessellate function outputs a templated class `dnn`, representing a 2D jagged
-array of neighbors contributing to each particle’s Voronoi cell of the sorted
-inpute dataset, as managed via `vtargs`.  
+The behavior of `votess` can be fine-tuned with run time parameters in order to
+(optionally) optimize runtime performance. 
  
 # Acknowledgements
+
 CB and DN acknowledge funding from the Deutsche Forschungsgemeinschaft (DFG)
 through an Emmy Noether Research Group (grant number NE 2441/1-1).
 
-# Reference
+# References
+
