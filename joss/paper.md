@@ -75,7 +75,8 @@ environments.
 
 ![](./bar.png)
 
-As expected, `votess` can significantly outperform single-threaded lternatives.
+As expected, `votess` significantly outperforms single-threaded
+alternatives.
  
 In Figure 1, we show its performance compared to two other single-threaded
 Voronoi tessellation libraries: `Qhull` and `Voro++`. Both are well-tested and
@@ -85,8 +86,8 @@ hulls and Voronoi diagrams using an indirect projection method
 for three-dimensional Voronoi tessellations, utilizing a cell-based computation
 approach that is well-suited for physical applications [@rycroft2009voro].
  
-We find that `votess` performs best on large datasets. The CPU implementation
-can outperform other implementations by a factor of 10 to 100.
+We find that `votess` performs best on GPUs with large datasets. The CPU
+implementation can outperform other implementations by a factor of 10 to 100.
  
 Multithreaded Voronoi tesellelation codes do exist, and these include
 `ParVoro++` [@WU2023102995], `CGAL` [@cgal2018], and `GEOGRAM` [@geogram2018].
@@ -101,8 +102,8 @@ array of neighbor indices of the sorted input dataset.
 Users can invoke `votess` in three ways: through the C++ library, a
 command-line interface `clvotess`, and a Python wrapper interface `pyvotess`.
 The C++ library offers a simple interface with a `tessellate` function that
-computes the mesh. The Python wrapper, pyvotess, mirrors the functionality of
-the C++ version, with native numpy array support, providing ease of use for
+computes the mesh. The Python wrapper, mirrors the functionality of the C++
+version, with native numpy array support, providing ease of use for
 Python-based workflows.
  
 The behavior of `votess` can be fine-tuned with run time parameters in order to
