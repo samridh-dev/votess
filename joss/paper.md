@@ -85,7 +85,7 @@ hulls and Voronoi diagrams using an indirect projection method
 [@10.1145/235815.235821], while `Voro++` is a C++ library specifically designed
 for three-dimensional Voronoi tessellations, utilizing a cell-based computation
 approach that is well-suited for physical applications [@rycroft2009voro].
- 
+
 We find that `votess` performs best on GPUs with large datasets. The CPU
 implementation can outperform other implementations by a factor of 10 to 100.
  
