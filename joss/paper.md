@@ -51,10 +51,10 @@ To do so, it uses the SYCL single-source framework abstraction. `votess` was
 designed to be portable yet performant, accessible to both developers and users
 with several easy-to-use interfaces.
  
-The underlying algorithm computes the Voronoi mesh cell-by-cell [@ray2018]. It
-produces the geometry of the Voronoi cells and their neighbor connectivity
-information, rather than a full combinatorial mesh data structure. This
-simplifies the method and makes it more ammenable to data parallel
+The underlying algorithm computes the Voronoi structure cell-by-cell
+[@ray2018]. It produces the geometry of the Voronoi cells and their neighbor
+connectivity information, rather than a full combinatorial mesh data structure.
+This simplifies the method and makes it more ammenable to data parallel
 architectures than alternatives such as sequential insertion or the
 Bowyer-Watson algorithm.
  
