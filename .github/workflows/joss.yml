@@ -31,7 +31,7 @@ jobs:
         with:
           name: paper
           path: joss/paper.tex
-      - name: Commit PDF to repository
+      - name: Commit TeX to repository
         uses: EndBug/add-and-commit@v9
         with:
           message: '(auto) Paper PDF Draft'
