@@ -26,13 +26,3 @@ jobs:
         with:
           message: '(auto) Paper PDF Draft'
           add: joss/paper.pdf
-      - name: Upload TeX
-        uses: actions/upload-artifact@v4
-        with:
-          name: paper
-          path: joss/paper.tex
-      - name: Commit TeX to repository
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: '(auto) Paper PDF Draft'
-          add: joss/paper.tex
