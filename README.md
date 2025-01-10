@@ -7,11 +7,6 @@ performant, but portable, and was also developed for applications only
 requiring the geometry of the voronoi diagram, for example in cosmological
 simulations, or K-means clustering.
 
-This library is part of my bachelor project, which was only made possible
-through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson from the Institute
-of Theoretical Astrophysics at Heidelberg University, and for that I owe my
-gratitude to them.
-
 ## Performance
 
 The following plot demonstrates the performance of Votess compared to other
@@ -242,3 +237,13 @@ support for CPU and GPU processing. For usage, refer to:
 ```bash
 ./clvotess --help
 ```
+
+## Acknowledgments
+Votess is part of my Bachelor's project at the Institute of Theoretical
+Astrophysics at Heidelberg University. The project was made possible only
+through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson, and for that,
+I expresses my sincere gratitude to them.
+
+## Note
+If you have questions, bug reports, or any suggestions for improvements, please
+feel free to open an issue or create a pull request. Contributions are welcome!
