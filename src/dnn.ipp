@@ -81,6 +81,7 @@ size_t votess::dnn<Ti>::size() const {
 
 template <typename Ti>
 void votess::dnn<Ti>::print() const {
+
   if (this->list.empty()) {
     std::cout<<"{}"<<std::endl;
     return;
@@ -100,7 +101,8 @@ void votess::dnn<Ti>::print() const {
     std::cout<<std::setw(1)<<i<<", ";
     index += 1;
   }
-  std::cout<<"\n}"<<std::endl;;
+  std::cout << "}\n}" << std::endl;
+
 }
 
 template <typename Ti>
