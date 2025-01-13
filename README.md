@@ -7,6 +7,8 @@ performant, but portable, and was also developed for applications only
 requiring the geometry of the voronoi diagram, for example in cosmological
 simulations, or K-means clustering.
 
+
+
 ## Performance
 
 The following plot demonstrates the performance of Votess compared to other
@@ -239,10 +241,9 @@ support for CPU and GPU processing. For usage, refer to:
 ```
 
 ## Acknowledgments
-Votess is part of my Bachelor's project at the Institute of Theoretical
-Astrophysics at Heidelberg University. The project was made possible only
-through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson, and for that,
-I expresses my sincere gratitude to them.
+Votess is part of Samridh Dev Singh's Bachelor's project at the Institute of
+Theoretical Astrophysics at Heidelberg University. The project was made
+possible only through the guidance of Dr. Chris Byrohl and Dr. Dylan Nelson.
 
 ## Note
 If you have questions, bug reports, or any suggestions for improvements, please
