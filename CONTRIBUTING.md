@@ -13,16 +13,15 @@ First off, thanks for taking the time to contribute to votess!
 > - Refer this project in your project's readme
 > - Mention the project at local meetups and tell your friends/colleagues
 
-
 ## Getting Started
 
-> - Fork the main repository and clone your fork locally:
-    ```bash
-    git clone https://github.com/<username>/votess.git
-    cd votess
-    ```
-> - Follow the Installation steps in the README to build the program.
-> - Run the test binary located in the bin/ directory to ensure all tests pass.
+- Fork the main repository and clone your fork locally:
+  ```bash
+  git clone https://github.com/<username>/votess.git
+  cd votess
+  ```
+- Follow the Installation steps in the README to build the program.
+- Run the test binary located in the bin/ directory to ensure all tests pass.
 
 Happy contributing! If you have any questions, feel free to reach out via
 Issues.
