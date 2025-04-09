@@ -42,7 +42,7 @@ The increasing size of datasets produced today have underscored the need for
 more efficient algorithms to both generate and analyse these datasets, and the
 rise of heterogenous computing facilities would enable such new algorithms to
 be run. There do exists several sequential and parallel implementations of the
-Voronoi Diagram problem [@Marot][@@WU2023102995][@cgal2018][@geogram2018],
+Voronoi Diagram problem [@Marot][@WU2023102995][@cgal2018][@geogram2018],
 however, they are mostly restricted to CPU or specific GPU architectures, thus
 limiting their potential as a portable multi-architecture algorithm. 
 
