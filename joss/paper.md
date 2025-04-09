@@ -30,11 +30,13 @@ bibliography: paper.bib
  
 The Voronoi tessellation is a spatial decomposition that partitions space into
 a set of convex hulls based on proximity to a discrete set of seed points. It
-is an interesting problem due to the applications in biology, data science,
-geography, and physics. A few examples exist in computational cosmology,
-initally pioneered by van de Weygeart [@], in the form of Optimal transport
-theory (elucidate?) [@], or in observational data analysis as well as numerical
-simulations of cosmic structure formation [@Springel2010]
+is an interesting problem due to its applications in biology, data science,
+geography, and physics. A few notable examples exist in computational
+cosmology—initially pioneered by van de Weygaert in the analysis of matter
+distribution [@weygeart], further developed through Optimal Transport theory
+for early-universe reconstruction [@opticaltransport], and also in
+observational data analysis and numerical simulations of cosmic structure
+formation [@Springel2010].
 
 The increasing size of datasets produced today have underscored the need for
 more efficient algorithms to both generate and analyse these datasets, and the
@@ -56,7 +58,7 @@ The core method of `votess` consists of two main steps. First, the input set of
 points is sorted into a grid, and a k-nearest neighbors search is performed.
 Once the k nearest neighbors are identified for each point, the Voronoi cell is
 computed by iteratively clipping a bounding box using the perpendicular
-bisectors between the point and the identified neighbors. A "security radius"
+bisectors between the point and the identified neighbors. A *security radius*
 condition [@securityradius] ensures that the resulting Voronoi cell is valid,
 and if the cell cannot be validated, an CPU fallback mechanism is used.
 
@@ -108,7 +110,6 @@ The behavior of `votess` can be fine-tuned with run time parameters in order to
 (optionally) optimize runtime performance. 
  
 # Acknowledgements
-
 CB and DN acknowledge funding from the Deutsche Forschungsgemeinschaft (DFG)
 through an Emmy Noether Research Group (grant number NE 2441/1-1).
 
