@@ -33,7 +33,7 @@ a set of convex hulls based on proximity to a discrete set of seed points. It
 is an interesting problem due to its applications in biology, data science,
 geography, and physics. A few notable examples exist in computational
 cosmology—initially pioneered by van de Weygaert in the analysis of matter
-distribution [@weygeart], further developed through Optimal Transport theory
+distribution [@weygaert], further developed through Optimal Transport theory
 for early-universe reconstruction [@opticaltransport], and also in
 observational data analysis and numerical simulations of cosmic structure
 formation [@Springel2010].
