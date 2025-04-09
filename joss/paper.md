@@ -40,9 +40,9 @@ The increasing size of datasets produced today have underscored the need for
 more efficient algorithms to both generate and analyse these datasets, and the
 rise of heterogenous computing facilities would enable such new algorithms to
 be run. There do exists several sequential and parallel implementations of the
-Voronoi Diagram problem [@Marot][@][@], however, they are mostly restricted to CPU
-or specific GPU architectures, thus limiting their potential as a portable
-multi-architecture algorithm. 
+Voronoi Diagram problem [@Marot][@@WU2023102995][@cgal2018][@geogram2018],
+however, they are mostly restricted to CPU or specific GPU architectures, thus
+limiting their potential as a portable multi-architecture algorithm. 
 
 # Summary
 
@@ -65,9 +65,10 @@ independently [@ray2018], making it suitable for parallel execution.  It also
 produces the geometry of the Voronoi cells via their neighbor connectivity
 information, rather than a full combinatorial mesh data structure, thus making
 it more ammenable to data parallel architectures than alternatives such as
-sequential insertion or the Bowyer-Watson algorithm.  Additionally, a grid
-based datastructure for the all-k-nearest-neighbors sub problem, succeeded with
-the iterative clipping enables better caching behaviour on the GPU.
+sequential insertion or the Bowyer-Watson algorithm [@boyer1][@watson1].
+Additionally, a grid based datastructure for the all-k-nearest-neighbors sub
+problem, succeeded with the iterative clipping enables better caching behaviour
+on the GPU.
 
 ## Performance
 
