@@ -28,55 +28,52 @@ bibliography: paper.bib
  
 # Statement of need
  
-The Voronoi tessellation is a spatial decomposition that uniquely partitions
-space into convex sub-regions based on proximity to a discrete set of
-generating points. It is widely used across scientific domains. In
-astrophysics, Voronoi meshes are used in observational data analysis as well as
-numerical simulations of cosmic structure formation [@Springel2010]. The
-increasing size of modern datasets has underscored the need for faster, more
-efficient algorithms and numerical methods. The rise of powerful many-core CPU
-and GPU architectures has greatly increased the available computational power.
- 
-However, most existing implementations of Voronoi tessellations are tailored to
-specific architectures, limiting their portability. Additionally, classic
-sequential insertion algorithms have difficulty using multi-core systems in a
-fully parallel manner. No general purpose, publicly available code capable of
-GPU-accelerated parallel Voronoi mesh generation in 3D space is available.
+The Voronoi tessellation is a spatial decomposition that partitions space into
+a set of convex hulls based on proximity to a discrete set of seed points. It
+is an interesting problem due to the applications in biology, data science,
+geography, and physics. A few examples exist in computational cosmology,
+initally pioneered by van de Weygeart [@], in the form of Optimal transport
+theory (elucidate?) [@], or in observational data analysis as well as numerical
+simulations of cosmic structure formation [@Springel2010]
+
+The increasing size of datasets produced today have underscored the need for
+more efficient algorithms to both generate and analyse these datasets, and the
+rise of heterogenous computing facilities would enable such new algorithms to
+be run. There do exists several sequential and parallel implementations of the
+Voronoi Diagram problem [@Marot][@][@], however, they are mostly restricted to CPU
+or specific GPU architectures, thus limiting their potential as a portable
+multi-architecture algorithm. 
 
 # Summary
 
 `votess` is a library for computing parallel 3D Voronoi tessellations on
 heterogeneous platforms, from CPUs to GPUs to future accelerator architectures.
-To do so, it uses the SYCL single-source framework abstraction. `votess` was
-designed to be portable yet performant, accessible to both developers and users
-with several easy-to-use interfaces.
- 
-The underlying algorithm computes the Voronoi structure cell-by-cell
-[@ray2018]. It produces the geometry of the Voronoi cells and their neighbor
-connectivity information, rather than a full combinatorial mesh data structure.
-This simplifies the method and makes it more ammenable to data parallel
-architectures than alternatives such as sequential insertion or the
-Bowyer-Watson algorithm.
+To do so, it uses the SYCL single-source framework abstraction in the C++
+language. `votess` was designed to be portable yet performant, accessible to
+both developers and users with several easy-to-use interfaces.
  
 The core method of `votess` consists of two main steps. First, the input set of
 points is sorted into a grid, and a k-nearest neighbors search is performed.
 Once the k nearest neighbors are identified for each point, the Voronoi cell is
 computed by iteratively clipping a bounding box using the perpendicular
-bisectors between the point and its nearby neighbors. A "security radius"
-condition ensures that the resulting Voronoi cell is valid. If a cell cannot be
-validated, an automatic CPU fallback mechanism ensures robustness.
- 
-This efficient algorithm allows for independent thread execution, making it
-highly suitable for multi-core CPUs as well as GPU parallelism. This
-independence of cell computations achieves significant speedups in parallel
-environments.
+bisectors between the point and the identified neighbors. A "security radius"
+condition [@securityradius] ensures that the resulting Voronoi cell is valid,
+and if the cell cannot be validated, an CPU fallback mechanism is used.
+
+One advantage of this algorithm is the ability for each cell to be computed
+independently [@ray2018], making it suitable for parallel execution.  It also
+produces the geometry of the Voronoi cells via their neighbor connectivity
+information, rather than a full combinatorial mesh data structure, thus making
+it more ammenable to data parallel architectures than alternatives such as
+sequential insertion or the Bowyer-Watson algorithm.  Additionally, a grid
+based datastructure for the all-k-nearest-neighbors sub problem, succeeded with
+the iterative clipping enables better caching behaviour on the GPU.
 
 ## Performance
 
 ![](./bar.png)
 
-As expected, `votess` significantly outperforms single-threaded
-alternatives.
+From the graph above, `votess` outperforms single-threaded alternatives.
  
 In Figure 1, we show its performance compared to two other single-threaded
 Voronoi tessellation libraries: `Qhull` and `Voro++`. Both are well-tested and

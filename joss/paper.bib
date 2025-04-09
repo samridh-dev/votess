@@ -71,3 +71,33 @@ abstract = {The Voronoi tessellation is a fundamental geometric data structure w
   year = {2018},
   url = {http://alice.loria.fr/software/geogram/doc/html/index.html}
 }
+
+@InProceedings{securityradius,
+author="L{\'e}vy, Bruno
+and Bonneel, Nicolas",
+editor="Jiao, Xiangmin
+and Weill, Jean-Christophe",
+title="Variational Anisotropic Surface Meshing with Voronoi Parallel Linear Enumeration",
+booktitle="Proceedings of the 21st International Meshing Roundtable",
+year="2013",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="349--366",
+abstract="This paper introduces a new method for anisotropic surface meshing. From an input polygonal mesh and a specified number of vertices, the method generates a curvature-adapted mesh. The main idea consists in transforming the 3d anisotropic space into a higher dimensional isotropic space (typically 6d or larger). In this high dimensional space, the mesh is optimized by computing a Centroidal Voronoi Tessellation (CVT), i.e. the minimizer of a C2 objective function that depends on the coordinates at the vertices (quantization noise power). Optimizing this objective function requires to compute the intersection between the (higher dimensional) Voronoi cells and the surface (Restricted Voronoi Diagram). The method overcomes the d-factorial cost of computing a Voronoi diagram of dimension d by directly computing the restricted Voronoi cells with a new algorithm that can be easily parallelized (Vorpaline: Voronoi Parallel Linear Enumeration). The method is demonstrated with several examples comprising CAD and scanned meshes.",
+isbn="978-3-642-33573-0"
+}
+
+@article{Marot,
+author = {Marot, Célestin and Pellerin, Jeanne and Remacle, Jean-François},
+title = {One machine, one minute, three billion tetrahedra},
+journal = {International Journal for Numerical Methods in Engineering},
+volume = {117},
+number = {9},
+pages = {967-990},
+keywords = {3D Delaunay triangulation, parallel delaunay, radix sort, SFC partitioning, tetrahedral mesh generation},
+doi = {https://doi.org/10.1002/nme.5987},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.5987},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/nme.5987},
+abstract = {Summary This paper presents a new scalable parallelization scheme to generate the 3D Delaunay triangulation of a given set of points. Our first contribution is an efficient serial implementation of the incremental Delaunay insertion algorithm. A simple dedicated data structure, an efficient sorting of the points, and the optimization of the insertion algorithm have permitted to accelerate reference implementations by a factor three. Our second contribution is a multithreaded version of the Delaunay kernel that is able to concurrently insert vertices. Moore curve coordinates are used to partition the point set, avoiding heavy synchronization overheads. Conflicts are managed by modifying the partitions with a simple rescaling of the space-filling curve. The performances of our implementation have been measured on three different processors: an Intel core-i7, an Intel Xeon Phi, and an AMD EPYC, on which we have been able to compute three billion tetrahedra in 53 seconds. This corresponds to a generation rate of over 55 million tetrahedra per second. We finally show how this very efficient parallel Delaunay triangulation can be integrated in a Delaunay refinement mesh generator, which takes as input the triangulated surface boundary of the volume to mesh.},
+year = {2019}
+}
