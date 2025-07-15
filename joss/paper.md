@@ -69,25 +69,20 @@ and if the cell cannot be validated, an CPU fallback mechanism is used.
 
 ![](./loglog.png)
 
-In Figure 1, we show its performance compared to two other single-threaded
-Voronoi tessellation libraries: `CGAL` and `Voro++`. Both are well-tested and
-widely used.  CGAL implements Voronoi Tesellations through a Delaunay mesh
-using the CPU in parallel [@cgal2018], while `Voro++` computes
-three-dimensional Voronoi tessellations in a single core via a cell-based
-computation approach that is well-suited for physical applications
-[@rycroft2009voro]. The benchmark uses a `float32` uniformly distributed
-dataset, as it is currently the simplest to test. From the results of
-[@ray2018], this dataset would provide the lowest performance, but higher than
-clustered datasets: datasets currently beyond the scope of the current version.
+In Figure 1, we benchmark votess against two well-established libraries: CGAL,
+which builds parallel CPU-based Delaunay meshes [@cgal2018], and Voro++, which
+performs single-core, cell-based 3D tessellations [@rycroft2009voro]. All tests
+use a float32 white-noise dataset, which provide a worst case scenario for
+uniform datasets [@ray2018]. The use of clustured datasets lies outside of both
+`votess` and the reference implementation [@ray2018], but remains in mind for
+future iterations of `votess`.  Other Multithreaded Voronoi tesellelation codes
+exist, including `ParVoro++` [@WU2023102995], and `GEOGRAM` [@geogram2018].
+However, they do not natively support GPU architectures, but are acknowledged
+as established alternatives.
 
-Other Multithreaded Voronoi tesellelation codes exist, including `ParVoro++`
-[@WU2023102995], and `GEOGRAM` [@geogram2018].  However, they do not natively
-support GPU architectures, and we are unable to benchmark them.
-
-From the graph above, `votess` outperforms the single-threaded alternative,
-however, when compared to the established CGAL, both the CPU and GPU version
-falls short by around a factor of 6. Currently the problem is being addressed,
-and future optimizations should close the gap.
+From the graph above, `votess` outperforms `Voro++`, however, when compared
+`CGAL`, both the CPU and GPU version falls short by around a factor of 6.
+Ongoing optimizations for both backends are underway to close this gap.
  
 # Features
 
