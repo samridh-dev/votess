@@ -51,7 +51,7 @@ computing parallel three dimensional Voronoi tessellations using the C++/SYCL
 framework for CPU, GPUs and other future architectures.
 
 One advantage of this algorithm is the ability for each cell to be computed
-independently [@ray2018], making it suitable for parallel execution.  It also
+independently [@ray2018], making it suitable for parallel execution. It also
 produces the geometry of the Voronoi cells via their neighbor connectivity
 information, rather than a full combinatorial mesh data structure, thus making
 it more ammenable to data parallel architectures than alternatives such as
@@ -67,23 +67,27 @@ and if the cell cannot be validated, an CPU fallback mechanism is used.
 
 ## Performance
 
-![](./bar.png)
+![](./loglog.png)
 
 In Figure 1, we show its performance compared to two other single-threaded
-Voronoi tessellation libraries: `Qhull` and `Voro++`. Both are well-tested and
-widely used. `Qhull` is a computational geometry library that constructs convex
-hulls and Voronoi diagrams using an indirect projection method
-[@10.1145/235815.235821], while `Voro++` is a C++ library specifically designed
-for three-dimensional Voronoi tessellations, utilizing a cell-based computation
-approach that is well-suited for physical applications [@rycroft2009voro].
+Voronoi tessellation libraries: `CGAL` and `Voro++`. Both are well-tested and
+widely used.  CGAL implements Voronoi Tesellations through a Delaunay mesh
+using the CPU in parallel [@cgal2018], while `Voro++` computes
+three-dimensional Voronoi tessellations in a single core via a cell-based
+computation approach that is well-suited for physical applications
+[@rycroft2009voro]. The benchmark uses a `float32` uniformly distributed
+dataset, as it is currently the simplest to test. From the results of
+[@ray2018], this dataset would provide the lowest performance, but higher than
+clustered datasets: datasets currently beyond the scope of the current version.
 
-From the graph above, `votess` outperforms single-threaded alternatives. We
-find that `votess` performs best on GPUs with large datasets. The CPU
-implementation can outperform other implementations by a factor of 10 to 100.
+Other Multithreaded Voronoi tesellelation codes exist, including `ParVoro++`
+[@WU2023102995], and `GEOGRAM` [@geogram2018].  However, they do not natively
+support GPU architectures, and we are unable to benchmark them.
 
-Multithreaded Voronoi tesellelation codes do exist, and these include
-`ParVoro++` [@WU2023102995], `CGAL` [@cgal2018], and `GEOGRAM` [@geogram2018].
-However, they do not natively support GPU architectures.
+From the graph above, `votess` outperforms the single-threaded alternative,
+however, when compared to the established CGAL, both the CPU and GPU version
+falls short by around a factor of 6. Currently the problem is being addressed,
+and future optimizations should close the gap.
  
 # Features
 
